@@ -1,6 +1,7 @@
 package game.map;
 
 import base.GraphAlgorithm;
+import base.Node;
 import base.Edge;
 import base.Graph;
 import game.Player;
@@ -50,6 +51,12 @@ public class PathFinding extends GraphAlgorithm<Castle> {
         } else {
             return false;
         }
+    }
+
+
+    @Override
+    protected boolean isPassable(Node<Castle> node) {
+        return node.getValue().getOwner() == currentPlayer;
     }
 
     public List<Edge<Castle>> getPath(Castle targetCastle) {

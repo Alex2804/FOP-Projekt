@@ -46,7 +46,7 @@ public abstract class GraphAlgorithm<T> {
         this.algorithmNodes = new HashMap<>();
 
         for(Node<T> node : graph.getNodes())
-            this.algorithmNodes.put(node, new AlgorithmNode<>(sourceNode, null, -1));
+            this.algorithmNodes.put(node, new AlgorithmNode<>(node, null, -1));
 
         this.algorithmNodes.get(sourceNode).value = 0;
     }
@@ -115,4 +115,11 @@ public abstract class GraphAlgorithm<T> {
      * @return true, wenn die Kante passierbar ist.
      */
     protected abstract boolean isPassable(Edge<T> edge);
+
+    /**
+     * Gibt an, ob eine Knoten passierbar ist.
+     * @param node Eine Knoten
+     * @return true, wenn der Knoten passierbar ist.
+    */
+    protected abstract boolean isPassable(Node<T> node);
 }

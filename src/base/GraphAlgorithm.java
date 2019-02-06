@@ -58,8 +58,19 @@ public abstract class GraphAlgorithm<T> {
      * @return Der nächste abzuarbeitende Knoten oder null
      */
     private AlgorithmNode<T> getSmallestNode() {
-        // TODO: GraphAlgorithm<T>#getSmallestNode()
-        return null;
+        Iterator<Node<T>> iterator = availableNodes.iterator();
+        Node<T> nextNode, bestNode = null;
+        AlgorithmNode<T> nextAlgorithmNode, bestAlgorithmNode = null;
+        while(iterator.hasNext()){
+            nextNode = iterator.next();
+            nextAlgorithmNode = algorithmNodes.get(nextNode);
+            if(bestAlgorithmNode == null || nextAlgorithmNode.value > bestAlgorithmNode.value){
+                bestAlgorithmNode = nextAlgorithmNode;
+                bestNode = nextNode;
+            }
+        }
+        availableNodes.remove(bestNode);
+        return bestAlgorithmNode;
     }
 
     /**
@@ -78,7 +89,23 @@ public abstract class GraphAlgorithm<T> {
      * @see Edge#getOtherNode(Node)
      */
     public void run() {
-        // TODO: GraphAlgorithm<T>#run()
+        AlgorithmNode<T> algorithmNode = null, otherAlgorithmNode;
+        List<Edge<T>> edges;
+        double newValue;
+        while(algorithmNode != null){
+            edges = graph.getEdges(algorithmNode.node);
+            for(Edge<T> edge : edges){
+                if(isPassable(edge)){
+                    otherAlgorithmNode = algorithmNodes.get(edge.getOtherNode(algorithmNode.node));
+                    newValue = algorithmNode.value + getValue(edge);
+                    if(otherAlgorithmNode.value == -1 || newValue < otherAlgorithmNode.value){
+                        otherAlgorithmNode.previous = algorithmNode;
+                        otherAlgorithmNode.value = newValue;
+                    }
+                }
+            }
+            algorithmNode = getSmallestNode();
+        }
     }
 
     /**
@@ -89,8 +116,19 @@ public abstract class GraphAlgorithm<T> {
      * @return eine Liste von Kanten oder null
      */
     public List<Edge<T>> getPath(Node<T> destination) {
-        // TODO: GraphAlgorithm<T>#getPath(Node<T>)
-        return null;
+        if(destination == null || algorithmNodes.get(destination) == null || algorithmNodes.get(destination).previous == null)
+            return  null;
+        AlgorithmNode<T> algorithmNode = algorithmNodes.get(destination);
+        List<Edge<T>> list = new ArrayList<>();
+        while(algorithmNode.previous != null){
+            list.add(graph.getEdge(algorithmNode.node, algorithmNode.previous.node));
+            algorithmNode = algorithmNode.previous;
+        }
+        List<Edge<T>> returnList = new LinkedList<>();
+        for(int i = list.size()-1; i >= 0; i--){
+            returnList.add(list.get(i));
+        }
+        return returnList;
     }
 
     /**

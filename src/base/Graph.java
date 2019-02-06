@@ -1,11 +1,14 @@
 package base;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import game.map.Castle;
 
@@ -78,8 +81,7 @@ public class Graph<T> {
      * @return Eine Liste aller Knotenwerte
      */
     public List<T> getAllValues() {
-        // TODO: Graph<T>#getAllValues()
-        return new ArrayList<>();
+        return nodes.stream().map(Node::getValue).collect(Collectors.toList());
     }
 
     /**
@@ -90,8 +92,7 @@ public class Graph<T> {
      * @return Die Liste aller zum Knoten zugehörigen Kanten
      */
     public List<Edge<T>> getEdges(Node<T> node) {
-        // TODO: Graph<T>#getEdges(Node<T>)
-        return new ArrayList<>();
+        return edges.stream().filter(e -> e.contains(node)).collect(Collectors.toList());
     }
 
     /**
@@ -102,8 +103,7 @@ public class Graph<T> {
      * @return Die Kante zwischen beiden Knoten oder null
      */
     public Edge<T> getEdge(Node<T> nodeA, Node<T> nodeB) {
-        // TODO: Graph<T>#getEdge(Node<T>, Node<T>)
-        return null;
+        return edges.stream().filter(e -> e.contains(nodeA) && e.contains(nodeB)).findFirst().orElse(null);
     }
 
     /**
@@ -112,8 +112,7 @@ public class Graph<T> {
      * @return Ein Knoten mit dem angegebenen Wert oder null
      */
     public Node<T> getNode(T value) {
-        // TODO: Graph<T>#getNode(T)
-        return null;
+        return nodes.stream().filter(n -> value.equals(n.getValue())).findFirst().orElse(null);
     }
     
     /**
@@ -121,7 +120,29 @@ public class Graph<T> {
      * @return true, wenn alle Knoten erreichbar sind
      */
     public boolean allNodesConnected() {
-    	// TODO: Graph<T>#allNodesConnected()
-        return false;
+        if(nodes.size() == 0){
+            return true;
+        }
+        return (nodes.size() == allNodesConnectedHelper(nodes.get(0), new ArrayList<>(Arrays.asList(nodes.get(0))), getEdges(nodes.get(0))).size());
+    }
+
+    /**
+     * helper function for allNodesConnected
+     * checks recursively if all nodes are reachable
+     * @param node current node
+     * @param nodes passed nodes
+     * @param edges edges of current node
+     * @return a list with all reachable nodes from the current node
+     */
+    private List<Node<T>> allNodesConnectedHelper(Node<T> node, List<Node<T>> nodes, List<Edge<T>> edges){
+        Node<T> other;
+        for(Edge<T> edge : edges){
+            other = edge.getOtherNode(node);
+            if(!nodes.contains(other)){
+                nodes.add(other);
+                nodes = allNodesConnectedHelper(other, nodes, getEdges(other));
+            }
+        }
+        return nodes;
     }
 }

@@ -38,4 +38,6 @@ public class GameConstants {
         BasicAI.class,
         // TODO: Add more Player types, like different AIs
     };
+
+    public static final int MAX_EDGE_COUNT = 4;
 }

@@ -7,7 +7,9 @@ import gui.Resources;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Diese Klasse representiert das Spielfeld. Sie beinhaltet das Hintergrundbild, welches mit Perlin noise erzeugt wurde,
@@ -151,7 +153,57 @@ public class GameMap {
      * jede Burg mit allen anderen in einem bestimmten Radius nochmals verbunden
      */
     private void generateEdges() {
-    	 // TODO: GameMap#generateEdges()
+        List<Node<Castle>> nodes = new LinkedList<>(castleGraph.getNodes());
+        if(nodes.size() <= 0)
+            return;
+        Node<Castle> currentNode = nodes.get(0), nextNode;
+        nodes.remove(0);
+        while(nodes.size() != 0){
+            nextNode = getNearestNode(currentNode, nodes);
+            castleGraph.addEdge(currentNode, nextNode);
+            nodes.remove(nextNode);
+            currentNode = nextNode;
+        }
+
+        nodes = castleGraph.getNodes();
+        List<Edge<Castle>> edges;
+        List<Node<Castle>> tempNodes;
+        int edgeCount;
+        Random random = new Random();
+        for(Node<Castle> node : nodes){
+            tempNodes = new LinkedList<>(nodes);
+            castleGraph.getEdges(node);
+            edges = castleGraph.getEdges(node);
+            edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT) - edges.size();
+            while(edges.size() > 0){
+                tempNodes.remove(edges.get(0).getOtherNode(node));
+            }
+            while(edgeCount > 0){
+                nextNode = getNearestNode(node, tempNodes);
+                tempNodes.remove(nextNode);
+                castleGraph.addEdge(node, nextNode);
+                --edgeCount;
+            }
+        }
+    }
+
+    /**
+     * finds the node from nodes containing the castle with the smallest distance to the castle of node
+     * @param node - one node of edge
+     * @param nodes - available nodes (mustn't contain node)
+     * @return the node with the smallest distance
+     */
+    private Node<Castle> getNearestNode(Node<Castle> node, List<Node<Castle>> nodes){
+        Node<Castle> bestNode = null;
+        double smallestDistance = 0, currentDistance;
+        for(Node<Castle> n : nodes){
+            currentDistance = node.getValue().distance(n.getValue());
+            if(currentDistance < smallestDistance || bestNode == null){
+                smallestDistance = currentDistance;
+                bestNode = n;
+            }
+        }
+        return bestNode;
     }
 
     /**
@@ -206,7 +258,7 @@ public class GameMap {
 
     /**
      * Generiert eine Liste von Zufallsnamen für Burgen. Dabei wird ein Prefix (Schloss, Burg oder Festung) an einen
-     * vorhandenen Namen aus den Resourcen angefügt. Siehe auch: {@link Resources#getcastleNames()}
+     * vorhandenen Namen aus den Resourcen angefügt. Siehe auch: {@link Resources#getCastleNames()}
      * @return eine Liste mit Zufallsnamen
      */
     private List<String> generateCastleNames() {

@@ -58,6 +58,8 @@ public abstract class GraphAlgorithm<T> {
      * @return Der nächste abzuarbeitende Knoten oder null
      */
     private AlgorithmNode<T> getSmallestNode() {
+        if(availableNodes.isEmpty())
+            return null;
         Iterator<Node<T>> iterator = availableNodes.iterator();
         Node<T> nextNode, bestNode = null;
         AlgorithmNode<T> nextAlgorithmNode, bestAlgorithmNode = null;
@@ -89,7 +91,7 @@ public abstract class GraphAlgorithm<T> {
      * @see Edge#getOtherNode(Node)
      */
     public void run() {
-        AlgorithmNode<T> algorithmNode = null, otherAlgorithmNode;
+        AlgorithmNode<T> algorithmNode = getSmallestNode(), otherAlgorithmNode;
         List<Edge<T>> edges;
         double newValue;
         while(algorithmNode != null){
@@ -124,11 +126,8 @@ public abstract class GraphAlgorithm<T> {
             list.add(graph.getEdge(algorithmNode.node, algorithmNode.previous.node));
             algorithmNode = algorithmNode.previous;
         }
-        List<Edge<T>> returnList = new LinkedList<>();
-        for(int i = list.size()-1; i >= 0; i--){
-            returnList.add(list.get(i));
-        }
-        return returnList;
+        Collections.reverse(list);
+        return list;
     }
 
     /**

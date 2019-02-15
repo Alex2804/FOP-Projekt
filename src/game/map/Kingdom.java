@@ -2,6 +2,7 @@ package game.map;
 
 import game.Player;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class Kingdom {
 
     private List<Castle> castles;
     private int type;
+    private Point location;
 
     /**
      * Erstellt ein neues Königreich
@@ -21,6 +23,42 @@ public class Kingdom {
     public Kingdom(int type) {
         this.castles = new LinkedList<>();
         this.type = type;
+        location = new Point(0, 0);
+    }
+
+    /**
+     * Erstellt ein neues Königreich
+     * @param type der Type des Königreiches (im Bereich 0-5)
+     * @param x die x position des Königreiches
+     * @param y die y position des Königreiches
+     */
+    public Kingdom(int type, int x, int y){
+        this.castles = new LinkedList<>();
+        this.type = type;
+        location = new Point(x, y);
+    }
+
+    /**
+     * sets the location
+     * @param location the new location
+     */
+    public void setLocation(Point location){
+        this.location = location;
+    }
+    /**
+     * sets the location
+     * @param x new x location
+     * @param y new y location
+     */
+    public void setLocation(int x, int y){
+        setLocation(new Point(x, y));
+    }
+
+    /**
+     * @return the location of the kingdom
+     */
+    public Point getLocation(){
+        return location;
     }
 
     /**

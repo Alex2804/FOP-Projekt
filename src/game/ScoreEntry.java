@@ -53,7 +53,10 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
      * @param printWriter der PrintWriter, mit dem der Eintrag geschrieben wird
      */
     public void write(PrintWriter printWriter) {
-        // TODO: ScoreEntry#write(PrintWriter)
+        if(getName() == null || getName().isEmpty() || getDate() == null || getMode() == null || getMode().isEmpty())
+            return;
+        String s = getName() + ";" + getDate().getTime() + ";" + getScore() + ";" + getMode();
+        printWriter.println(s);
     }
 
     /**
@@ -73,7 +76,18 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
      * @return Ein ScoreEntry-Objekt oder null
      */
     public static ScoreEntry read(String line) {
-        // TODO: ScoreEntry#read(String)
+        boolean syntax = false;
+        for(Goal goal : GameConstants.GAME_GOALS){ // check for every goal
+            if(line.matches(".+;\\d+;\\d+;" + goal.getName())) // check syntax
+                syntax = true;
+        }
+        if(syntax){
+            String[] l = line.split(";");
+            Date date = new Date(Integer.parseInt(l[1]));
+            int score = Integer.parseInt(l[2]);
+            ScoreEntry scoreEntry = new ScoreEntry(l[0], score, date, l[3]);
+            return scoreEntry;
+        }
         return null;
     }
 

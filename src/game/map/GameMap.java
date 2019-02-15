@@ -154,11 +154,11 @@ public class GameMap {
      */
     private void generateEdges() {
         List<Node<Castle>> nodes = new LinkedList<>(castleGraph.getNodes());
-        if(nodes.size() <= 0)
+        if(nodes.isEmpty())
             return;
         Node<Castle> currentNode = nodes.get(0), nextNode;
         nodes.remove(0);
-        while(nodes.size() != 0){
+        while(!nodes.isEmpty()){
             nextNode = getNearestNode(currentNode, nodes);
             castleGraph.addEdge(currentNode, nextNode);
             nodes.remove(nextNode);
@@ -175,14 +175,13 @@ public class GameMap {
             castleGraph.getEdges(node);
             edges = castleGraph.getEdges(node);
             edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT) - edges.size();
-            while(edges.size() > 0){
-                tempNodes.remove(edges.get(0).getOtherNode(node));
+            while(!edges.isEmpty()){
+                tempNodes.remove(edges.remove(0).getOtherNode(node));
             }
-            while(edgeCount > 0){
+            while(edgeCount-- > 0){
                 nextNode = getNearestNode(node, tempNodes);
                 tempNodes.remove(nextNode);
                 castleGraph.addEdge(node, nextNode);
-                --edgeCount;
             }
         }
     }
@@ -212,7 +211,7 @@ public class GameMap {
      */
     private void generateKingdoms(int kingdomCount) {
         if(kingdomCount > 0 && kingdomCount < castleGraph.getAllValues().size()) {
-            Clustering clustering = new Clustering(castleGraph.getAllValues(), kingdomCount);
+            Clustering clustering = new Clustering(this, castleGraph.getAllValues(), kingdomCount);
             kingdoms = clustering.getPointsClusters();
         } else {
             kingdoms = new ArrayList<>();

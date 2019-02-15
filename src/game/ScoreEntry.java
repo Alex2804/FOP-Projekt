@@ -106,4 +106,12 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
     public String getMode() {
         return this.gameType;
     }
+
+    public static void main(String[] args) {
+        PrintWriter writer = new PrintWriter(System.out, true);
+        System.out.println(ScoreEntry.read(""));
+        System.out.println(ScoreEntry.read("a;a;a;a"));
+        System.out.println(ScoreEntry.read("a;1;1;a"));
+        ScoreEntry.read("AlexIstToll;1;1;Eroberung").write(writer);
+    }
 }

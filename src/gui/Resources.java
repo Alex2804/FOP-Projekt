@@ -175,14 +175,19 @@ public class Resources {
      * @see ScoreEntry#compareTo(ScoreEntry)
      */
     public void addScoreEntry(ScoreEntry scoreEntry) {
-        int i = scoreEntries.size() - 1;
-        for(; i >= 0; i--) {
-            if(scoreEntry.compareTo(scoreEntries.get(i)) < 0) {
-                break;
+        if(scoreEntry == null)
+            return;
+        ListIterator<ScoreEntry> iterator = scoreEntries.listIterator(); // replaced crappy index implementation with iterator ... never use indices on LinkedList ... it hurts to see something like this
+        ScoreEntry next;
+        while(iterator.hasNext()){
+            next = iterator.next();
+            if(next.compareTo(scoreEntry) < 0){
+                iterator.previous();
+                iterator.add(scoreEntry);
+                return;
             }
         }
-
-        scoreEntries.add(i + 1, scoreEntry);
+        iterator.add(scoreEntry);
     }
 
     public List<ScoreEntry> getScoreEntries() {

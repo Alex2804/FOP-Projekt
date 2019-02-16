@@ -48,6 +48,7 @@ public class Clustering {
         boolean changed = true;
         Map<Castle, Kingdom> map = new HashMap<>();
         while(changed){
+            changed = false;
             Kingdom tempKingdom;
             for(Castle castle : allCastles){
                 Kingdom kingdom = getNearest(kingdoms, castle);
@@ -64,10 +65,12 @@ public class Clustering {
                 oldLocation = kingdom.getLocation();
                 int x = kingdom.getCastles().stream().mapToInt(castle -> castle.getLocationOnMap().x).sum();
                 int y = kingdom.getCastles().stream().mapToInt(castle -> castle.getLocationOnMap().y).sum();
-                Point newLocation = new Point(x / kingdom.getCastles().size(), y / kingdom.getCastles().size());
-                if(!newLocation.equals(oldLocation)){
-                    kingdom.setLocation(newLocation);
-                    changed = true;
+                if(!kingdom.getCastles().isEmpty()){
+                    Point newLocation = new Point(x / kingdom.getCastles().size(), y / kingdom.getCastles().size());
+                    if(!newLocation.equals(oldLocation)){
+                        kingdom.setLocation(newLocation);
+                        changed = true;
+                    }
                 }
             }
         }

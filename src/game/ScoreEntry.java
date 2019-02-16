@@ -85,8 +85,7 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
             String[] l = line.split(";");
             Date date = new Date(Integer.parseInt(l[1]));
             int score = Integer.parseInt(l[2]);
-            ScoreEntry scoreEntry = new ScoreEntry(l[0], score, date, l[3]);
-            return scoreEntry;
+            return new ScoreEntry(l[0], score, date, l[3]);
         }
         return null;
     }
@@ -105,13 +104,5 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
 
     public String getMode() {
         return this.gameType;
-    }
-
-    public static void main(String[] args) {
-        PrintWriter writer = new PrintWriter(System.out, true);
-        System.out.println(ScoreEntry.read(""));
-        System.out.println(ScoreEntry.read("a;a;a;a"));
-        System.out.println(ScoreEntry.read("a;1;1;a"));
-        ScoreEntry.read("AlexIstToll;1;1;Eroberung").write(writer);
     }
 }

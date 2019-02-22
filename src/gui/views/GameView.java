@@ -10,10 +10,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import game.AI;
-import game.Game;
-import game.GameInterface;
-import game.Player;
+import game.*;
 import game.map.Castle;
 import gui.GameWindow;
 import gui.View;
@@ -27,7 +24,7 @@ public class GameView extends View implements GameInterface {
     private JTextPane txtStats;
     private DicePanel dices;
     private JTextPane gameLog;
-    private JButton button;
+    private JButton button, jokerButton;
     private Game game;
 
     GameView(GameWindow gameWindow, Game game) {
@@ -62,13 +59,14 @@ public class GameView extends View implements GameInterface {
 
         txtStats.setSize(sidebarWidth, 50 + 20 * game.getPlayers().size());
         dices.setSize(sidebarWidth, 50);
-        scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - BUTTON_SIZE.height);
+        scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - 2 * BUTTON_SIZE.height);
         scrollLog.revalidate();
         scrollLog.repaint();
         
         button.setSize(sidebarWidth, BUTTON_SIZE.height);
+        jokerButton.setSize(button.getSize());
 
-        JComponent components[] = { txtStats, dices, scrollLog, button};
+        JComponent components[] = { txtStats, dices, jokerButton, scrollLog, button};
         for(JComponent component : components) {
             component.setLocation(x, y);
             y += 10 + component.getHeight();
@@ -92,6 +90,7 @@ public class GameView extends View implements GameInterface {
         this.scrollLog = new JScrollPane(gameLog);
         this.add(scrollLog);
         this.button = createButton("Nächste Runde");
+        this.jokerButton = createButton("Joker");
 
         getWindow().setSize(1080, 780);
         getWindow().setMinimumSize(new Dimension(750, 450));
@@ -142,6 +141,11 @@ public class GameView extends View implements GameInterface {
 
                     break;
             }
+        }else if(actionEvent.getSource() == jokerButton){
+            boolean used = game.getCurrentPlayer().useJoker();
+            jokerButton.setEnabled(game.getCurrentPlayer().hasJoker());
+            if(used)
+                logLine("%PLAYER% hat den Joker eingesetzt und erhält " + GameConstants.JOKER_TROOP_COUNT + " zusätzliche Truppen!", game.getCurrentPlayer());
         }
     }
 
@@ -217,6 +221,7 @@ public class GameView extends View implements GameInterface {
 
     @Override
     public void onNextTurn(Player currentPlayer, int troopsGot, boolean human) {
+        jokerButton.setEnabled(currentPlayer.hasJoker());
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 
         if(game.getRound() == 1)

@@ -15,11 +15,14 @@ public abstract class Player {
     private int points;
     private int remainingTroops;
 
+    private boolean hasJoker;
+
     protected Player(String name, Color color) {
         this.name = name;
         this.points = 0;
         this.color = color;
         this.remainingTroops = 0;
+        hasJoker = true;
     }
 
     public int getRemainingTroops() {
@@ -84,5 +87,17 @@ public abstract class Player {
     public void reset() {
         this.remainingTroops = 0;
         this.points = 0;
+    }
+
+    public boolean useJoker() {
+        if(!hasJoker())
+            return false;
+        addTroops(GameConstants.JOKER_TROOP_COUNT);
+        hasJoker = false;
+        return true;
+    }
+
+    public boolean hasJoker(){
+        return hasJoker;
     }
 }

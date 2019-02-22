@@ -15,6 +15,8 @@ public class GameConstants {
     public static final int CASTLES_AT_BEGINNING = 3;
     public static final int TROOPS_PER_ROUND_DIVISOR = 3;
 
+    public static final int JOKER_TROOP_COUNT = 3;
+
     public static final Color COLOR_WATER = Color.BLUE;
     public static final Color COLOR_SAND  = new Color(210, 170, 109);
     public static final Color COLOR_GRASS = new Color(50, 89, 40);

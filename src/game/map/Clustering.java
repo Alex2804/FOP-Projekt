@@ -41,10 +41,11 @@ public class Clustering {
     public List<Kingdom> getPointsClusters() {
         List<Kingdom> kingdoms = new ArrayList<>(kingdomCount);
         for(int i=0; i<kingdomCount; i++){
-            Kingdom kingdom = new Kingdom(i%6);
-            kingdom.setLocation(random.nextInt(gameMap.getWidth()), random.nextInt(gameMap.getHeight()));
+            Kingdom kingdom = new Kingdom(i%6); // id's from 1 to 5 dependent on the index (if more than 5 kingdoms, same id multiple times)
+            kingdom.setLocation(random.nextInt(gameMap.getWidth() + 1), random.nextInt(gameMap.getHeight() + 1)); // +1 because bounds are exclusive
             kingdoms.add(kingdom);
         }
+
         boolean changed = true;
         Map<Castle, Kingdom> map = new HashMap<>();
         while(changed){

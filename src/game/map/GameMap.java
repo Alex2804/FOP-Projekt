@@ -154,34 +154,40 @@ public class GameMap {
      */
     private void generateEdges() {
         List<Node<Castle>> nodes = new LinkedList<>(castleGraph.getNodes());
+        List<Node<Castle>> tempNodes = nodes;
         if(nodes.isEmpty())
             return;
         Node<Castle> currentNode = nodes.get(0), nextNode;
         nodes.remove(0);
         while(!nodes.isEmpty()){
-            nextNode = getNearestNode(currentNode, nodes);
+            if(nodes.size() == 1){
+                tempNodes = new LinkedList<>(castleGraph.getNodes());
+                tempNodes.remove(currentNode);
+            }
+            nextNode = getNearestNode(currentNode, tempNodes);
             castleGraph.addEdge(currentNode, nextNode);
+            if(nodes.size() == 1)
+                nodes.clear(); // finish algorithm
             nodes.remove(nextNode);
             currentNode = nextNode;
         }
 
         nodes = castleGraph.getNodes();
         List<Edge<Castle>> edges;
-        List<Node<Castle>> tempNodes;
         int edgeCount;
         Random random = new Random();
         for(Node<Castle> node : nodes){
             tempNodes = new LinkedList<>(nodes);
-            castleGraph.getEdges(node);
+            tempNodes.remove(node); // remove current edge
             edges = castleGraph.getEdges(node);
-            edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT) - edges.size();
+            edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT + 1) - edges.size(); // random edge count
             while(!edges.isEmpty()){
-                tempNodes.remove(edges.remove(0).getOtherNode(node));
+                tempNodes.remove(edges.remove(0).getOtherNode(node)); // remove nodes with existing edges
             }
             while(edgeCount-- > 0){
-                nextNode = getNearestNode(node, tempNodes);
-                tempNodes.remove(nextNode);
-                castleGraph.addEdge(node, nextNode);
+                nextNode = getNearestNode(node, tempNodes); // edge to nearest other node
+                tempNodes.remove(nextNode); // remove other node
+                castleGraph.addEdge(node, nextNode); // add edge
             }
         }
     }

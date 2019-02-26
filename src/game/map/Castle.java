@@ -133,4 +133,14 @@ public class Castle {
         if(kingdom != null)
             kingdom.addCastle(this);
     }
+    /**
+     * Die Burg einem Königreich zuordnen. Die Methode ruft {@link Castle#setKingdom(Kingdom)} auf und entfernt
+     * zusätzlich das castle aus dem alten kingdom
+     * @param kingdom Ein Königreich oder null
+     */
+    public void replaceKingdom(Kingdom kingdom) {
+        if(this.kingdom != null)
+            this.kingdom.removeCastle(this);
+        setKingdom(kingdom);
+    }
 }

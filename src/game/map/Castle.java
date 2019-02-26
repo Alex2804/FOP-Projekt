@@ -31,6 +31,14 @@ public class Castle {
         this.name = name;
     }
 
+    public Castle copy() {
+        Castle castle = new Castle(location, name);
+        castle.troopCount = troopCount;
+        castle.owner = owner;
+        castle.kingdom = kingdom;
+        return castle;
+    }
+
     public Player getOwner() {
         return this.owner;
     }

@@ -15,7 +15,7 @@ public abstract class Player {
     private int points;
     private int remainingTroops;
 
-    private boolean hasJoker;
+    protected boolean hasJoker;
 
     protected Player(String name, Color color) {
         this.name = name;
@@ -79,9 +79,16 @@ public abstract class Player {
     public int getNumRegions(Game game) {
         return this.getCastles(game).size();
     }
+    public int getNumRegions(List<Castle> castles) {
+        return getCastles(castles).size();
+    }
 
     public List<Castle> getCastles(Game game) {
-        return game.getMap().getCastles().stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
+        return getCastles(game.getMap().getCastles());
+        //return game.getMap().getCastles().stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
+    }
+    public List<Castle> getCastles(List<Castle> castles){
+        return castles.stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
     }
 
     public void reset() {
@@ -89,6 +96,10 @@ public abstract class Player {
         this.points = 0;
     }
 
+    /**
+     * uses the joker
+     * @return if the joker was used
+     */
     public boolean useJoker() {
         if(!hasJoker())
             return false;
@@ -97,7 +108,15 @@ public abstract class Player {
         return true;
     }
 
+    /**
+     * @return if the player has a joker
+     */
     public boolean hasJoker(){
         return hasJoker;
     }
+
+    /**
+     * @return acopy of the player object
+     */
+    public abstract Player copy();
 }

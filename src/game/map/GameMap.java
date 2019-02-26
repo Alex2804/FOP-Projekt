@@ -154,21 +154,19 @@ public class GameMap {
      */
     private void generateEdges() {
         List<Node<Castle>> nodes = new LinkedList<>(castleGraph.getNodes());
-        List<Node<Castle>> tempNodes;
+        List<Node<Castle>> tempNodes = new LinkedList<>(nodes);
         if(nodes.isEmpty())
             return;
-        Node<Castle> currentNode = nodes.get(0), nextNode, tempNode;
+        Node<Castle> currentNode = nodes.get(0), nextNode;
         nodes.remove(0);
         while(!nodes.isEmpty()){
             nextNode = getNearestNode(currentNode, nodes);
-            tempNode = nextNode;
-            if(nodes.size() == 1){
-                tempNodes = new LinkedList<>(castleGraph.getNodes());
-                tempNodes.remove(currentNode);
-                tempNode = getNearestNode(currentNode, tempNodes);
-            }
-            castleGraph.addEdge(currentNode, tempNode);
             nodes.remove(nextNode);
+            if(nodes.isEmpty()){
+                tempNodes.remove(nextNode);
+                currentNode = getNearestNode(nextNode, tempNodes);
+            }
+            castleGraph.addEdge(currentNode, nextNode);
             currentNode = nextNode;
         }
 

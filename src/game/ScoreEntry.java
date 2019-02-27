@@ -83,7 +83,7 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
         }
         if(syntax){
             String[] l = line.split(";");
-            Date date = new Date(Integer.parseInt(l[1]));
+            Date date = new Date(Long.parseLong(l[1]));
             int score = Integer.parseInt(l[2]);
             return new ScoreEntry(l[0], score, date, l[3]);
         }

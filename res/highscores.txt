@@ -1,0 +1,2 @@
+Spieler 2;1551278450251;1110;Eroberung
+Spieler 1;1551278450251;245;Eroberung

@@ -5,7 +5,6 @@ import base.Node;
 import base.Edge;
 import base.Graph;
 import game.Player;
-import game.map.Castle;
 import gui.components.MapPanel;
 
 import java.util.List;

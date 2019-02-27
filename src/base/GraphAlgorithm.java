@@ -66,10 +66,14 @@ public abstract class GraphAlgorithm<T> {
         while(iterator.hasNext()){
             nextNode = iterator.next();
             nextAlgorithmNode = algorithmNodes.get(nextNode);
-            if(bestAlgorithmNode == null || nextAlgorithmNode.value > bestAlgorithmNode.value){
+            if((bestAlgorithmNode == null || nextAlgorithmNode.value < bestAlgorithmNode.value) && nextAlgorithmNode.value != -1){
                 bestAlgorithmNode = nextAlgorithmNode;
                 bestNode = nextNode;
             }
+        }
+        if(bestAlgorithmNode == null){
+            bestNode = availableNodes.get(0);
+            bestAlgorithmNode = algorithmNodes.get(bestNode);
         }
         availableNodes.remove(bestNode);
         return bestAlgorithmNode;
@@ -122,8 +126,12 @@ public abstract class GraphAlgorithm<T> {
             return  null;
         AlgorithmNode<T> algorithmNode = algorithmNodes.get(destination);
         List<Edge<T>> list = new ArrayList<>();
+        List<AlgorithmNode<T>> passedNodes = new LinkedList<>();
         while(algorithmNode.previous != null){
             list.add(graph.getEdge(algorithmNode.node, algorithmNode.previous.node));
+            passedNodes.add(algorithmNode);
+            if(passedNodes.contains(algorithmNode.previous)) // if there is a infinite cycle
+                return null; // there is no path
             algorithmNode = algorithmNode.previous;
         }
         Collections.reverse(list);

@@ -252,7 +252,7 @@ public class GameMap {
             edges = castleGraph.getEdges(castleGraph.getNodes(kingdom.getCastles()));
             edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT_KINGDOMS + 1); // random edge count
             for(Edge<Castle> edge : edges){
-                if(!castles.contains(edge.getNodeA().getValue()) || !castles.contains(edge.getNodeB().getValue())){
+                if(!castles.contains(edge.getNodeA().getValue()) || !castles.contains(edge.getNodeB().getValue())){ //TODO: Nullpointer
                     castleRelation.add(new Pair<>(edge.getNodeB().getValue(), edge.getNodeA().getValue()));
                     --edgeCount;
                 }

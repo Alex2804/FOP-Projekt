@@ -197,7 +197,8 @@ public class GameMap {
             while(edgeCount-- > 0){
                 nextNode = getNearestNode(node, tempNodes2); // edge to nearest other node
                 tempNodes2.remove(nextNode); // remove other node
-                graph.addEdge(node, nextNode); // add edge
+                if(nextNode != null)
+                    graph.addEdge(node, nextNode); // add edge
             }
         }
     }
@@ -214,13 +215,22 @@ public class GameMap {
             generateEdges();
             return;
         }
-        for(Kingdom kingdom : kingdoms) {
+
+        List<Kingdom> nonEmptyKingdoms = kingdoms.stream()
+                .filter(k -> !k.getCastles().isEmpty())
+                .collect(Collectors.toList());
+
+        for(Kingdom kingdom : nonEmptyKingdoms) {
             if(!kingdom.getCastles().isEmpty()){
                 generateEdges(castleGraph.getNodes(kingdom.getCastles()), castleGraph, GameConstants.MAX_EDGE_COUNT_CASTLES); // Generate edges inside the kingdoms
             }
         }
 
-        List<Kingdom> tempKingdoms1 = new LinkedList<>(kingdoms), tempKingdoms2 = new LinkedList<>(kingdoms);
+        if(nonEmptyKingdoms.size() <= 1)
+            return;
+
+        List<Kingdom> tempKingdoms1 = new LinkedList<>(nonEmptyKingdoms), tempKingdoms2 = new LinkedList<>(nonEmptyKingdoms);
+        tempKingdoms1 = tempKingdoms1.stream().filter(k -> !k.getCastles().isEmpty()).collect(Collectors.toList());
         Kingdom currentKingdom = tempKingdoms1.get(0), nextKingdom;
         Pair<Castle, Castle> nextCastles;
         tempKingdoms1.remove(0);
@@ -236,7 +246,7 @@ public class GameMap {
             currentKingdom = nextKingdom;
         }
 
-        tempKingdoms1 = kingdoms;
+        tempKingdoms1 = nonEmptyKingdoms;
         List<Edge<Castle>> edges;
         int edgeCount;
         List<Pair<Castle, Castle>> castleRelation = new LinkedList<>();
@@ -311,10 +321,12 @@ public class GameMap {
         Pair<Castle, Castle> castles;
         for(Kingdom k : kingdoms){
             castles = getNearestCastles(kingdom, k);
-            currentDistance = castles.getKey().distance(castles.getValue());
-            if(currentDistance < smallestDistance || nextKingdom == null){
-                smallestDistance = currentDistance;
-                nextKingdom = k;
+            if(castles != null){
+                currentDistance = castles.getKey().distance(castles.getValue());
+                if(currentDistance < smallestDistance || nextKingdom == null){
+                    smallestDistance = currentDistance;
+                    nextKingdom = k;
+                }
             }
         }
         return nextKingdom;
@@ -326,15 +338,19 @@ public class GameMap {
      * @return a {@link Pair<Castle, Castle>} of castles (one from each kingdom) with the smallest distance.
      */
     private static Pair<Castle, Castle> getNearestCastles(Kingdom kingdom1, Kingdom kingdom2){
+        if(kingdom1 == null || kingdom2 == null)
+            return null;
         return getNearestCastles(kingdom1.getCastles(), kingdom2.getCastles());
     }
     /**
      * Searches the castles from the list with the smallest distance to each other (one castle from each list)
      * @param castles1 List of castles
      * @param castles2 List of castles
-     * @return the castles with the smallest distance
+     * @return the castles with the smallest distance or null
      */
     private static Pair<Castle, Castle> getNearestCastles(List<Castle> castles1, List<Castle> castles2){
+        if(castles1 == null || castles2 == null || castles1.isEmpty() || castles2.isEmpty())
+            return null;
         Castle bestCastle1 = null, bestCastle2 = null;
         double smallestDistance = Double.MAX_VALUE, currentDistance = smallestDistance;
         for(Castle castle1 : castles1){

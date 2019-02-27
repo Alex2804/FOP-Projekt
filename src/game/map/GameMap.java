@@ -3,13 +3,13 @@ package game.map;
 import base.*;
 import game.GameConstants;
 import gui.Resources;
+import javafx.util.Pair;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Diese Klasse representiert das Spielfeld. Sie beinhaltet das Hintergrundbild, welches mit Perlin noise erzeugt wurde,
@@ -80,7 +80,7 @@ public class GameMap {
 
     /**
      * Hier werden die Burgen erzeugt.
-     * Dabei wir die Karte in Felder unterteilt, sodass auf jedes Fals maximal eine Burg kommt.
+     * Dabei wir die Karte in Felder unterteilt, sodass auf jedes Feld maximal eine Burg kommt.
      * Sollte auf einem Feld keine Position für eine Burg existieren (z.B. aufgrund von Wasser oder angrenzenden Burgen), wird dieses übersprungen.
      * Dadurch kann es vorkommen, dass nicht alle Burgen generiert werden
      * @param castleCount die maximale Anzahl der zu generierenden Burgen
@@ -151,54 +151,145 @@ public class GameMap {
     /**
      * Hier werden die Kanten erzeugt. Dazu werden zunächst alle Burgen durch eine Linie verbunden und anschließend
      * jede Burg mit allen anderen in einem bestimmten Radius nochmals verbunden
+     * Wrapper für {@link GameMap#generateEdges(List, Graph, int)}
      */
     private void generateEdges() {
-        List<Node<Castle>> nodes = new LinkedList<>(castleGraph.getNodes());
-        List<Node<Castle>> tempNodes = new LinkedList<>(nodes);
+        generateEdges(castleGraph.getNodes(), castleGraph, GameConstants.MAX_EDGE_COUNT_CASTLES);
+    }
+    /**
+     * Generates the edges for the given nodes in the given graph
+     * @param nodes The nodes to generate edges for
+     * @param graph The graph to generate edges in
+     * @param maxEdgeCount maximum edge count for one castle
+     */
+    private static void generateEdges(List<Node<Castle>> nodes, Graph<Castle> graph, int maxEdgeCount) {
         if(nodes.isEmpty())
             return;
-        Node<Castle> currentNode = nodes.get(0), nextNode;
-        nodes.remove(0);
-        while(!nodes.isEmpty()){
-            nextNode = getNearestNode(currentNode, nodes);
-            nodes.remove(nextNode);
-            if(nodes.isEmpty()){
-                tempNodes.remove(nextNode);
-                currentNode = getNearestNode(nextNode, tempNodes);
+        List<Node<Castle>> tempNodes1 = new LinkedList<>(nodes), tempNodes2 = new LinkedList<>(nodes);
+        if(tempNodes1.isEmpty())
+            return;
+        Node<Castle> currentNode = tempNodes1.get(0), nextNode;
+        tempNodes1.remove(0);
+        while(!tempNodes1.isEmpty()){
+            nextNode = getNearestNode(currentNode, tempNodes1);
+            tempNodes1.remove(nextNode);
+            if(tempNodes1.isEmpty()){
+                tempNodes2 = new LinkedList<>(nodes);
+                tempNodes2.remove(nextNode);
+                currentNode = getNearestNode(nextNode, tempNodes2);
             }
-            castleGraph.addEdge(currentNode, nextNode);
+            graph.addEdge(currentNode, nextNode);
             currentNode = nextNode;
         }
 
-        nodes = castleGraph.getNodes();
+        tempNodes1 = nodes;
         List<Edge<Castle>> edges;
         int edgeCount;
         Random random = new Random();
-        for(Node<Castle> node : nodes){
-            tempNodes = new LinkedList<>(nodes);
-            tempNodes.remove(node); // remove current edge
-            edges = castleGraph.getEdges(node);
-            edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT + 1) - edges.size(); // random edge count
+        for(Node<Castle> node : tempNodes1){
+            tempNodes2 = new LinkedList<>(tempNodes1);
+            tempNodes2.remove(node); // remove current edge
+            edges = graph.getEdges(node);
+            edgeCount = random.nextInt(maxEdgeCount + 1) - edges.size(); // random edge count
             while(!edges.isEmpty()){
-                tempNodes.remove(edges.remove(0).getOtherNode(node)); // remove nodes with existing edges
+                tempNodes2.remove(edges.remove(0).getOtherNode(node)); // remove nodes with existing edges
             }
             while(edgeCount-- > 0){
-                nextNode = getNearestNode(node, tempNodes); // edge to nearest other node
-                tempNodes.remove(nextNode); // remove other node
-                castleGraph.addEdge(node, nextNode); // add edge
+                nextNode = getNearestNode(node, tempNodes2); // edge to nearest other node
+                tempNodes2.remove(nextNode); // remove other node
+                graph.addEdge(node, nextNode); // add edge
             }
+        }
+    }
+    /**
+     * This method has the same behavior as {@link GameMap#generateEdges()}, with the difference, that this
+     * method connects first the castles in the kingdoms with each other and then the kingdoms wtih the other kingdoms
+     * If not every castle belongs to a kingdom or {@link GameMap#kingdoms} is empty, {@link GameMap#generateEdges()}
+     * gets called.
+     */
+    public void generateKingdomEdges() {
+        if(kingdoms.isEmpty()
+                || getCastles().isEmpty()
+                || getCastles().stream().anyMatch(c -> c.getKingdom() == null)) {
+            generateEdges();
+            return;
+        }
+        for(Kingdom kingdom : kingdoms) {
+            if(!kingdom.getCastles().isEmpty()){
+                generateEdges(castleGraph.getNodes(kingdom.getCastles()), castleGraph, GameConstants.MAX_EDGE_COUNT_CASTLES); // Generate edges inside the kingdoms
+            }
+        }
+
+        List<Kingdom> tempKingdoms1 = new LinkedList<>(kingdoms), tempKingdoms2 = new LinkedList<>(kingdoms);
+        Kingdom currentKingdom = tempKingdoms1.get(0), nextKingdom;
+        Pair<Castle, Castle> nextCastles;
+        tempKingdoms1.remove(0);
+        while(!tempKingdoms1.isEmpty()){
+            nextKingdom = getNearestKingdom(currentKingdom, tempKingdoms1);
+            tempKingdoms1.remove(nextKingdom);
+            if(tempKingdoms1.isEmpty()){
+                tempKingdoms2.remove(nextKingdom);
+                currentKingdom = getNearestKingdom(nextKingdom, tempKingdoms2);
+            }
+            nextCastles = getNearestCastles(currentKingdom, nextKingdom);
+            castleGraph.addEdge(castleGraph.getNode(nextCastles.getKey()), castleGraph.getNode(nextCastles.getValue()));
+            currentKingdom = nextKingdom;
+        }
+
+        tempKingdoms1 = kingdoms;
+        List<Edge<Castle>> edges;
+        int edgeCount;
+        List<Pair<Castle, Castle>> castleRelation = new LinkedList<>();
+        List<Castle> castles, otherKingdomCastles;
+        Kingdom otherKingdom;
+        Castle kingdomCastle, otherCastle;
+        int rand, i = 0, m;
+        Random random = new Random();
+        for(Kingdom kingdom : tempKingdoms1){
+            castles = kingdom.getCastles();
+            tempKingdoms2 = new LinkedList<>(tempKingdoms1);
+            tempKingdoms2.remove(kingdom); // remove current edge
+            edges = castleGraph.getEdges(castleGraph.getNodes(kingdom.getCastles()));
+            edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT_KINGDOMS + 1); // random edge count
+            for(Edge<Castle> edge : edges){
+                if(!castles.contains(edge.getNodeA().getValue()) || !castles.contains(edge.getNodeB().getValue())){
+                    castleRelation.add(new Pair<>(edge.getNodeB().getValue(), edge.getNodeA().getValue()));
+                    --edgeCount;
+                }
+            }
+            m = 0; // max iterator
+            while(edgeCount-- > 0 && tempKingdoms1.size() > 1 && m++ < 50){
+                kingdomCastle = castles.get(random.nextInt(castles.size())); // random castle
+                rand = random.nextInt(tempKingdoms1.size()); // random other kingdom
+                otherKingdom = tempKingdoms1.get(rand != i ? rand : (rand+1)%tempKingdoms1.size()); // other kingdom not this kingdom
+                otherKingdomCastles = getNearestCastles(kingdomCastle, otherKingdom.getCastles(), 3);
+                while(!otherKingdomCastles.isEmpty()){
+                    otherCastle = otherKingdomCastles.get(0);
+                    kingdomCastle = getNearestCastle(otherCastle, castles);
+                    if(castleRelation.contains(new Pair<>(kingdomCastle, otherCastle))
+                            || castleRelation.contains(new Pair<>(otherCastle, kingdomCastle))){
+                        otherKingdomCastles.remove(0);
+                        edgeCount++;
+                    }else{
+                        castleGraph.addEdge(castleGraph.getNode(kingdomCastle), castleGraph.getNode(otherCastle));
+                        castleRelation.add(new Pair<>(kingdomCastle, otherCastle));
+                        otherKingdomCastles.clear();
+                    }
+                }
+            }
+            ++i;
         }
     }
 
     /**
      * finds the node from nodes containing the castle with the smallest distance to the castle of node
-     * @param node - one node of edge
-     * @param nodes - available nodes (mustn't contain node)
+     * @param node One node of edge
+     * @param nodes Available nodes (mustn't contain node)
      * @return the node with the smallest distance
      */
-    private Node<Castle> getNearestNode(Node<Castle> node, List<Node<Castle>> nodes){
+    private static Node<Castle> getNearestNode(Node<Castle> node, List<Node<Castle>> nodes){
         Node<Castle> bestNode = null;
-        double smallestDistance = 0, currentDistance;
+        double smallestDistance = Double.MAX_VALUE, currentDistance;
         for(Node<Castle> n : nodes){
             currentDistance = node.getValue().distance(n.getValue());
             if(currentDistance < smallestDistance || bestNode == null){
@@ -207,6 +298,87 @@ public class GameMap {
             }
         }
         return bestNode;
+    }
+    /**
+     * finds the kingdom from kingdoms with the smallest distance to kingdom
+     * @param kingdom Kingdom to get the Kingdom from kingdoms with the smallest distance
+     * @param kingdoms List of kingdoms to get the one with the smallest distance to kingdom
+     * @return the Kingdom (from kingdoms) with the smallest distance to kingdom
+     */
+    private static Kingdom getNearestKingdom(Kingdom kingdom, List<Kingdom> kingdoms){
+        Kingdom nextKingdom = null;
+        double smallestDistance = Double.MAX_VALUE, currentDistance = smallestDistance;
+        Pair<Castle, Castle> castles;
+        for(Kingdom k : kingdoms){
+            castles = getNearestCastles(kingdom, k);
+            currentDistance = castles.getKey().distance(castles.getValue());
+            if(currentDistance < smallestDistance || nextKingdom == null){
+                smallestDistance = currentDistance;
+                nextKingdom = k;
+            }
+        }
+        return nextKingdom;
+    }
+    /**
+     * Wrapper for {@link GameMap#getNearestCastles(List, List)}
+     * @param kingdom1 All castles of this Kindom are the first argument for {@link GameMap#getNearestCastles(List, List)}
+     * @param kingdom2 All castles of this Kindom are the second argument for {@link GameMap#getNearestCastles(List, List)}
+     * @return a {@link Pair<Castle, Castle>} of castles (one from each kingdom) with the smallest distance.
+     */
+    private static Pair<Castle, Castle> getNearestCastles(Kingdom kingdom1, Kingdom kingdom2){
+        return getNearestCastles(kingdom1.getCastles(), kingdom2.getCastles());
+    }
+    /**
+     * Searches the castles from the list with the smallest distance to each other (one castle from each list)
+     * @param castles1 List of castles
+     * @param castles2 List of castles
+     * @return the castles with the smallest distance
+     */
+    private static Pair<Castle, Castle> getNearestCastles(List<Castle> castles1, List<Castle> castles2){
+        Castle bestCastle1 = null, bestCastle2 = null;
+        double smallestDistance = Double.MAX_VALUE, currentDistance = smallestDistance;
+        for(Castle castle1 : castles1){
+            for(Castle castle2 : castles2){
+                currentDistance = castle1.distance(castle2);
+                if(currentDistance < smallestDistance){
+                    smallestDistance = currentDistance;
+                    bestCastle1 = castle1;
+                    bestCastle2 = castle2;
+                }
+            }
+        }
+        return new Pair<Castle, Castle>(bestCastle1, bestCastle2);
+    }
+    /**
+     * Searches the number of castles with the smallest distance to the passed castle
+     * @param castle Castle to get the distance to
+     * @param castles Castles to get the Castles with the smallest distance from
+     * @param count number of castles in return list
+     * @return a List of Castles with the smallest distance to castle and the size count or castles.size
+     */
+    private static List<Castle> getNearestCastles(Castle castle, List<Castle> castles, int count){
+        return castles.stream().
+                sorted(Comparator.comparingDouble(c -> castle.distance(c))).
+                collect(Collectors.toList()).
+                subList(0, count <= castles.size() ? count : castles.size());
+    }
+    /**
+     * finds the castle from castles with the smallest distance to castle
+     * @param castle Castle to get the one with the smallest distance for
+     * @param castles Castles to get the one with the smallest distance for
+     * @return Castle from castles with the smallest distance to castle
+     */
+    private static Castle getNearestCastle(Castle castle, List<Castle> castles){
+        Castle bestCastle = null;
+        double smallestDistance = Double.MAX_VALUE, currentDistance;
+        for(Castle c : castles){
+            currentDistance = castle.distance(c);
+            if(currentDistance < smallestDistance || bestCastle == null){
+                smallestDistance = currentDistance;
+                bestCastle = c;
+            }
+        }
+        return bestCastle;
     }
 
     /**
@@ -248,8 +420,9 @@ public class GameMap {
         GameMap gameMap = new GameMap(width, height, scale);
         gameMap.generateBackground();
         gameMap.generateCastles(castleCount);
-        gameMap.generateEdges();
         gameMap.generateKingdoms(kingdomCount);
+        //gameMap.generateEdges();
+        gameMap.generateKingdomEdges();
 
         if(!gameMap.getGraph().allNodesConnected()) {
             System.out.println("Fehler bei der Verifikation: Es sind nicht alle Knoten miteinander verbunden!");

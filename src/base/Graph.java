@@ -90,6 +90,13 @@ public class Graph<T> {
     public List<Edge<T>> getEdges(Node<T> node) {
         return edges.stream().filter(e -> e.contains(node)).collect(Collectors.toList());
     }
+    /**
+     * @param nodes The nodes for the edges
+     * @return all edges for all the nodes
+     */
+    public List<Edge<T>> getEdges(List<Node<T>> nodes){
+        return edges.stream().filter(e -> nodes.stream().anyMatch(n -> e.contains(n))).collect(Collectors.toList());
+    }
 
     /**
      * Diese Methode sucht eine Kante zwischen beiden angegebenen Knoten und gibt diese zurück
@@ -110,10 +117,18 @@ public class Graph<T> {
     public Node<T> getNode(T value) {
         return nodes.stream().filter(n -> value.equals(n.getValue())).findFirst().orElse(null);
     }
+    /**
+     * Gibt eine Liste an Knoten mit einem der angegebenen Werte zurück
+     * @param values die zu suchenden Werte
+     * @return Eine Liste mit Knoten mit den angegebenen werten
+     */
+    public List<Node<T>> getNodes(List<T> values) {
+        return nodes.stream().filter(n -> values.stream().anyMatch(m -> n.getValue().equals(m))).collect(Collectors.toList());
+    }
     
     /**
      * Überprüft, ob alle Knoten in dem Graphen erreichbar sind.
-     * @return true, wenn alle Knoten erreichbar sind
+     * @return true, wenn alle Knoten erreichbar sind, false wenn nicht
      */
     public boolean allNodesConnected() {
         if(nodes.size() == 0){

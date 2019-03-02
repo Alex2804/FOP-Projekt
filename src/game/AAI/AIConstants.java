@@ -1,4 +1,4 @@
-package game;
+package game.AAI;
 
 public class AIConstants {
     public static int OPPORTUNITY_ELEMINATE_PLAYER = 5;

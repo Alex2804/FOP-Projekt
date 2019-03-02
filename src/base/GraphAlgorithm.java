@@ -66,16 +66,13 @@ public abstract class GraphAlgorithm<T> {
         while(iterator.hasNext()){
             nextNode = iterator.next();
             nextAlgorithmNode = algorithmNodes.get(nextNode);
-            if((bestAlgorithmNode == null || nextAlgorithmNode.value < bestAlgorithmNode.value) && nextAlgorithmNode.value != -1){
+            if((bestAlgorithmNode == null || nextAlgorithmNode.value < bestAlgorithmNode.value) && nextAlgorithmNode.value >= 0){
                 bestAlgorithmNode = nextAlgorithmNode;
                 bestNode = nextNode;
             }
         }
-        if(bestAlgorithmNode == null){
-            bestNode = availableNodes.get(0);
-            bestAlgorithmNode = algorithmNodes.get(bestNode);
-        }
-        availableNodes.remove(bestNode);
+        if(bestNode != null)
+            availableNodes.remove(bestNode);
         return bestAlgorithmNode;
     }
 

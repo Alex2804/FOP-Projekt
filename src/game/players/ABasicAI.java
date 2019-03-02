@@ -68,6 +68,68 @@ public class ABasicAI extends AI {
     }
 
     /**
+     * Count all troops for connected castles which can used for attacking (every castle must have at least one troop)
+     * saves this number in a map with one castle of this connected castle (every other castle is reachable from this
+     * one)
+     * @return the map with the castle and the troop count
+     */
+    private static Map<Castle, Integer> getPossibleAttackTroopCount(Game game, Player player){
+        Map<Castle, Integer> map = new HashMap<>();
+        List<Castle> playerCastles = player.getCastles(game);
+        List<Castle> passed = new LinkedList<>();
+        List<Castle> connected;
+        PathFinding pathFinding;
+        for(Castle castle : playerCastles){
+            if(!passed.contains(castle)){
+                connected = getConnectedCastles(game.getMap().getGraph(), castle);
+                passed.addAll(connected);
+                map.put(castle, getAllAttackTroops(connected));
+            }
+        }
+        return map;
+    }
+
+    /**
+     * @param castles a list of castles to get the sum of troops
+     * @return the number of all troops minus one per castle
+     */
+    private static int getAllAttackTroops(List<Castle> castles){
+        int troops = 0;
+        for(Castle castle : castles){
+            troops += castle.getTroopCount();
+        }
+        return troops - castles.size();
+    }
+
+    /**
+     * @param castle
+     * @return a list of castles, which are reachable from castle and belongs to the same player
+     */
+    private static List<Castle> getConnectedCastles(Graph<Castle> graph, Castle castle){
+        return getConnectedCastlesHelper(graph, graph.getNode(castle), new LinkedList<>());
+    }
+    /**
+     * helper for {@link ABasicAI#getConnectedCastles(Graph, Castle)}
+     * @param graph graph to get edges from
+     * @param node current node
+     * @param passed passed nodes
+     * @return a list with connected nodes
+     */
+    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> graph, Node<Castle> node, List<Node<Castle>> passed){
+        List<Castle> returnList = new LinkedList<>();
+        Node<Castle> otherNode;
+        for(Edge<Castle> edge : graph.getEdges(node)){
+            otherNode = edge.getOtherNode(node);
+            if(!passed.contains(edge.getOtherNode(node))){
+                passed.add(otherNode);
+                returnList.add(otherNode.getValue());
+                returnList.addAll(getConnectedCastlesHelper(graph, otherNode, passed));
+            }
+        }
+        return returnList;
+    }
+
+    /**
      * Evaluates a value for passed castle dependent on some factors
      * @param game the game object
      * @param player the player to evaluate for
@@ -81,11 +143,11 @@ public class ABasicAI extends AI {
         points += isBigThreat(game, player, castle.getOwner()) ? AIConstants.BELONGS_BIG_THREAT : 0;
         if(castle.getKingdom() != null){
             points += isImportantKingdom(player, castle.getKingdom()) ? AIConstants.IMPORTANT_KINGDOM : 0;
-            points += isCloseToCaptureKingdom(player, castle.getKingdom()) ? AIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
+            boolean closeToCapture = isCloseToCaptureKingdom(player, castle.getKingdom());
+            points += closeToCapture ? AIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
             points += isOwnedByOnePlayer(castle.getKingdom()) ? AIConstants.BREAK_UP_KINGDOM : 0;
             points += isLastCastleInKingdom(player, castle) ? AIConstants.LAST_CASTLE_IN_KINGDOM : 0;
         }
-
 
         return points;
     }

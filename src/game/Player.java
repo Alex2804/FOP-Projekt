@@ -76,17 +76,33 @@ public abstract class Player {
         this.remainingTroops -= troops;
     }
 
+    /**
+     * @param game game object
+     * @return the count of castles which belongs to this player
+     */
     public int getNumRegions(Game game) {
         return this.getCastles(game).size();
     }
+    /**
+     * @param castles castles to check
+     * @return the count of castles which belongs to this player
+     */
     public int getNumRegions(List<Castle> castles) {
         return getCastles(castles).size();
     }
 
+    /**
+     * @param game the game object
+     * @return a list with all castles which belongs to this player
+     */
     public List<Castle> getCastles(Game game) {
         return getCastles(game.getMap().getCastles());
         //return game.getMap().getCastles().stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
     }
+    /**
+     * @param castles list of castles to check
+     * @return a list with all castles which belongs to this player
+     */
     public List<Castle> getCastles(List<Castle> castles){
         return castles.stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
     }

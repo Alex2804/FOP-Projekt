@@ -78,6 +78,7 @@ public class AIMethods {
         for(Castle castle : playerCastles){
             if(!passed.contains(castle)){
                 connected = getConnectedCastles(graph, castle);
+                passed.add(castle);
                 passed.addAll(connected);
                 map.put(castle, getAllAttackTroops(connected));
             }
@@ -90,11 +91,7 @@ public class AIMethods {
      * @return the number of all troops minus one per castle
      */
     public static int getAllAttackTroops(List<Castle> castles){
-        int troops = 0;
-        for(Castle castle : castles){
-            troops += castle.getTroopCount();
-        }
-        return troops - castles.size();
+        return castles.stream().mapToInt(Castle::getTroopCount).sum() - castles.size();
     }
 
     /**
@@ -112,12 +109,12 @@ public class AIMethods {
      * @param passed passed nodes
      * @return a list with connected nodes
      */
-    public static List<Castle> getConnectedCastlesHelper(Graph<Castle> graph, Node<Castle> node, List<Node<Castle>> passed){
+    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> graph, Node<Castle> node, List<Node<Castle>> passed){
         List<Castle> returnList = new LinkedList<>();
         Node<Castle> otherNode;
         for(Edge<Castle> edge : graph.getEdges(node)){
             otherNode = edge.getOtherNode(node);
-            if(!passed.contains(edge.getOtherNode(node))){
+            if(!passed.contains(otherNode)){
                 passed.add(otherNode);
                 returnList.add(otherNode.getValue());
                 returnList.addAll(getConnectedCastlesHelper(graph, otherNode, passed));

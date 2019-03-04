@@ -110,4 +110,17 @@ public class Kingdom {
     public List<Castle> getCastles() {
         return this.castles;
     }
+
+    /**
+     * @return the sum of all castles troops
+     */
+    public int getTroopCount(){
+        return castles.stream().mapToInt(Castle::getTroopCount).sum();
+    }
+    /**
+     * @return the sum of all castles troops, which can be used to attack
+     */
+    public int getAttackTroopCount(){
+        return getTroopCount() - castles.size();
+    }
 }

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Alexander Muth
- * Evaluation Methods for an AI
+ * Evaluation Methods to choose targets for an AI
  */
 public class AITargetEvalMethods {
     /**
@@ -118,7 +118,7 @@ public class AITargetEvalMethods {
      * @param castles the available castles
      * @param player the player to evaluate for
      * @param castle the castle to evaluate
-     * @return a wrapper with the evaluated points and the castle object
+     * @return the evaluated value for the castle object
      */
     public static int evaluateCastle(List<Castle> castles, Player player, Castle castle){
         int points = 0;

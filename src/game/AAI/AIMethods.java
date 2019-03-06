@@ -5,6 +5,7 @@ import base.Graph;
 import base.Node;
 import game.Player;
 import game.map.Castle;
+import game.map.Kingdom;
 import game.map.PathFinding;
 import gui.components.MapPanel;
 
@@ -72,15 +73,9 @@ public class AIMethods {
      */
     public static Map<Castle, Integer> getPossibleAttackTroopCount(Graph<Castle> graph, Player player){
         Map<Castle, Integer> map = new HashMap<>();
-        List<Castle> playerCastles = player.getCastles(graph.getAllValues());
-        List<Castle> passed = new LinkedList<>();
-        List<Castle> connected;
-        for(Castle castle : playerCastles){
-            if(!passed.contains(castle)){
-                connected = getConnectedCastles(graph, castle);
-                passed.add(castle);
-                passed.addAll(connected);
-                map.put(castle, getAllAttackTroops(connected));
+        for(List<Castle> connected : getConnectedCastles(graph, player)){
+            if(!connected.isEmpty()){
+                map.put(connected.get(0), getAllAttackTroops(connected));
             }
         }
         return map;
@@ -92,6 +87,26 @@ public class AIMethods {
      */
     public static int getAllAttackTroops(List<Castle> castles){
         return castles.stream().mapToInt(Castle::getTroopCount).sum() - castles.size();
+    }
+
+    /**
+     * @param graph the current graph
+     * @param player the player to get all connected castles from
+     * @return a list, containing lists, which contains all connected castles of the passed player in the graph
+     */
+    public static List<List<Castle>> getConnectedCastles(Graph<Castle> graph, Player player){
+        List<Castle> playerCastles = player.getCastles(graph.getAllValues());
+        List<Castle> passed = new LinkedList<>(), connected;
+        List<List<Castle>> returnList = new LinkedList<>();
+        for(Castle castle : playerCastles){
+            if(!passed.contains(castle)){
+                connected = getConnectedCastles(graph, castle);
+                connected.add(castle);
+                passed.addAll(connected);
+                returnList.add(connected);
+            }
+        }
+        return returnList;
     }
 
     /**
@@ -121,5 +136,47 @@ public class AIMethods {
             }
         }
         return returnList;
+    }
+
+    /**
+     * @param castles all castles
+     * @return all castles, which are not assigned to any player
+     */
+    public static List<Castle> getUnassignedCastles(List<Castle> castles){
+        List<Castle> unassignedCastles = new LinkedList<>(); // stream would be shorter but slower
+        for(Castle castle : castles){
+            if(castle != null && castle.getOwner() == null){
+                unassignedCastles.add(castle);
+            }
+        }
+        return unassignedCastles;
+    }
+
+    /**
+     * @param castles all castles
+     * @param kingdom the kingdom whose castles should not be contained in the returned list
+     * @return A list with all castles which doesn't belong to {@code kingdom}
+     */
+    public static List<Castle> getCastlesFromOtherKingdoms(List<Castle> castles, Kingdom kingdom){
+        List<Castle> others = new LinkedList<>();
+        for(Castle castle : castles){
+            if(castle != null && castle.getKingdom() != kingdom){
+                others.add(castle);
+            }
+        }
+        return others;
+    }
+
+    /**
+     * @param castles A list with castles
+     * @return A list with all kingdoms, where any castle from castles are in
+     */
+    public static List<Kingdom> getAllKingdoms(List<Castle> castles){
+        List<Kingdom> kingdoms = new LinkedList<>();
+        for(Castle castle : castles){
+            if(castle.getKingdom() != null && !kingdoms.contains(castle.getKingdom()))
+                kingdoms.add(castle.getKingdom());
+        }
+        return kingdoms;
     }
 }

@@ -1,5 +1,7 @@
 package game.map;
 
+import base.Edge;
+import base.Graph;
 import game.Player;
 
 import java.awt.*;
@@ -66,7 +68,8 @@ public class Kingdom {
      * @param castle die Burg, die hinzugefügt werden soll
      */
     public void addCastle(Castle castle) {
-        this.castles.add(castle);
+        if(!this.castles.contains(castle))
+            this.castles.add(castle);
     }
 
     /**
@@ -115,12 +118,31 @@ public class Kingdom {
      * @return the sum of all castles troops
      */
     public int getTroopCount(){
-        return castles.stream().mapToInt(Castle::getTroopCount).sum();
+        int sum = 0;
+        for(Castle castle : castles){
+            sum += castle.getTroopCount();
+        }
+        return sum;
     }
     /**
      * @return the sum of all castles troops, which can be used to attack
      */
     public int getAttackTroopCount(){
         return getTroopCount() - castles.size();
+    }
+
+    /**
+     * @param castleGraph the graph containing all castles and edges
+     * @return the count of edges to other kingdoms
+     */
+    public int getEdgeCountToOtherKingdoms(Graph<Castle> castleGraph){
+        int edgeCountSum = 0;
+        for(Edge<Castle> edge : castleGraph.getEdges(castleGraph.getNodes(castles))){
+            if(edge.getNodeB().getValue().getKingdom() != this
+                    || edge.getNodeA().getValue().getKingdom() != this){
+                edgeCountSum++;
+            }
+        }
+        return edgeCountSum;
     }
 }

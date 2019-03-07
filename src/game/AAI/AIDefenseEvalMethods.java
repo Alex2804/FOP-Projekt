@@ -44,7 +44,7 @@ public class AIDefenseEvalMethods {
             }
             tempDistribution = new LinkedList<>();
             countLeft = troopCount;
-            for(Pair<Castle, Integer> pair : tempRated){
+            for(Pair<Castle, Integer> pair : tempRated){ // distribute troops dependent on the percentage of the rating from sum
                 tempCount = troopCount * (pair.getValue() / ((double)sum));
                 tempDistribution.add(new ATriplet<>(pair.getKey(), (int)tempCount, (tempCount % 1)));
                 countLeft -= (int)tempCount;
@@ -78,8 +78,8 @@ public class AIDefenseEvalMethods {
         Integer troops;
         for(List<Castle> connected : connectedCastles){
             for(Castle castle : connected){
-                troops = troopCountTemp.get(castle);
-                returnList.add(new Pair<>(castle, (troops == null) ? 1 : troops.intValue()));
+                troops = troopCountTemp.get(castle); // save troops + 1 if distributet or 1 if not (1 for all castles without enemy neighbour)
+                returnList.add(new Pair<>(castle, (troops == null) ? 1 : (troops.intValue() + 1)));
             }
         }
         return returnList;

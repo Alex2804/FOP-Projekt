@@ -155,10 +155,10 @@ public class AIDistributionEvalMethods {
 
         List<Player> tempPlayers = new ArrayList<>(2);
         tempPlayers.add(player);
-        points += !hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR + AIConstants.SURROUNDED_BY_OWN_CASTLES : 0;
+        points += !AIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR + AIConstants.SURROUNDED_BY_OWN_CASTLES : 0;
         if(points <= 0){
             tempPlayers.add(null);
-            points += !hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR : 0;
+            points += !AIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR : 0;
         }
         if(castle.getKingdom() != null){
             points += isFirstCastleInKingdom(player, castle) ? AIConstants.FIRST_CASTLE_IN_KINGDOM : 0;
@@ -167,30 +167,6 @@ public class AIDistributionEvalMethods {
 
 
         return points;
-    }
-
-    /**
-     * Returns if the castle has other neighbours than the given players
-     * @param castleGraph graph containing all neighbours
-     * @param players the players which should be the only neighbours
-     * @param castle the castle to check the neighbours from
-     * @return if the castle has other neighbours than the expected (owner of castles)
-     */
-    public static boolean hasOtherNeighbours(Graph<Castle> castleGraph, List<Player> players, Castle castle){
-        Node<Castle> node = castleGraph.getNode(castle);
-        if(node == null)
-            return false;
-        boolean temp;
-        for(Edge<Castle> edge : castleGraph.getEdges(node)){
-            temp = false;
-            for(Player player : players){
-                if(edge.getOtherNode(node).getValue().getOwner() == player)
-                    temp = true;
-            }
-            if(!temp)
-                return true;
-        }
-        return false;
     }
 
     /**

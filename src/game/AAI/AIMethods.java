@@ -11,6 +11,7 @@ import gui.components.MapPanel;
 import javafx.util.Pair;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -45,11 +46,15 @@ public class AIMethods {
      * @param count count of elements to search for
      * @param <T> generic type of the value
      * @return a list containing the values with the best rating
+     * @see #getBestPairs(Collection, int)
      */
     public static<T> List<T> getBest(Collection<Pair<T, Integer>> list, int count){
-        List<T> returnList = list.stream()
-                                    .sorted(Comparator.comparing(Pair::getValue))
-                                    .map(p -> p.getKey()).collect(Collectors.toList());
+        return getBestPairs(list, count).stream().map(Pair::getKey).collect(Collectors.toList());
+    }
+    public static<T> List<Pair<T, Integer>> getBestPairs(Collection<Pair<T, Integer>> list, int count){
+        List<Pair<T, Integer>> returnList = list.stream()
+                                                .sorted(Comparator.comparingInt(Pair::getValue))
+                                                .collect(Collectors.toList());
         return (returnList.size() <= count) ? returnList : returnList.subList(0, count);
     }
     /**
@@ -194,6 +199,7 @@ public class AIMethods {
      * @param castle castle to get neighbours from
      * @param player owner (could be null)
      * @return A List with all neighbour castles of castle, which has the player as owner
+     * @see #getNeighbours(Graph, Node, Player)
      */
     public static List<Castle> getNeighbours(Graph<Castle> castleGraph, Castle castle, Player player){
         List<Castle> returnList = new LinkedList<>();
@@ -207,14 +213,49 @@ public class AIMethods {
      * @param node node to get neighbours from
      * @param player owner (could be null)
      * @return A List with all neighbour nodes of node, which castles has the player as owner
+     * @see #filterNeightbours(Graph, Node, Predicate)
      */
     public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Player player){
+        return filterNeightbours(castleGraph, node, c -> c.getOwner() == player);
+    }
+    /**
+     * @param castleGraph the graph with the edges and nodes
+     * @param castle castle to get neighbours from
+     * @param player owner (could be null)
+     * @return A List with all neighbour castles of castle, which hasn't the player as owner
+     * @see #getOtherNeighbours(Graph, Node, Player)
+     */
+    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Castle castle, Player player){
+        List<Castle> returnList = new LinkedList<>();
+        for(Node<Castle> node : getOtherNeighbours(castleGraph, castleGraph.getNode(castle), player)){
+            returnList.add(node.getValue());
+        }
+        return returnList;
+    }
+    /**
+     * @param castleGraph the graph containing the edges and nodes
+     * @param node node to get the neighbours from
+     * @param player none owner (could be null)
+     * @return A List with all neighbour nodes of node, which castles hasn't the player as owner
+     * @see #filterNeightbours(Graph, Node, Predicate)
+     */
+    public static List<Node<Castle>> getOtherNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Player player){
+        return filterNeightbours(castleGraph, node, c -> c.getOwner() != player);
+    }
+    /**
+     * Filteres the nodes connected to a node with the given predicate
+     * @param castleGraph graph containing edges and nodes
+     * @param node node to check neighbours from
+     * @param predicate predicate to filter
+     * @return a list with the filtered nodes
+     */
+    public static List<Node<Castle>> filterNeightbours(Graph<Castle> castleGraph, Node<Castle> node, Predicate<Castle> predicate){
         List<Node<Castle>> neighbourList = castleGraph.getNeighbours(node);
         ListIterator<Node<Castle>> iterator = neighbourList.listIterator();
-        Node<Castle> n;
-        while(iterator.hasNext()){
-            n = iterator.next();
-            if(n.getValue().getOwner() != player){
+        Node<Castle> next;
+        while (iterator.hasNext()){
+            next = iterator.next();
+            if(!predicate.test(next.getValue())){
                 iterator.remove();
             }
         }
@@ -245,7 +286,7 @@ public class AIMethods {
     }
 
     /**
-     * Count all troops for connected castles which can used for attacking (every castle must have at least one troop)
+     * Count all troops for connected castles which can be used for attacks (every castle must keep at least one troop)
      * saves this number in a map with one castle of this connected castle (every other castle is reachable from this
      * one)
      * @param castleGraph the current graph
@@ -256,7 +297,7 @@ public class AIMethods {
         Map<Castle, Integer> map = new HashMap<>();
         for(List<Castle> connected : getConnectedCastles(castleGraph, player)){
             if(!connected.isEmpty()){
-                map.put(connected.get(0), getAllAttackTroops(connected));
+                map.put(connected.get(0), getAttackTroopCount(connected));
             }
         }
         return map;
@@ -264,9 +305,9 @@ public class AIMethods {
 
     /**
      * @param castles a list of castles to get the sum of troops
-     * @return the number of all troops minus one per castle
+     * @return the number of all troops minus one per castle (maximum troop count to attack with)
      */
-    public static int getAllAttackTroops(List<Castle> castles){
+    public static int getAttackTroopCount(List<Castle> castles){
         int sum = 0;
         for(Castle castle : castles){
             sum += castle.getTroopCount();
@@ -363,5 +404,41 @@ public class AIMethods {
             returnList.add(new Pair<>(entry.getKey(), entry.getValue()));
         }
         return returnList;
+    }
+
+    /**
+     * @param castleGraph graph containing all neighbours
+     * @param player the player which should be the only neighbour
+     * @param castle the castle to check the neighbours from
+     * @return if the castle has other neighbours than the expected one (owner of castles)
+     * @see #hasOtherNeighbours(Graph, List, Castle)
+     */
+    public static boolean hasOtherNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
+        List<Player> temp = new LinkedList<>();
+        temp.add(player);
+        return hasOtherNeighbours(castleGraph, temp, castle);
+    }
+    /**
+     * Returns if the castle has other neighbours than the given players
+     * @param castleGraph graph containing all neighbours
+     * @param players the players which should be the only neighbours
+     * @param castle the castle to check the neighbours from
+     * @return if the castle has other neighbours than the expected (owner of castles)
+     */
+    public static boolean hasOtherNeighbours(Graph<Castle> castleGraph, List<Player> players, Castle castle){
+        Node<Castle> node = castleGraph.getNode(castle);
+        if(node == null)
+            return false;
+        boolean temp;
+        for(Edge<Castle> edge : castleGraph.getEdges(node)){
+            temp = false;
+            for(Player player : players){
+                if(edge.getOtherNode(node).getValue().getOwner() == player)
+                    temp = true;
+            }
+            if(!temp)
+                return true;
+        }
+        return false;
     }
 }

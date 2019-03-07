@@ -18,4 +18,8 @@ public class AIConstants {
     // Constants for AIKingdomEvalMethods
     public static int SMALL_KINGDOM = 2;
     public static int HAS_FEW_EDGES_TO_OTHER_KINGDOMS = 3;
+
+    // Constants for AIDefenseEvalMethods
+    public static double EDGE_COUNT_MULTIPLIER = 1;
+    public static double THREATENING_TROOP_COUNT_MULTIPLIER = 1;
 }

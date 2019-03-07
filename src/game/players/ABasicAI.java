@@ -7,25 +7,9 @@ import java.awt.Color;
 
 /**
  * @author Alexander Muth
- * Basic implementation of a better AI
+ * Basic implementation of a better AI than {@link BasicAI} for {@link game.goals.ConquerGoal}
  */
 public class ABasicAI extends AI {
-    /**
-     * Wrapps a class arround a specific object to store an associated value for it
-     * @param <T> The generic type of the stored object
-     */
-    private static class ValueWrapper<T> {
-        int valuePoints;
-        T value;
-        public ValueWrapper(T value){
-            this.value = value;
-            valuePoints = 0;
-        }
-        public ValueWrapper(T value, int valuePoints){
-            this.value = value;
-            this.valuePoints = valuePoints;
-        }
-    }
 
     public ABasicAI(String name, Color color) {
         super(name, color);

@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import base.Graph;
 import game.map.Castle;
@@ -10,7 +10,7 @@ import java.util.List;
  * @author Alexander Muth
  * Evaluation Methos to choose the best kingdom for an AI
  */
-public class AIKingdomEvalMethods {
+public class AAIKingdomEvalMethods {
 
     /**
      * Evaluates a value for passed kingdom dependent on some factors
@@ -20,11 +20,11 @@ public class AIKingdomEvalMethods {
      */
     public static int evaluateKingdom(Graph<Castle> castleGraph, Kingdom kingdom){
         List<Castle> castles = castleGraph.getAllValues();
-        List<Kingdom> kingdoms = AIMethods.getAllKingdoms(castles);
+        List<Kingdom> kingdoms = AAIMethods.getAllKingdoms(castles);
         int points = 0;
 
-        points += isSmallKingdom(kingdoms, kingdom) ? AIConstants.SMALL_KINGDOM : 0;
-        points += hasFewEdgesToOtherKingdoms(castleGraph, kingdoms, kingdom) ? AIConstants.HAS_FEW_EDGES_TO_OTHER_KINGDOMS : 0;
+        points += isSmallKingdom(kingdoms, kingdom) ? AAIConstants.SMALL_KINGDOM : 0;
+        points += hasFewEdgesToOtherKingdoms(castleGraph, kingdoms, kingdom) ? AAIConstants.HAS_FEW_EDGES_TO_OTHER_KINGDOMS : 0;
 
         return points;
     }

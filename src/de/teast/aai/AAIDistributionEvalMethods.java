@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import base.Graph;
 import game.Player;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @author Alexander Muth
  * Evaluation Methods to choose castles during distribution period for an AI
  */
-public class AIDistributionEvalMethods {
+public class AAIDistributionEvalMethods {
     /**
      * Get the best castles during distribution period
      * @param castleGraph the graph containing all castles
@@ -37,7 +37,7 @@ public class AIDistributionEvalMethods {
             tempBestCastles = canOwnKingdom(tempCastles, player, tempCastleCount);
             if(tempBestCastles != null && tempCastleCount - tempBestCastles.size() >=  0){
                 bestCastles.addAll(tempBestCastles);
-                tempCastles = AIMethods.getCastlesFromOtherKingdoms(tempCastles, tempBestCastles.get(0).getKingdom());
+                tempCastles = AAIMethods.getCastlesFromOtherKingdoms(tempCastles, tempBestCastles.get(0).getKingdom());
                 tempCastleCount -= tempBestCastles.size();
             }else{
                 break;
@@ -54,7 +54,7 @@ public class AIDistributionEvalMethods {
         Map<Castle, Integer> castleRatingMap = new HashMap<>();
         while(tempCastleCount > 0 && pairCount > 0){
             if(pairCount <= tempCastleCount){
-                pairs = AIMethods.getPossibleCastlePairs(castleGraph, player, pairCount--);
+                pairs = AAIMethods.getPossibleCastlePairs(castleGraph, player, pairCount--);
 
                 if(!pairs.isEmpty()){
                     List<List<Pair<Castle, Integer>>> ratedPairs = new LinkedList<>();
@@ -74,7 +74,7 @@ public class AIDistributionEvalMethods {
                     }
 
                     while(!pairs.isEmpty() && pairCount < tempCastleCount){
-                        List<Castle> bestPair = AIMethods.getBestPair(ratedPairs);
+                        List<Castle> bestPair = AAIMethods.getBestPair(ratedPairs);
                         ratedPairs.remove(bestPair.stream().map(c -> new Pair<>(c, castleRatingMap.get(c))).collect(Collectors.toList()));
                         if(bestPair.size() <= tempCastleCount) {
                             bestCastles.addAll(bestPair);
@@ -88,13 +88,13 @@ public class AIDistributionEvalMethods {
         // the following shouldn't be necessary but is for safety
         tempCastleCount = castleCount - bestCastles.size();
         if(tempCastleCount > 0){ // return a list with the best rated castles
-            System.out.println("Semantic error in AIDistributionEvalMethods#getBestDistributionCastles !!!");
+            System.err.println("Semantic error in AAIDistributionEvalMethods#getBestDistributionCastles !!!");
 
             for(Castle castle : availableCastles){
                 castleRatingMap.put(castle, evaluateCastle(castleGraph, player, castle));
             }
 
-            bestCastles.addAll(AIMethods.getBest(AIMethods.entrysToPairs(castleRatingMap.entrySet()), tempCastleCount));
+            bestCastles.addAll(AAIMethods.getBest(AAIMethods.entrysToPairs(castleRatingMap.entrySet()), tempCastleCount));
             return bestCastles;
         }
 
@@ -150,14 +150,14 @@ public class AIDistributionEvalMethods {
 
         List<Player> tempPlayers = new ArrayList<>(2);
         tempPlayers.add(player);
-        points += !AIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR + AIConstants.SURROUNDED_BY_OWN_CASTLES : 0;
+        points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AAIConstants.NO_ENEMY_NEIGHBOUR + AAIConstants.SURROUNDED_BY_OWN_CASTLES : 0;
         if(points <= 0){
             tempPlayers.add(null);
-            points += !AIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AIConstants.NO_ENEMY_NEIGHBOUR : 0;
+            points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AAIConstants.NO_ENEMY_NEIGHBOUR : 0;
         }
         if(castle.getKingdom() != null){
-            points += isFirstCastleInKingdom(player, castle) ? AIConstants.FIRST_CASTLE_IN_KINGDOM : 0;
-            points += AIKingdomEvalMethods.evaluateKingdom(castleGraph, castle.getKingdom());
+            points += isFirstCastleInKingdom(player, castle) ? AAIConstants.FIRST_CASTLE_IN_KINGDOM : 0;
+            points += AAIKingdomEvalMethods.evaluateKingdom(castleGraph, castle.getKingdom());
         }
 
 

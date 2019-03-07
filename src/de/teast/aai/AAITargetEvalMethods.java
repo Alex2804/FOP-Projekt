@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import base.Graph;
 import game.Player;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @author Alexander Muth
  * Evaluation Methods to choose targets for an AI
  */
-public class AITargetEvalMethods {
+public class AAITargetEvalMethods {
     /**
      * searches the best target castle dependent on some factors and one castle from the best Region from which to
      * attack (with as many troops as possible) (a region are connected castles)
@@ -25,13 +25,13 @@ public class AITargetEvalMethods {
     private static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, Player player){
         List<Castle> allCastles = castleGraph.getAllValues(); // list with all castles
         // castleAttackTroops: Map which saves a castle and the sum of troop count of all reachable castles
-        Map<Castle, Integer> castleAttackTroopsMap = AIMethods.getPossibleAttackTroopCount(castleGraph, player);
+        Map<Castle, Integer> castleAttackTroopsMap = AAIMethods.getPossibleAttackTroopCount(castleGraph, player);
         // castleAttackTargetMap: Map which saves all attackable castles from one attacker castle (from playerCastleTroops)
         Map<Castle, List<Castle>> castleAttackTargetMap = new HashMap<>();
 
         // get all possible targets for connected castles (represented by one castle)
         for(Castle castle : castleAttackTroopsMap.keySet()){
-            castleAttackTargetMap.put(castle, AIMethods.getPossibleTargetCastles(castleGraph, player, castle));
+            castleAttackTargetMap.put(castle, AAIMethods.getPossibleTargetCastles(castleGraph, player, castle));
         }
 
         // Remove all targets which has more troops than the attacker castle
@@ -87,7 +87,7 @@ public class AITargetEvalMethods {
         }
 
         Castle bestTarget = null, bestAttacker = null;
-        int bestEvalValue = AIConstants.MIN_ATTACK_VALUE, evalValue, bestTroopDif = 0;
+        int bestEvalValue = AAIConstants.MIN_ATTACK_VALUE, evalValue, bestTroopDif = 0;
         for(Castle targetCastle : sortedCastleAttackEvaluationKeys){
             evalValue = castleAttackEvaluationMap.get(targetCastle);
 
@@ -123,14 +123,14 @@ public class AITargetEvalMethods {
     public static int evaluateCastle(List<Castle> castles, Player player, Castle castle){
         int points = 0;
 
-        points += isLastCastleOfPlayer(castles, castle) ? AIConstants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
-        points += isBigThreat(castles, player, castle.getOwner()) ? AIConstants.BELONGS_BIG_THREAT : 0;
+        points += isLastCastleOfPlayer(castles, castle) ? AAIConstants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
+        points += isBigThreat(castles, player, castle.getOwner()) ? AAIConstants.BELONGS_BIG_THREAT : 0;
         if(castle.getKingdom() != null){
-            points += isImportantKingdom(player, castle.getKingdom()) ? AIConstants.IMPORTANT_KINGDOM : 0;
+            points += isImportantKingdom(player, castle.getKingdom()) ? AAIConstants.IMPORTANT_KINGDOM : 0;
             boolean closeToCapture = isCloseToCaptureKingdom(player, castle.getKingdom());
-            points += closeToCapture ? AIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
-            points += isOwnedByOnePlayer(castle.getKingdom()) ? AIConstants.BREAK_UP_KINGDOM : 0;
-            points += isLastCastleInKingdom(player, castle) ? AIConstants.LAST_CASTLE_IN_KINGDOM : 0;
+            points += closeToCapture ? AAIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
+            points += isOwnedByOnePlayer(castle.getKingdom()) ? AAIConstants.BREAK_UP_KINGDOM : 0;
+            points += isLastCastleInKingdom(player, castle) ? AAIConstants.LAST_CASTLE_IN_KINGDOM : 0;
         }
 
         return points;

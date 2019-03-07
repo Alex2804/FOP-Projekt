@@ -1,7 +1,7 @@
-package game.AAI;
+package de.teast.aai;
 
-public class AIConstants {
-    // Constants for AITargetEvalMethods
+public class AAIConstants {
+    // Constants for AAITargetEvalMethods
     public static int OPPORTUNITY_ELEMINATE_PLAYER = 5;
     public static int BELONGS_BIG_THREAT = 3;
     public static int IMPORTANT_KINGDOM = 3;
@@ -10,16 +10,16 @@ public class AIConstants {
     public static int LAST_CASTLE_IN_KINGDOM = 3;
     public static int MIN_ATTACK_VALUE = 10;
 
-    // Constants for AIDistributionEvalMethods
+    // Constants for AAIDistributionEvalMethods
     public static int SURROUNDED_BY_OWN_CASTLES = 3;
     public static int NO_ENEMY_NEIGHBOUR = 2;
     public static int FIRST_CASTLE_IN_KINGDOM = 4;
 
-    // Constants for AIKingdomEvalMethods
+    // Constants for AAIKingdomEvalMethods
     public static int SMALL_KINGDOM = 2;
     public static int HAS_FEW_EDGES_TO_OTHER_KINGDOMS = 3;
 
-    // Constants for AIDefenseEvalMethods
+    // Constants for AAIDefenseEvalMethods
     public static double EDGE_COUNT_MULTIPLIER = 1;
     public static double THREATENING_TROOP_COUNT_MULTIPLIER = 1;
 }

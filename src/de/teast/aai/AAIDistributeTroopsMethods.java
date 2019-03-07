@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import game.Game;
 import game.map.Castle;
@@ -7,7 +7,7 @@ import game.map.Castle;
  * @author Alexander Muth
  * Class to move troops depending on the situation
  */
-public class AIDistributeTroopsMethods {
+public class AAIDistributeTroopsMethods {
     /**
      * @author Alexander Muth
      * Class to save troop movement without moving

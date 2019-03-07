@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import base.Graph;
 import de.teast.autils.ATriplet;
@@ -9,14 +9,14 @@ import javafx.util.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AIDefenseEvalMethods {
+public class AAIDefenseEvalMethods {
     /**
      * @param castleGraph the graph containing all castles and edges
      * @param player the player to distribute for
      * @return a list of pairs, with the castles as keys and the best troop count for every castle as value
      */
     public static List<Pair<Castle, Integer>> getBestTroopDistribution(Graph<Castle> castleGraph, Player player){
-        List<List<Castle>> connectedCastles = AIMethods.getConnectedCastles(castleGraph, player);
+        List<List<Castle>> connectedCastles = AAIMethods.getConnectedCastles(castleGraph, player);
         Map<Castle, Integer> troopCountTemp = new HashMap<>();
         List<Castle> temp;
         List<Pair<Castle, Integer>> tempRated;
@@ -24,10 +24,10 @@ public class AIDefenseEvalMethods {
         int troopCount, countLeft;
         double tempCount;
         for(List<Castle> connected : connectedCastles){ // for all regions owned BY the player
-            troopCount = AIMethods.getAttackTroopCount(connected);
+            troopCount = AAIMethods.getAttackTroopCount(connected);
             temp = new LinkedList<>(); // should contain all attackable castles
             for(Castle castle : connected){
-                if(AIMethods.hasOtherNeighbours(castleGraph, player, castle)) {
+                if(AAIMethods.hasOtherNeighbours(castleGraph, player, castle)) {
                     temp.add(castle);
                 }
             }
@@ -68,7 +68,7 @@ public class AIDefenseEvalMethods {
                 troopCountTemp.put(triplet.getFirst(), triplet.getSecond());
             }
             if(sum != troopCount){
-                System.err.println("Fehler in AIDefenseEvalMethods.getBestTroopDistribution: Die summe aller truppen" +
+                System.err.println("Fehler in AAIDefenseEvalMethods.getBestTroopDistribution: Die summe aller truppen" +
                         " sollte " + troopCount + " sein," +
                         " ist aber " + sum);
             }
@@ -94,8 +94,8 @@ public class AIDefenseEvalMethods {
     public static int evaluateCastle(Graph<Castle> castleGraph, Player player, Castle castle){
         int points = 0;
 
-        points += (int)(AIMethods.getNeighbours(castleGraph, castle, player).size() * AIConstants.EDGE_COUNT_MULTIPLIER);
-        points += (int)(getThreateningNeighboursTroopCount(castleGraph, castle) * AIConstants.THREATENING_TROOP_COUNT_MULTIPLIER);
+        points += (int)(AAIMethods.getNeighbours(castleGraph, castle, player).size() * AAIConstants.EDGE_COUNT_MULTIPLIER);
+        points += (int)(getThreateningNeighboursTroopCount(castleGraph, castle) * AAIConstants.THREATENING_TROOP_COUNT_MULTIPLIER);
 
         return points;
     }
@@ -109,11 +109,11 @@ public class AIDefenseEvalMethods {
         int troopCount = 0;
         List<Castle> passedNeighbours = new LinkedList<>();
         List<Castle> connected;
-        for(Castle neighbour : AIMethods.getOtherNeighbours(castleGraph, castle, castle.getOwner())){
+        for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, castle, castle.getOwner())){
             if(!passedNeighbours.contains(neighbour)){
-                connected = AIMethods.getConnectedCastles(castleGraph, neighbour);
+                connected = AAIMethods.getConnectedCastles(castleGraph, neighbour);
                 passedNeighbours.addAll(connected);
-                troopCount += AIMethods.getAttackTroopCount(connected);
+                troopCount += AAIMethods.getAttackTroopCount(connected);
             }
         }
         return troopCount;

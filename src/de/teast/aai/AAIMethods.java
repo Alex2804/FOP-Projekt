@@ -1,4 +1,4 @@
-package game.AAI;
+package de.teast.aai;
 
 import base.Edge;
 import base.Graph;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @author Alexander Muth
  * methods for an AI independent from their implementation
  */
-public class AIMethods {
+public class AAIMethods {
     /**
      * Copy a castle graph with all nodes and edges (castles are copied also)
      * @param graph the graph to copy
@@ -162,7 +162,7 @@ public class AIMethods {
         return sb.toString();
     }
     /**
-     * Helper function for {@link AIMethods#getPossibleCastlePairs(Graph, Player, int)}. Collects a list with all
+     * Helper function for {@link AAIMethods#getPossibleCastlePairs(Graph, Player, int)}. Collects a list with all
      * possible pairs (starting at node). Only adjacent nodes could be pairs
      * @param castleGraph The graph containing all edges and nodes
      * @param player the player who is the owner of the castles (could be null)
@@ -348,7 +348,7 @@ public class AIMethods {
         return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new LinkedList<>());
     }
     /**
-     * helper for {@link AIMethods#getConnectedCastles(Graph, Castle)}
+     * helper for {@link AAIMethods#getConnectedCastles(Graph, Castle)}
      * @param castleGraph graph to get edges from
      * @param node current node
      * @param passed passed nodes

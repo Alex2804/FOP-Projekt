@@ -8,12 +8,14 @@ import game.map.Castle;
 import game.map.Kingdom;
 import game.map.PathFinding;
 import gui.components.MapPanel;
+import javafx.util.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Alexander Muth
- * methods for an AI
+ * methods for an AI independent from their implementation
  */
 public class AIMethods {
     /**
@@ -35,6 +37,46 @@ public class AIMethods {
                 graph.addEdge(nodeA, nodeB);
         }
         return copyGraph;
+    }
+
+    /**
+     * searches for the best values
+     * @param list containing pairs, with keys as values and values as ratings
+     * @param count count of elements to search for
+     * @param <T> generic type of the value
+     * @return a list containing the values with the best rating
+     */
+    public static<T> List<T> getBest(List<Pair<T, Integer>> list, int count){
+        List<T> returnList = list.stream()
+                                    .sorted(Comparator.comparing(Pair::getValue))
+                                    .map(p -> p.getKey()).collect(Collectors.toList());
+        return (returnList.size() <= count) ? returnList : returnList.subList(0, count);
+    }
+    /**
+     * searches for the pair (a pair is an inner list, not the {@link Pair} inside) with the biggest sum
+     * of the rating (the rating of each component is the second value in the {@link Pair})
+     * @param pairs list of pairs
+     * @param <T> generic type of the value
+     * @return the values of the best pair (without the rating)
+     */
+    public static<T> List<T> getBestPair(List<List<Pair<T, Integer>>> pairs){
+        int bestRating = Integer.MAX_VALUE, rating;
+        List<Pair<T, Integer>> bestPair = null;
+        for(List<Pair<T, Integer>> list : pairs){
+            rating = 0;
+            for(Pair<T, Integer> pair : list){
+                rating += pair.getValue(); // value is the rating
+            }
+            if(bestPair == null || bestRating < rating){
+                bestPair = list;
+            }
+        }
+
+        List<T> returnList = new LinkedList<>();
+        for(Pair<T, Integer> pair : bestPair){ // foreach is faster than stream
+            returnList.add(pair.getKey());
+        }
+        return returnList; // only return the keys
     }
 
     /**
@@ -93,11 +135,7 @@ public class AIMethods {
             }**/
         }
 
-        List<List<Castle>> returnList = new LinkedList<>();
-        for(List<Castle> list : idCastleList.values()){ // in values shouldn't be duplicates
-            returnList.add(list);
-        }
-        return returnList;
+        return new LinkedList<>(idCastleList.values());
     }
     /**
      * This method sorts ids in ascending order (1;2;3;...;)
@@ -280,20 +318,6 @@ public class AIMethods {
             }
         }
         return returnList;
-    }
-
-    /**
-     * @param castles all castles
-     * @return all castles, which are not assigned to any player
-     */
-    public static List<Castle> getUnassignedCastles(List<Castle> castles){
-        List<Castle> unassignedCastles = new LinkedList<>(); // stream would be shorter but slower
-        for(Castle castle : castles){
-            if(castle != null && castle.getOwner() == null){
-                unassignedCastles.add(castle);
-            }
-        }
-        return unassignedCastles;
     }
 
     /**

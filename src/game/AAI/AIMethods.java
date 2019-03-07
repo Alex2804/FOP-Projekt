@@ -9,10 +9,7 @@ import game.map.Kingdom;
 import game.map.PathFinding;
 import gui.components.MapPanel;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Alexander Muth
@@ -41,17 +38,160 @@ public class AIMethods {
     }
 
     /**
-     * @param graph the current graph
+     * Collects a list with all possible pairs. Only adjacent castles could be pairs
+     * @param castleGraph The graph containing all edges and nodes
+     * @param player the player who is the owner of the castles (could be null)
+     * @param pairSize the size of the pairs
+     * @return a list with list of castles (list of pairs)
+     */
+    public static List<List<Castle>> getPossibleCastlePairs(Graph<Castle> castleGraph, Player player, int pairSize){
+        List<List<Castle>> returnList = new LinkedList<>();
+        List<Castle> temp;
+        for(Node<Castle> node : Player.getCastleNodes(castleGraph.getNodes(), player)){
+            for(List<Node<Castle>> nodeList : getPossibleCastlePairsHelper(castleGraph, player, pairSize, node, new LinkedList<>())){
+                temp = new LinkedList<>();
+                for(Node<Castle> n : nodeList){
+                    temp.add(n.getValue());
+                }
+                returnList.add(temp);
+            }
+
+        }
+        return getPossibleCastlePairsRemoveDuplicates(returnList);
+    }
+    /**
+     * @param castles list to check for duplicates
+     * @return a list with all duplicates in {@code castles}
+     */
+    private static List<List<Castle>> getPossibleCastlePairsRemoveDuplicates(List<List<Castle>> castles){
+        Map<Castle, Integer> castleID = new HashMap<>();
+        Map<String, List<Castle>> idCastleList = new HashMap<>(); // store unique ids associated with each list
+        int currentID = 0;
+        Integer id;
+        String sortedID;
+        List<Integer> ids = new LinkedList<>();
+        ListIterator<List<Castle>> iterator = castles.listIterator();
+        List<Castle> next;
+        while(iterator.hasNext()){
+            next = iterator.next();
+
+            for(Castle castle : next){ // for each castle
+                id = castleID.get(castle); // get id of castle
+                if(id == null){ // if there is no id
+                    id = currentID++; // get new id
+                    castleID.put(castle, id); // connect castle and id
+                }
+                ids.add(id); // add id to id list
+            }
+
+            sortedID = sortIDs(ids); // sort id's
+
+            if(idCastleList.get(sortedID) == null){ // sorted id not contained
+                idCastleList.put(sortedID, next); // add to contained
+            }/**else{ // Following line modifies the input list (no need at current implementation)
+                iterator.remove(); // remove because pair already exists
+            }**/
+        }
+
+        List<List<Castle>> returnList = new LinkedList<>();
+        for(List<Castle> list : idCastleList.values()){ // in values shouldn't be duplicates
+            returnList.add(list);
+        }
+        return returnList;
+    }
+    /**
+     * This method sorts ids in ascending order (1;2;3;...;)
+     * @param ids the ids to sort and convert to string
+     * @return the sorted ids as string
+     */
+    public static String sortIDs(List<Integer> ids){
+        Collections.sort(ids);
+        StringBuilder sb = new StringBuilder();
+        for(int id : ids){
+            sb.append(id).append(";");
+        }
+        return sb.toString();
+    }
+    /**
+     * Helper function for {@link AIMethods#getPossibleCastlePairs(Graph, Player, int)}. Collects a list with all
+     * possible pairs (starting at node). Only adjacent nodes could be pairs
+     * @param castleGraph The graph containing all edges and nodes
+     * @param player the player who is the owner of the castles (could be null)
+     * @param pairSize the size of the pair ({@code pairSize} <= 1 terminates the recursion)
+     * @param node the current node
+     * @param passed all passed nodes (returned list mustn't contain node twice)
+     * @return a list with list of nodes (list of pairs)
+     */
+    private static List<List<Node<Castle>>> getPossibleCastlePairsHelper(Graph<Castle> castleGraph, Player player, int pairSize, Node<Castle> node, List<Node<Castle>> passed){
+        List<List<Node<Castle>>> returnList = new LinkedList<>();
+        if(pairSize <= 0 || passed.contains(node)) {
+            return null;
+        }else if(pairSize == 1) {
+            List<Node<Castle>> temp = new LinkedList<>();
+            temp.add(node);
+            returnList.add(temp);
+        }else{
+            passed.add(node);
+            List<List<Node<Castle>>> temp;
+            for(Node<Castle> neighbour : getNeighbours(castleGraph, node, player)){
+                if(!passed.contains(neighbour)) {
+                    temp = getPossibleCastlePairsHelper(castleGraph, player, pairSize - 1, neighbour, passed);
+                    if(temp != null){
+                        for (List<Node<Castle>> list : temp) {
+                            list.add(node);
+                            returnList.add(list);
+                        }
+                    }
+                }
+            }
+        }
+        return returnList;
+    }
+
+    /**
+     * @param castleGraph the graph with the edges and nodes
+     * @param castle castle to get neighbours from
+     * @param player owner (could be null)
+     * @return A List with all neighbour castles of castle, which has the player as owner
+     */
+    public static List<Castle> getNeighbours(Graph<Castle> castleGraph, Castle castle, Player player){
+        List<Castle> returnList = new LinkedList<>();
+        for(Node<Castle> node : getNeighbours(castleGraph, castleGraph.getNode(castle), player)){
+            returnList.add(node.getValue());
+        }
+        return returnList;
+    }
+    /**
+     * @param castleGraph the graph with the edges and nodes
+     * @param node node to get neighbours from
+     * @param player owner (could be null)
+     * @return A List with all neighbour nodes of node, which castles has the player as owner
+     */
+    public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Player player){
+        List<Node<Castle>> neighbourList = castleGraph.getNeighbours(node);
+        ListIterator<Node<Castle>> iterator = neighbourList.listIterator();
+        Node<Castle> n;
+        while(iterator.hasNext()){
+            n = iterator.next();
+            if(n.getValue().getOwner() != player){
+                iterator.remove();
+            }
+        }
+        return neighbourList;
+    }
+
+    /**
+     * @param castleGraph the current graph
      * @param player Player which attacks
      * @param castle Castle to attack from
      * @return A list with all possible attack targets
      */
-    public static List<Castle> getPossibleTargetCastles(Graph<Castle> graph, Player player, Castle castle){
-        PathFinding pathFinding = new PathFinding(graph, castle, MapPanel.Action.ATTACKING, player);
+    public static List<Castle> getPossibleTargetCastles(Graph<Castle> castleGraph, Player player, Castle castle){
+        PathFinding pathFinding = new PathFinding(castleGraph, castle, MapPanel.Action.ATTACKING, player);
 
         List<Castle> returnList = new LinkedList<>();
         List<Edge<Castle>> path;
-        for(Node<Castle> node : graph.getNodes()){
+        for(Node<Castle> node : castleGraph.getNodes()){
             castle = node.getValue();
             if(castle.getOwner() != player){
                 path = pathFinding.getPath(castle);
@@ -67,13 +207,13 @@ public class AIMethods {
      * Count all troops for connected castles which can used for attacking (every castle must have at least one troop)
      * saves this number in a map with one castle of this connected castle (every other castle is reachable from this
      * one)
-     * @param graph the current graph
+     * @param castleGraph the current graph
      * @param player the current player
      * @return the map with the castle and the troop count
      */
-    public static Map<Castle, Integer> getPossibleAttackTroopCount(Graph<Castle> graph, Player player){
+    public static Map<Castle, Integer> getPossibleAttackTroopCount(Graph<Castle> castleGraph, Player player){
         Map<Castle, Integer> map = new HashMap<>();
-        for(List<Castle> connected : getConnectedCastles(graph, player)){
+        for(List<Castle> connected : getConnectedCastles(castleGraph, player)){
             if(!connected.isEmpty()){
                 map.put(connected.get(0), getAllAttackTroops(connected));
             }
@@ -86,21 +226,25 @@ public class AIMethods {
      * @return the number of all troops minus one per castle
      */
     public static int getAllAttackTroops(List<Castle> castles){
-        return castles.stream().mapToInt(Castle::getTroopCount).sum() - castles.size();
+        int sum = 0;
+        for(Castle castle : castles){
+            sum += castle.getTroopCount();
+        }
+        return sum - castles.size();
     }
 
     /**
-     * @param graph the current graph
+     * @param castleGraph the current graph
      * @param player the player to get all connected castles from
      * @return a list, containing lists, which contains all connected castles of the passed player in the graph
      */
-    public static List<List<Castle>> getConnectedCastles(Graph<Castle> graph, Player player){
-        List<Castle> playerCastles = player.getCastles(graph.getAllValues());
+    public static List<List<Castle>> getConnectedCastles(Graph<Castle> castleGraph, Player player){
+        List<Castle> playerCastles = player.getCastles(castleGraph.getAllValues());
         List<Castle> passed = new LinkedList<>(), connected;
         List<List<Castle>> returnList = new LinkedList<>();
         for(Castle castle : playerCastles){
             if(!passed.contains(castle)){
-                connected = getConnectedCastles(graph, castle);
+                connected = getConnectedCastles(castleGraph, castle);
                 connected.add(castle);
                 passed.addAll(connected);
                 returnList.add(connected);
@@ -110,29 +254,29 @@ public class AIMethods {
     }
 
     /**
-     * @param graph the current graph
+     * @param castleGraph the current graph
      * @param castle
      * @return a list of castles, which are reachable from castle and belongs to the same player
      */
-    public static List<Castle> getConnectedCastles(Graph<Castle> graph, Castle castle){
-        return getConnectedCastlesHelper(graph, graph.getNode(castle), new LinkedList<>());
+    public static List<Castle> getConnectedCastles(Graph<Castle> castleGraph, Castle castle){
+        return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new LinkedList<>());
     }
     /**
      * helper for {@link AIMethods#getConnectedCastles(Graph, Castle)}
-     * @param graph graph to get edges from
+     * @param castleGraph graph to get edges from
      * @param node current node
      * @param passed passed nodes
      * @return a list with connected nodes
      */
-    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> graph, Node<Castle> node, List<Node<Castle>> passed){
+    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> castleGraph, Node<Castle> node, List<Node<Castle>> passed){
         List<Castle> returnList = new LinkedList<>();
         Node<Castle> otherNode;
-        for(Edge<Castle> edge : graph.getEdges(node)){
+        for(Edge<Castle> edge : castleGraph.getEdges(node)){
             otherNode = edge.getOtherNode(node);
             if(!passed.contains(otherNode)){
                 passed.add(otherNode);
                 returnList.add(otherNode.getValue());
-                returnList.addAll(getConnectedCastlesHelper(graph, otherNode, passed));
+                returnList.addAll(getConnectedCastlesHelper(castleGraph, otherNode, passed));
             }
         }
         return returnList;

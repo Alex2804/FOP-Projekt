@@ -6,8 +6,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import game.map.Castle;
-
 /**
  * Diese Klasse representiert einen generischen Graphen mit einer Liste aus Knoten und Kanten.
  *
@@ -155,5 +153,17 @@ public class Graph<T> {
             }
         }
         return nodes;
+    }
+
+    /**
+     * @param node the node to get the neighbours from
+     * @return A List with all neighbour nodes
+     */
+    public List<Node<T>> getNeighbours(Node<T> node){
+        List<Node<T>> returnList = new LinkedList<>();
+        for(Edge<T> edge : getEdges(node)){
+            returnList.add(edge.getOtherNode(node));
+        }
+        return returnList;
     }
 }

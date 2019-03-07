@@ -1,12 +1,14 @@
 package game;
 
+import base.Graph;
+import base.Node;
 import game.map.Castle;
 
 import java.awt.Color;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class Player {
 
@@ -104,7 +106,64 @@ public abstract class Player {
      * @return a list with all castles which belongs to this player
      */
     public List<Castle> getCastles(List<Castle> castles){
-        return castles.stream().filter(c -> c.getOwner() == this).collect(Collectors.toList());
+        return getCastles(castles, this);
+        //return castles.stream().filter(c -> c.getOwner() == this).collect(Collectors.toList()); //streams are slower than foreach loops
+    }
+    /**
+     * The advantage of this method over the non static ({@link Player#getCastles(List)}) is, that also the castles for null (no owner) could be found
+     * @param castles list of castles to check
+     * @param player player who should be owner of the returned castles (could be null)
+     * @return a list with all castles which belongs to this player
+     */
+    public static List<Castle> getCastles(List<Castle> castles, Player player){
+        List<Castle> returnList = new LinkedList<>();
+        for(Castle  castle : castles){
+            if(castle.getOwner() == player){
+                returnList.add(castle);
+            }
+        }
+        return returnList;
+    }
+
+    /**
+     * This function wrapps {@link #getCastleNodes(Graph, Player)}
+     * @param castleGraph graph containing all nodes to check
+     * @return a list with all nodes, containing castles which belongs to this player
+     */
+    public List<Node<Castle>> getCastleNodes(Graph<Castle> castleGraph){
+        return getCastleNodes(castleGraph, this);
+    }
+    /**
+     * this function wrapps {@link #getCastleNodes(List, Player)}
+     * @param nodes list of nodes to check
+     * @return a list with all nodes, containing castles which belongs to this player
+     */
+    public List<Node<Castle>> getCastleNodes(List<Node<Castle>> nodes){
+        return getCastleNodes(nodes, this);
+    }
+    /**
+     * This function wrapps {@link #getCastleNodes(List, Player)}
+     * @param castleGraph graph containing all nodes to check
+     * @param player player to check (could be null)
+     * @return a list with all nodes, containing castles which belongs to the player
+     */
+    public static List<Node<Castle>> getCastleNodes(Graph<Castle> castleGraph, Player player){
+        return getCastleNodes(castleGraph.getNodes(), player);
+    }
+    /**
+     * if the passed player is null, this method return a list with all castles with no owner (owner == null)
+     * @param nodes list of nodes to check
+     * @param player player to check (could be null)
+     * @return a list with all nodes, containing castles which belongs to this player
+     */
+    public static List<Node<Castle>> getCastleNodes(List<Node<Castle>> nodes, Player player){
+        List<Node<Castle>> returnList = new LinkedList<>();
+        for(Node<Castle> node : nodes){
+            if(node.getValue().getOwner() == player){
+                returnList.add(node);
+            }
+        }
+        return returnList;
     }
 
     public void reset() {

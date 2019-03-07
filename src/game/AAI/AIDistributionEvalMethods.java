@@ -33,12 +33,12 @@ public class AIDistributionEvalMethods {
 
         List<Castle> bestCastles = canOwnKingdom(allCastles, player, castleCount);
         int tempCastleCount = bestCastles == null ? castleCount : (castleCount - bestCastles.size());
-        if(tempCastleCount <= 0) { // if there is a kingdom which can get owned
+        if(tempCastleCount == 0) { // if there is a kingdom which can get owned
             return bestCastles; // return the castles which are necessary to own the kingdom
         }else if(tempCastleCount < castleCount){
             List<Castle> tempBestCastles;
             List<Castle> tempCastles = AIMethods.getCastlesFromOtherKingdoms(allCastles, bestCastles.get(0).getKingdom());
-            while(!tempCastles.isEmpty()){
+            while(!tempCastles.isEmpty() && tempCastleCount > 0){
                 tempBestCastles = canOwnKingdom(tempCastles, player, tempCastleCount);
                 if(tempBestCastles != null && tempCastleCount - tempBestCastles.size() >=  0){
                     bestCastles.addAll(tempBestCastles);
@@ -50,7 +50,8 @@ public class AIDistributionEvalMethods {
             }
         }
 
-        List<List<Castle>> connectedCastles = AIMethods.getConnectedCastles(castleGraph, player);
+
+
 
 
         return null;

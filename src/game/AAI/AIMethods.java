@@ -46,7 +46,7 @@ public class AIMethods {
      * @param <T> generic type of the value
      * @return a list containing the values with the best rating
      */
-    public static<T> List<T> getBest(List<Pair<T, Integer>> list, int count){
+    public static<T> List<T> getBest(Collection<Pair<T, Integer>> list, int count){
         List<T> returnList = list.stream()
                                     .sorted(Comparator.comparing(Pair::getValue))
                                     .map(p -> p.getKey()).collect(Collectors.toList());
@@ -54,21 +54,22 @@ public class AIMethods {
     }
     /**
      * searches for the pair (a pair is an inner list, not the {@link Pair} inside) with the biggest sum
-     * of the rating (the rating of each component is the second value in the {@link Pair})
-     * @param pairs list of pairs
+     * of the rating (the rating of each component is the value in the {@link Pair})
+     * @param pairs collection of pairs
      * @param <T> generic type of the value
-     * @return the values of the best pair (without the rating)
+     * @return the keys of the best pair (without the rating)
      */
-    public static<T> List<T> getBestPair(List<List<Pair<T, Integer>>> pairs){
+    public static<T> List<T> getBestPair(Collection<List<Pair<T, Integer>>> pairs){
         int bestRating = Integer.MAX_VALUE, rating;
-        List<Pair<T, Integer>> bestPair = null;
-        for(List<Pair<T, Integer>> list : pairs){
+        Collection<Pair<T, Integer>> bestPair = null;
+        for(Collection<Pair<T, Integer>> list : pairs){
             rating = 0;
             for(Pair<T, Integer> pair : list){
                 rating += pair.getValue(); // value is the rating
             }
             if(bestPair == null || bestRating < rating){
                 bestPair = list;
+                bestRating = rating;
             }
         }
 
@@ -87,6 +88,8 @@ public class AIMethods {
      * @return a list with list of castles (list of pairs)
      */
     public static List<List<Castle>> getPossibleCastlePairs(Graph<Castle> castleGraph, Player player, int pairSize){
+        if(pairSize <= 0)
+            return new LinkedList<>();
         List<List<Castle>> returnList = new LinkedList<>();
         List<Castle> temp;
         for(Node<Castle> node : Player.getCastleNodes(castleGraph.getNodes(), player)){
@@ -103,7 +106,7 @@ public class AIMethods {
     }
     /**
      * @param castles list to check for duplicates
-     * @return a list with all duplicates in {@code castles}
+     * @return a list without all duplicates in {@code castles}
      */
     private static List<List<Castle>> getPossibleCastlePairsRemoveDuplicates(List<List<Castle>> castles){
         Map<Castle, Integer> castleID = new HashMap<>();
@@ -162,8 +165,8 @@ public class AIMethods {
      */
     private static List<List<Node<Castle>>> getPossibleCastlePairsHelper(Graph<Castle> castleGraph, Player player, int pairSize, Node<Castle> node, List<Node<Castle>> passed){
         List<List<Node<Castle>>> returnList = new LinkedList<>();
-        if(pairSize <= 0 || passed.contains(node)) {
-            return null;
+        if(pairSize <= 0) {
+            return returnList;
         }else if(pairSize == 1) {
             List<Node<Castle>> temp = new LinkedList<>();
             temp.add(node);
@@ -346,5 +349,19 @@ public class AIMethods {
                 kingdoms.add(castle.getKingdom());
         }
         return kingdoms;
+    }
+
+    /**
+     * @param entrys the entrys to transform
+     * @param <T> Generic type of the key
+     * @param <U> Generic type of the value
+     * @return a list of pairs, with the same order and keys/values like the passed entrys
+     */
+    public static<T, U> List<Pair<T, U>> entrysToPairs(Collection<Map.Entry<T, U>> entrys){
+        List<Pair<T, U>> returnList = new LinkedList<>();
+        for(Map.Entry<T, U> entry : entrys){
+            returnList.add(new Pair<>(entry.getKey(), entry.getValue()));
+        }
+        return returnList;
     }
 }

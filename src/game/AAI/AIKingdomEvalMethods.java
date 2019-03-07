@@ -1,8 +1,6 @@
 package game.AAI;
 
-import base.Edge;
 import base.Graph;
-import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
 

@@ -20,8 +20,8 @@ public class AIDefenseEvalMethods {
         Map<Castle, Integer> troopCountTemp = new HashMap<>();
         List<Castle> temp;
         List<Pair<Castle, Integer>> tempRated;
-        List<ATriplet<Castle, Integer, Double>> tempDistribution = new LinkedList<>(); // first: castle; second: troops; third: tempCount % 1
-        int troopCount = 0, countLeft;
+        List<ATriplet<Castle, Integer, Double>> tempDistribution; // first: castle; second: troops; third: tempCount % 1
+        int troopCount, countLeft;
         double tempCount;
         for(List<Castle> connected : connectedCastles){ // for all regions owned BY the player
             troopCount = AIMethods.getAttackTroopCount(connected);
@@ -35,7 +35,7 @@ public class AIDefenseEvalMethods {
             // evalutate the rating for the castles and save it in tempRated
             tempRated = new LinkedList<>();
             for(Castle castle : temp){
-                tempRated.add(new Pair(castle, evaluateCastle(castleGraph, player, castle)));
+                tempRated.add(new Pair<>(castle, evaluateCastle(castleGraph, player, castle)));
             }
 
             int sum = 0; // sum all ratings, to get the percentage of each castle
@@ -79,7 +79,7 @@ public class AIDefenseEvalMethods {
         for(List<Castle> connected : connectedCastles){
             for(Castle castle : connected){
                 troops = troopCountTemp.get(castle); // save troops + 1 if distributet or 1 if not (1 for all castles without enemy neighbour)
-                returnList.add(new Pair<>(castle, (troops == null) ? 1 : (troops.intValue() + 1)));
+                returnList.add(new Pair<>(castle, (troops == null) ? 1 : (troops + 1)));
             }
         }
         return returnList;

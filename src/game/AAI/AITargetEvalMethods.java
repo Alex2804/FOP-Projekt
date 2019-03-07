@@ -143,12 +143,12 @@ public class AITargetEvalMethods {
      * @return if the castle is the last castle of the owner
      */
     public static boolean isLastCastleOfPlayer(List<Castle> castles, Castle castle){
-        return !castles.stream().anyMatch(c -> c.getOwner() == castle.getOwner() && c != castle);
+        return castles.stream().noneMatch(c -> c.getOwner() == castle.getOwner() && c != castle);
     }
 
     /**
      * Checks if a Player is a big threat for another player
-     * @param player
+     * @param player the player to check
      * @param other player to check if it is a big threat
      * @return if the other player is a big threat for player
      */
@@ -163,7 +163,6 @@ public class AITargetEvalMethods {
      * @return if the player is (one of) the strongest players in the kingdom
      */
     public static boolean isImportantKingdom(Player player, Kingdom kingdom){
-        kingdom.getCastles();
         Integer otherIndex;
         int playerPoints = 0;
         List<Integer> otherPoints = new ArrayList<>();
@@ -219,11 +218,11 @@ public class AITargetEvalMethods {
 
     /**
      * Checks if the castle is the last castle in the kingdom, owned by another player than the passed one
-     * @param player
-     * @param castle
+     * @param player the player to check if their are other players in the kingdom
+     * @param castle the castle to check if it is the last
      * @return if the castle is the last one owned by another player
      */
     public static boolean isLastCastleInKingdom(Player player, Castle castle){
-        return !castle.getKingdom().getCastles().stream().anyMatch(c -> c.getOwner() != player && c != castle);
+        return castle.getKingdom().getCastles().stream().noneMatch(c -> c.getOwner() != player && c != castle);
     }
 }

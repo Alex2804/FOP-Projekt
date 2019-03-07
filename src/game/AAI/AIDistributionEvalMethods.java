@@ -1,8 +1,6 @@
 package game.AAI;
 
-import base.Edge;
 import base.Graph;
-import base.Node;
 import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
@@ -46,22 +44,19 @@ public class AIDistributionEvalMethods {
             }
         }
 
-        if(bestCastles == null) {
-            bestCastles = new LinkedList<>();
-        }
         tempCastleCount = castleCount - bestCastles.size();
         if(tempCastleCount <= 0){
             return bestCastles;
         }
 
-        List<List<Castle>> pairs = null;
+        List<List<Castle>> pairs;
         int pairCount = tempCastleCount;
         Map<Castle, Integer> castleRatingMap = new HashMap<>();
         while(tempCastleCount > 0 && pairCount > 0){
             if(pairCount <= tempCastleCount){
                 pairs = AIMethods.getPossibleCastlePairs(castleGraph, player, pairCount--);
 
-                if(pairs != null && !pairs.isEmpty()){
+                if(!pairs.isEmpty()){
                     List<List<Pair<Castle, Integer>>> ratedPairs = new LinkedList<>();
                     List<Pair<Castle, Integer>> ratedPair;
                     Integer rating;
@@ -177,6 +172,6 @@ public class AIDistributionEvalMethods {
     public static boolean isFirstCastleInKingdom(Player player, Castle castle){
         if(castle.getKingdom() == null)
             return false;
-        return !castle.getKingdom().getCastles().stream().anyMatch(c -> c.getOwner() == player);
+        return castle.getKingdom().getCastles().stream().noneMatch(c -> c.getOwner() == player);
     }
 }

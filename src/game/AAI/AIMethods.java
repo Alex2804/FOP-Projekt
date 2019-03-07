@@ -79,8 +79,10 @@ public class AIMethods {
         }
 
         List<T> returnList = new LinkedList<>();
-        for(Pair<T, Integer> pair : bestPair){ // foreach is faster than stream
-            returnList.add(pair.getKey());
+        if(bestPair != null) {
+            for(Pair<T, Integer> pair : bestPair){ // foreach is faster than stream
+                returnList.add(pair.getKey());
+            }
         }
         return returnList; // only return the keys
     }
@@ -136,11 +138,12 @@ public class AIMethods {
 
             sortedID = sortIDs(ids); // sort id's
 
-            if(idCastleList.get(sortedID) == null){ // sorted id not contained
+            idCastleList.put(sortedID, next);
+            /*if(idCastleList.get(sortedID) == null){ // sorted id not contained
                 idCastleList.put(sortedID, next); // add to contained
-            }/**else{ // Following line modifies the input list (no need at current implementation)
+            }else{ // Following line modifies the input list (no need at current implementation)
                 iterator.remove(); // remove because pair already exists
-            }**/
+            }*/
         }
 
         return new LinkedList<>(idCastleList.values());
@@ -337,8 +340,9 @@ public class AIMethods {
 
     /**
      * @param castleGraph the current graph
-     * @param castle
+     * @param castle the castle to get all connected
      * @return a list of castles, which are reachable from castle and belongs to the same player
+     * as the passed {@code castle}
      */
     public static List<Castle> getConnectedCastles(Graph<Castle> castleGraph, Castle castle){
         return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new LinkedList<>());

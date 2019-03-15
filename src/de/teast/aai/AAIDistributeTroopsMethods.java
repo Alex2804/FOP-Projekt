@@ -48,12 +48,35 @@ public class AAIDistributeTroopsMethods {
         }
     }
 
+    /**
+     * Moves the troops for defense
+     * @param game the game object
+     * @param player the player to move the troops for
+     */
+    public static void moveDefenseTroops(Game game, Player player){
+        for(TroopMover mover : distributeDefenseTroops(game.getMap().getGraph(), player)){
+            mover.move(game);
+        }
+    }
+
+    /**
+     * @param castleGraph the graph, containing all castles and edges
+     * @param player the player to distribute for
+     * @return a List of {@link TroopMover}, to move the Troops in the optimal way
+     */
     public static List<TroopMover> distributeDefenseTroops(Graph<Castle> castleGraph, Player player){
         List<Pair<Castle, Integer>> troopDistribution = AAIDefenseEvalMethods.getBestTroopDistribution(castleGraph, player);
 
         return generateMoves(castleGraph, troopDistribution, player);
     }
 
+    /**
+     * Generates {@link TroopMover} objects, to distribute the troops, for the given distribution
+     * @param castleGraph the graph, containing all castles and edges
+     * @param troopDistribution the castles with the number of distributed troops
+     * @param player the player to distribute for
+     * @return a list of generated {@link TroopMover}
+     */
     public static List<TroopMover> generateMoves(Graph<Castle> castleGraph, List<Pair<Castle, Integer>> troopDistribution, Player player){
         List<Castle> castles = new LinkedList<>();
         Map<Castle, Integer> needTroopsHashMap = new HashMap<>();

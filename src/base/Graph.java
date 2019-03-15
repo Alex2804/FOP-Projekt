@@ -93,7 +93,7 @@ public class Graph<T> {
      * @return all edges for all the nodes
      */
     public List<Edge<T>> getEdges(List<Node<T>> nodes){
-        return edges.stream().filter(e -> nodes.stream().anyMatch(n -> e.contains(n))).collect(Collectors.toList());
+        return edges.stream().filter(e -> nodes.stream().anyMatch(e::contains)).collect(Collectors.toList());
     }
 
     /**
@@ -132,7 +132,7 @@ public class Graph<T> {
         if(nodes.size() == 0){
             return true;
         }
-        return (nodes.size() == allNodesConnectedHelper(nodes.get(0), new ArrayList<>(Arrays.asList(nodes.get(0))), getEdges(nodes.get(0))).size());
+        return (nodes.size() == allNodesConnectedHelper(nodes.get(0), new HashSet<>(Collections.singleton(nodes.get(0))), getEdges(nodes.get(0))).size());
     }
 
     /**
@@ -143,7 +143,7 @@ public class Graph<T> {
      * @param edges edges of current node
      * @return a list with all reachable nodes from the current node
      */
-    private List<Node<T>> allNodesConnectedHelper(Node<T> node, List<Node<T>> nodes, List<Edge<T>> edges){
+    private HashSet<Node<T>> allNodesConnectedHelper(Node<T> node, HashSet<Node<T>> nodes, List<Edge<T>> edges){
         Node<T> other;
         for(Edge<T> edge : edges){
             other = edge.getOtherNode(node);

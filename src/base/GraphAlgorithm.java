@@ -123,7 +123,7 @@ public abstract class GraphAlgorithm<T> {
             return  null;
         AlgorithmNode<T> algorithmNode = algorithmNodes.get(destination);
         List<Edge<T>> list = new ArrayList<>();
-        List<AlgorithmNode<T>> passedNodes = new LinkedList<>();
+        HashSet<AlgorithmNode<T>> passedNodes = new HashSet<>();
         while(algorithmNode.previous != null){
             list.add(graph.getEdge(algorithmNode.node, algorithmNode.previous.node));
             passedNodes.add(algorithmNode);

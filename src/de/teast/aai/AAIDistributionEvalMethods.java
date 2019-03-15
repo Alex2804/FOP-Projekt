@@ -111,7 +111,7 @@ public class AAIDistributionEvalMethods {
      */
     public static List<Castle> canOwnKingdom(List<Castle> castles, Player player, int castleCount){
         Kingdom kingdom;
-        List<Kingdom> passedKingdoms = new LinkedList<>();
+        HashSet<Kingdom> passedKingdoms = new HashSet<>();
         List<Castle> tempCastles;
         for(Castle castle : castles){
             kingdom = castle.getKingdom();

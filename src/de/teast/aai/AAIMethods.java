@@ -100,7 +100,7 @@ public class AAIMethods {
         List<List<Castle>> returnList = new LinkedList<>();
         List<Castle> temp;
         for(Node<Castle> node : Player.getCastleNodes(castleGraph.getNodes(), player)){
-            for(List<Node<Castle>> nodeList : getPossibleCastlePairsHelper(castleGraph, player, pairSize, node, new LinkedList<>())){
+            for(List<Node<Castle>> nodeList : getPossibleCastlePairsHelper(castleGraph, player, pairSize, node, new HashSet<>())){
                 temp = new LinkedList<>();
                 for(Node<Castle> n : nodeList){
                     temp.add(n.getValue());
@@ -171,7 +171,7 @@ public class AAIMethods {
      * @param passed all passed nodes (returned list mustn't contain node twice)
      * @return a list with list of nodes (list of pairs)
      */
-    private static List<List<Node<Castle>>> getPossibleCastlePairsHelper(Graph<Castle> castleGraph, Player player, int pairSize, Node<Castle> node, List<Node<Castle>> passed){
+    private static List<List<Node<Castle>>> getPossibleCastlePairsHelper(Graph<Castle> castleGraph, Player player, int pairSize, Node<Castle> node, HashSet<Node<Castle>> passed){
         List<List<Node<Castle>>> returnList = new LinkedList<>();
         if(pairSize <= 0) {
             return returnList;
@@ -324,8 +324,20 @@ public class AAIMethods {
      * @return a list, containing lists, which contains all connected castles of the passed player in the graph
      */
     public static List<List<Castle>> getConnectedCastles(Graph<Castle> castleGraph, Player player){
+        return getConnectedCastles(castleGraph, castleGraph.getAllValues(), player);
+    }
+
+    /**
+     * @param castleGraph the current graph
+     * @param castles all castles, which could be contained in the returned list
+     * @param player the player to get all connected castles from
+     * @return a list, containing lists, which contains all connected castles of the passed player in the graph, which
+     * are contained in castles
+     */
+    public static List<List<Castle>> getConnectedCastles(Graph<Castle> castleGraph, List<Castle> castles, Player player){
         List<Castle> playerCastles = player.getCastles(castleGraph.getAllValues());
-        List<Castle> passed = new LinkedList<>(), connected;
+        HashSet<Castle> passed = new HashSet<>();
+        List<Castle> connected;
         List<List<Castle>> returnList = new LinkedList<>();
         for(Castle castle : playerCastles){
             if(!passed.contains(castle)){
@@ -333,6 +345,19 @@ public class AAIMethods {
                 connected.add(castle);
                 passed.addAll(connected);
                 returnList.add(connected);
+            }
+        }
+        // Filter all castle's, which are not in castles
+        if(castleGraph.getNodes().size() != castles.size()) { // filter only if not all nodes are allowed
+            HashSet<Castle> usable = new HashSet<>(castles); // O(1) complexity
+            ListIterator<Castle> iterator;
+            for(List<Castle> list : returnList){
+                iterator = list.listIterator();
+                while(iterator.hasNext()){
+                    if(!usable.contains(iterator.next())){
+                        iterator.remove();
+                    }
+                }
             }
         }
         return returnList;
@@ -345,7 +370,7 @@ public class AAIMethods {
      * as the passed {@code castle}
      */
     public static List<Castle> getConnectedCastles(Graph<Castle> castleGraph, Castle castle){
-        return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new LinkedList<>());
+        return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new HashSet<>());
     }
     /**
      * helper for {@link AAIMethods#getConnectedCastles(Graph, Castle)}
@@ -354,7 +379,7 @@ public class AAIMethods {
      * @param passed passed nodes
      * @return a list with connected nodes
      */
-    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> castleGraph, Node<Castle> node, List<Node<Castle>> passed){
+    private static List<Castle> getConnectedCastlesHelper(Graph<Castle> castleGraph, Node<Castle> node, HashSet<Node<Castle>> passed){
         List<Castle> returnList = new LinkedList<>();
         Node<Castle> otherNode;
         for(Edge<Castle> edge : castleGraph.getEdges(node)){

@@ -165,7 +165,7 @@ public class GameMap {
     private static void generateEdges(List<Node<Castle>> nodes, Graph<Castle> graph, int maxEdgeCount) {
         if(nodes.isEmpty())
             return;
-        List<Node<Castle>> tempNodes1 = new LinkedList<>(nodes), tempNodes2 = new LinkedList<>(nodes);
+        List<Node<Castle>> tempNodes1 = new LinkedList<>(nodes), tempNodes2;
         if(tempNodes1.isEmpty())
             return;
         Node<Castle> currentNode = tempNodes1.get(0), nextNode;
@@ -249,33 +249,35 @@ public class GameMap {
         tempKingdoms1 = nonEmptyKingdoms;
         List<Edge<Castle>> edges;
         int edgeCount;
-        List<Pair<Castle, Castle>> castleRelation = new LinkedList<>();
-        List<Castle> castles, otherKingdomCastles;
+        List<Castle> kingdomCastles, otherKingdomCastles;
+        HashSet<Castle> kingdomCastlesSet;
+        HashSet<Pair<Castle, Castle>> castleRelation = new HashSet<>();
         Kingdom otherKingdom;
         Castle kingdomCastle, otherCastle;
         int rand, i = 0, m;
         Random random = new Random();
         for(Kingdom kingdom : tempKingdoms1){
-            castles = kingdom.getCastles();
+            kingdomCastles = kingdom.getCastles();
+            kingdomCastlesSet = new HashSet<>(kingdomCastles);
             tempKingdoms2 = new LinkedList<>(tempKingdoms1);
             tempKingdoms2.remove(kingdom); // remove current edge
             edges = castleGraph.getEdges(castleGraph.getNodes(kingdom.getCastles()));
             edgeCount = random.nextInt(GameConstants.MAX_EDGE_COUNT_KINGDOMS + 1); // random edge count
             for(Edge<Castle> edge : edges){
-                if(!castles.contains(edge.getNodeA().getValue()) || !castles.contains(edge.getNodeB().getValue())){ //TODO: Nullpointer
+                if(!kingdomCastlesSet.contains(edge.getNodeA().getValue()) || !kingdomCastlesSet.contains(edge.getNodeB().getValue())){
                     castleRelation.add(new Pair<>(edge.getNodeB().getValue(), edge.getNodeA().getValue()));
                     --edgeCount;
                 }
             }
             m = 0; // max iterator
             while(edgeCount-- > 0 && tempKingdoms1.size() > 1 && m++ < 50){
-                kingdomCastle = castles.get(random.nextInt(castles.size())); // random castle
+                kingdomCastle = kingdomCastles.get(random.nextInt(kingdomCastles.size())); // random castle
                 rand = random.nextInt(tempKingdoms1.size()); // random other kingdom
                 otherKingdom = tempKingdoms1.get(rand != i ? rand : (rand+1)%tempKingdoms1.size()); // other kingdom not this kingdom
                 otherKingdomCastles = getNearestCastles(kingdomCastle, otherKingdom.getCastles(), 3);
                 while(!otherKingdomCastles.isEmpty()){
                     otherCastle = otherKingdomCastles.get(0);
-                    kingdomCastle = getNearestCastle(otherCastle, castles);
+                    kingdomCastle = getNearestCastle(otherCastle, kingdomCastles);
                     if(castleRelation.contains(new Pair<>(kingdomCastle, otherCastle))
                             || castleRelation.contains(new Pair<>(otherCastle, kingdomCastle))){
                         otherKingdomCastles.remove(0);
@@ -317,13 +319,13 @@ public class GameMap {
      */
     private static Kingdom getNearestKingdom(Kingdom kingdom, List<Kingdom> kingdoms){
         Kingdom nextKingdom = null;
-        double smallestDistance = Double.MAX_VALUE, currentDistance = smallestDistance;
+        double smallestDistance = Double.MAX_VALUE, currentDistance;
         Pair<Castle, Castle> castles;
         for(Kingdom k : kingdoms){
             castles = getNearestCastles(kingdom, k);
             if(castles != null){
                 currentDistance = castles.getKey().distance(castles.getValue());
-                if(currentDistance < smallestDistance || nextKingdom == null){
+                if(nextKingdom == null || currentDistance < smallestDistance){
                     smallestDistance = currentDistance;
                     nextKingdom = k;
                 }
@@ -335,7 +337,7 @@ public class GameMap {
      * Wrapper for {@link GameMap#getNearestCastles(List, List)}
      * @param kingdom1 All castles of this Kindom are the first argument for {@link GameMap#getNearestCastles(List, List)}
      * @param kingdom2 All castles of this Kindom are the second argument for {@link GameMap#getNearestCastles(List, List)}
-     * @return a {@link Pair<Castle, Castle>} of castles (one from each kingdom) with the smallest distance.
+     * @return a {@link Pair} of castles (one from each kingdom) with the smallest distance.
      */
     private static Pair<Castle, Castle> getNearestCastles(Kingdom kingdom1, Kingdom kingdom2){
         if(kingdom1 == null || kingdom2 == null)
@@ -352,7 +354,7 @@ public class GameMap {
         if(castles1 == null || castles2 == null || castles1.isEmpty() || castles2.isEmpty())
             return null;
         Castle bestCastle1 = null, bestCastle2 = null;
-        double smallestDistance = Double.MAX_VALUE, currentDistance = smallestDistance;
+        double smallestDistance = Double.MAX_VALUE, currentDistance;
         for(Castle castle1 : castles1){
             for(Castle castle2 : castles2){
                 currentDistance = castle1.distance(castle2);
@@ -363,7 +365,7 @@ public class GameMap {
                 }
             }
         }
-        return new Pair<Castle, Castle>(bestCastle1, bestCastle2);
+        return new Pair<>(bestCastle1, bestCastle2);
     }
     /**
      * Searches the number of castles with the smallest distance to the passed castle
@@ -374,7 +376,7 @@ public class GameMap {
      */
     private static List<Castle> getNearestCastles(Castle castle, List<Castle> castles, int count){
         return castles.stream().
-                sorted(Comparator.comparingDouble(c -> castle.distance(c))).
+                sorted(Comparator.comparingDouble(castle::distance)).
                 collect(Collectors.toList()).
                 subList(0, count <= castles.size() ? count : castles.size());
     }

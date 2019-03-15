@@ -107,7 +107,7 @@ public class AAIDefenseEvalMethods {
      */
     public static int getThreateningNeighboursTroopCount(Graph<Castle> castleGraph, Castle castle){
         int troopCount = 0;
-        List<Castle> passedNeighbours = new LinkedList<>();
+        HashSet<Castle> passedNeighbours = new HashSet<>();
         List<Castle> connected;
         for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, castle, castle.getOwner())){
             if(!passedNeighbours.contains(neighbour)){

@@ -22,11 +22,11 @@ public class Resources {
     private static final int NUM_CASTLES = 6;
     private static Resources instance;
     private Map<Color, BufferedImage[]> castlesColored;
-    private BufferedImage dices[];
+    private BufferedImage[] dices;
     private BufferedImage check;
     private BufferedImage unit;
     private BufferedImage arrow, arrowDeactivated, plus, plusDeactivated, swords;
-    private BufferedImage soldiers[];
+    private BufferedImage[] soldiers;
     private List<String> castleNames;
     private Font celticFont;
 
@@ -80,7 +80,7 @@ public class Resources {
         try {
             // Load Castle
             castlesColored = new HashMap<>();
-            BufferedImage castles[] = new BufferedImage[NUM_CASTLES];
+            BufferedImage[] castles = new BufferedImage[NUM_CASTLES];
             for(int i = 0; i < NUM_CASTLES; i++)
                 castles[i] = loadImage("castle" + (i + 1) + ".png");
             castlesColored.put(Color.WHITE, castles);
@@ -270,7 +270,7 @@ public class Resources {
             return null;
 
         index = index % NUM_CASTLES;
-        BufferedImage images[];
+        BufferedImage[] images;
         if(castlesColored.containsKey(color))
             images = castlesColored.get(color);
         else

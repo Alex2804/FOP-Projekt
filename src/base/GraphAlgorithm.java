@@ -98,7 +98,7 @@ public abstract class GraphAlgorithm<T> {
         while(algorithmNode != null){
             edges = graph.getEdges(algorithmNode.node);
             for(Edge<T> edge : edges){
-                if(isPassable(edge)){
+                if(isPassable(edge) && isPassable(algorithmNode.node)){
                     otherAlgorithmNode = algorithmNodes.get(edge.getOtherNode(algorithmNode.node));
                     newValue = algorithmNode.value + getValue(edge);
                     if(otherAlgorithmNode.value == -1 || newValue < otherAlgorithmNode.value){

@@ -48,7 +48,8 @@ public class AAIDistributeTroopsMethods {
     }
 
     /**
-     * Generates {@link ATroopMover} objects, to distribute the troops, for the given distribution
+     * Generates {@link ATroopMover} objects, to distribute the troops, for the given distribution (only troops of
+     * castles in {@code troopDistribution} are used)
      * @param castleGraph the graph, containing all castles and edges
      * @param troopDistribution the castles with the number of distributed troops
      * @param player the player to distribute for

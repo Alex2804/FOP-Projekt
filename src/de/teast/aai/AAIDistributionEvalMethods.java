@@ -1,6 +1,7 @@
 package de.teast.aai;
 
 import base.Graph;
+import game.GameConstants;
 import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
@@ -19,95 +20,89 @@ public class AAIDistributionEvalMethods {
      * @param castleGraph the graph containing all castles
      * @param player the player to assign castles
      * @param castleCount the castles needed to distribute
-     * @return a list with castles, which are the best for the player to choose. The size of the return list is equal
-     * or smaller to the value of {@code castleCount}
+     * @return a collection with castles, which are the best for the player to choose. The size of the return list is
+     * equal or less than the value of {@code castleCount}
      */
-    public static List<Castle> getBestDistributionCastles(Graph<Castle> castleGraph, Player player, int castleCount){
+    public static Collection<Castle> getBestCastleDistribution(Graph<Castle> castleGraph, Player player, int castleCount){
         List<Castle> allCastles = castleGraph.getAllValues();
         List<Castle> availableCastles = Player.getCastles(allCastles, null);
+        castleCount = (availableCastles.size() < castleCount) ? availableCastles.size() : castleCount;
 
-        if(availableCastles.size() <= castleCount) // return all available castles if there aren't enough
-            return availableCastles;
-
-        List<Castle> bestCastles = new LinkedList<>();
-        List<Castle> tempBestCastles;
-        List<Castle> tempCastles = new LinkedList<>(allCastles);
-        int tempCastleCount = castleCount;
-        while(!tempCastles.isEmpty() && tempCastleCount > 0){
-            tempBestCastles = canOwnKingdom(tempCastles, player, tempCastleCount);
-            if(tempBestCastles != null && tempCastleCount - tempBestCastles.size() >=  0){
-                bestCastles.addAll(tempBestCastles);
-                tempCastles = AAIMethods.getCastlesFromOtherKingdoms(tempCastles, tempBestCastles.get(0).getKingdom());
-                tempCastleCount -= tempBestCastles.size();
-            }else{
-                break;
+        Set<Castle> bestCastles = new HashSet<>();
+        List<Castle> tempAllCastles = new LinkedList<>(allCastles);
+        List<Castle> captureKingdom;
+        do{
+            captureKingdom = canOwnKingdom(tempAllCastles, player, castleCount);
+            if(captureKingdom != null && !captureKingdom.isEmpty()){
+                tempAllCastles.removeAll(captureKingdom.get(0).getKingdom().getCastles());
+                castleCount -= captureKingdom.size();
+                bestCastles.addAll(captureKingdom);
             }
-        }
+        }while(captureKingdom != null && castleCount > 0);
+        availableCastles.removeAll(bestCastles);
 
-        tempCastleCount = castleCount - bestCastles.size();
-        if(tempCastleCount <= 0){
+        if(castleCount <= 0)
             return bestCastles;
+
+        Map<Castle, Integer> castleEvaluationMap = new HashMap<>();
+        for(Castle castle : availableCastles){
+            castleEvaluationMap.put(castle, evaluateCastle(castleGraph, player, castle));
         }
 
-        List<List<Castle>> pairs;
-        int pairCount = tempCastleCount;
-        Map<Castle, Integer> castleRatingMap = new HashMap<>();
-        while(tempCastleCount > 0 && pairCount > 0){
-            if(pairCount <= tempCastleCount){
-                pairs = AAIMethods.getPossibleCastlePairs(castleGraph, player, pairCount--);
+        int pairSize = castleCount, valueSum;
+        Integer tempValue;
+        while(pairSize > 0){
+            List<List<Castle>> pairs = AAIMethods.getPossibleCastlePairs(castleGraph, null, pairSize);
+            List<Pair<List<Castle>, Integer>> pairsValueList = new LinkedList<>();
+            for(List<Castle> pair : pairs){
+                pairsValueList.add(new Pair<>(pair, evaluateCastlePair(castleGraph, player, pair, castleEvaluationMap)));
+            }
 
-                if(!pairs.isEmpty()){
-                    List<List<Pair<Castle, Integer>>> ratedPairs = new LinkedList<>();
-                    List<Pair<Castle, Integer>> ratedPair;
-                    Integer rating;
-                    for(List<Castle> pair : pairs){
-                        ratedPair = new LinkedList<>();
-                        for(Castle castle : pair){
-                            rating = castleRatingMap.get(castle);
-                            if(rating == null){
-                                rating = evaluateCastle(castleGraph, player, castle);
-                                castleRatingMap.put(castle, rating);
-                            }
-                            ratedPair.add(new Pair<>(castle, rating));
+            pairsValueList.sort(Comparator.comparingInt(Pair::getValue)); // sort the pairs by value
+            Collections.reverse(pairsValueList); // pair with biggest value should be at front
+            if(!pairsValueList.isEmpty()){
+                for(Pair<List<Castle>, Integer> pair : pairsValueList){
+                    for(Castle castle : pair.getKey()){
+                        if(bestCastles.contains(castle)) { // test if contained in best castles
+                            pair = null; // doesn't add to bestCastles list in if condition bellow if contained
+                            break;
                         }
-                        ratedPairs.add(ratedPair);
                     }
-
-                    while(!pairs.isEmpty() && pairCount < tempCastleCount){
-                        List<Castle> bestPair = AAIMethods.getBestPair(ratedPairs);
-                        ratedPairs.remove(bestPair.stream().map(c -> new Pair<>(c, castleRatingMap.get(c))).collect(Collectors.toList()));
-                        if(bestPair.size() <= tempCastleCount) {
-                            bestCastles.addAll(bestPair);
-                        }
-                        tempCastleCount = castleCount - bestCastles.size();
+                    if(pair != null && !pair.getKey().isEmpty() && castleCount >= pair.getKey().size()){ // if pair is not to big and not empty
+                        bestCastles.addAll(pair.getKey()); // this is the best pair
+                        castleCount -= pair.getKey().size();
+                    }else if(pair != null){
+                        break; // break if to big pairs for to small amount of castles
                     }
                 }
             }
+
+            --pairSize; // reduce pair size by one and do again
         }
 
-        // the following shouldn't be necessary but is for safety
-        tempCastleCount = castleCount - bestCastles.size();
-        if(tempCastleCount > 0){ // return a list with the best rated castles
-            System.err.println("Semantic error in AAIDistributionEvalMethods#getBestDistributionCastles !!!");
-
-            for(Castle castle : availableCastles){
-                castleRatingMap.put(castle, evaluateCastle(castleGraph, player, castle));
-            }
-
-            bestCastles.addAll(AAIMethods.getBest(AAIMethods.entrysToPairs(castleRatingMap.entrySet()), tempCastleCount));
+        if(castleCount <= 0)
             return bestCastles;
-        }
 
-        return (bestCastles.size() < castleCount) ? bestCastles : bestCastles.subList(0, castleCount);
+        //should never be executed but is for safety
+        List<Pair<Castle, Integer>> castleEvaluationList = new LinkedList<>();
+        for(Map.Entry<Castle, Integer> entry : castleEvaluationMap.entrySet()){
+            castleEvaluationList.add(new Pair<>(entry.getKey(), entry.getValue()));
+        }
+        castleEvaluationList.sort(Comparator.comparingInt(Pair::getValue));
+        Collections.reverse(castleEvaluationList);
+
+        bestCastles.addAll(castleEvaluationList.stream().map(Pair::getKey).collect(Collectors.toList())
+                .subList(0, (castleEvaluationList.size() > castleCount) ? castleCount : castleEvaluationList.size()));
+        return bestCastles;
     }
 
     /**
-     * @param castles all castles
+     * @param castles castles to check kingdoms from
      * @param player the player which want to capture a kingdom
      * @param castleCount the castles which can be captured at this move
      * @return null if their is no kingdom which can be owned with the given castle count or a list with the castles,
      * which are necessary to own the kingdom. If a list is returned, the size is equal or smaller to the value of
-     * {@code castleCount}
+     * {@code castleCount} and only castles from one kingdom and castles from {@code castles} are contained
      */
     public static List<Castle> canOwnKingdom(List<Castle> castles, Player player, int castleCount){
         Kingdom kingdom;
@@ -120,7 +115,7 @@ public class AAIDistributionEvalMethods {
 
                 tempCastles = new LinkedList<>();
                 for(Castle kingdomCastle : kingdom.getCastles()){
-                    if(kingdomCastle.getOwner() == null){
+                    if(kingdomCastle.getOwner() == null && castles.contains(kingdomCastle)){
                         tempCastles.add(kingdomCastle);
                     }else if(kingdomCastle.getOwner() != player){
                         tempCastles = null;
@@ -128,12 +123,56 @@ public class AAIDistributionEvalMethods {
                     }
                 }
 
-                if(tempCastles != null && tempCastles.size() <= castleCount)
+                if(tempCastles != null && !tempCastles.isEmpty() && tempCastles.size() <= castleCount)
                     return tempCastles;
             }
         }
 
         return null;
+    }
+
+    /**
+     * This Method sums up all values of the castles in the pair and adds an extra value for the first castle in
+     * a kingdom, if an other player could capture the kingdom and if other players has castles in the kingdom
+     * @param player the player to check the value for
+     * @param castles the castles to sum up the values
+     * @param evaluationMap the map containing the castles connected with the values
+     * @return the sum of all castle evaluations plus some extra one
+     * @see #evaluateCastle(Graph, Player, Castle)
+     */
+    public static int evaluateCastlePair(Graph<Castle> castleGraph, Player player, List<Castle> castles, Map<Castle, Integer> evaluationMap){
+        int sum = 0;
+        Integer tempValue;
+        boolean otherCanCaptureKingdom = false, otherHasCastleInKingdom = false, isFirstCastleInKingdom = false,
+                canSplitEnemyRegion = false, isConnectedToPlayerCastles = false;
+        for(Castle castle : castles){
+            tempValue = evaluationMap.get(castle);
+            if(tempValue == null)
+                tempValue = evaluateCastle(castleGraph, player, castle);
+            sum += tempValue;
+
+            if(!otherCanCaptureKingdom && otherCanCaptureKingdom(player, castle)){
+                otherCanCaptureKingdom = true;
+                sum += AAIConstants.OTHER_CAN_CAPTURE_KINGDOM;
+            }
+            if(!otherHasCastleInKingdom && otherHasCastleInKingdom(player, castle)){
+                otherHasCastleInKingdom = true;
+                sum += AAIConstants.OTHER_HAS_CASTLES_IN_KINGDOM;
+            }
+            if(!isFirstCastleInKingdom && isFirstCastleInKingdom(player, castle)){
+                isFirstCastleInKingdom = true;
+                sum += AAIConstants.FIRST_CASTLE_IN_KINGDOM;
+            }
+            if(!canSplitEnemyRegion && canSplitEnemyRegion(castleGraph, player, castle)){
+                canSplitEnemyRegion = true;
+                sum += AAIConstants.SPLIT_ENEMY_REGION;
+            }
+            if(!isConnectedToPlayerCastles && AAIMethods.isConnectedToPlayerCastles(castleGraph, player, castle)){
+                isConnectedToPlayerCastles = true;
+                sum += AAIConstants.CONNECTED_TO_OWN_CASTLES;
+            }
+        }
+        return sum;
     }
 
     /**
@@ -156,12 +195,35 @@ public class AAIDistributionEvalMethods {
             points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AAIConstants.NO_ENEMY_NEIGHBOUR : 0;
         }
         if(castle.getKingdom() != null){
-            points += isFirstCastleInKingdom(player, castle) ? AAIConstants.FIRST_CASTLE_IN_KINGDOM : 0;
             points += AAIKingdomEvalMethods.evaluateKingdom(castleGraph, castle.getKingdom());
         }
 
-
         return points;
+    }
+
+    /**
+     * @param castleGraph graph object containing all castles and edges
+     * @param player the player to check for
+     * @param castle the castle to check if it can split regions
+     * @return true if player can split regions of an enemy player
+     */
+    public static boolean canSplitEnemyRegion(Graph<Castle> castleGraph, Player player, Castle castle){
+        Map<Player, Set<Castle>> playerConnectedMap = new HashMap<>();
+        Set<Castle> passed;
+        List<Castle> connected;
+        for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, player, castle)){
+            if(neighbour.getOwner() != null){
+                passed = playerConnectedMap.get(neighbour.getOwner());
+                if(passed != null && !passed.contains(neighbour) && ((Castle)passed.toArray()[0]).getOwner() == neighbour.getOwner()) {
+                    return true;
+                } else {
+                    connected = AAIMethods.getConnectedCastles(castleGraph, neighbour);
+                    connected.add(neighbour);
+                    playerConnectedMap.put(neighbour.getOwner(), new HashSet<>(connected));
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -172,6 +234,49 @@ public class AAIDistributionEvalMethods {
     public static boolean isFirstCastleInKingdom(Player player, Castle castle){
         if(castle.getKingdom() == null)
             return false;
-        return castle.getKingdom().getCastles().stream().noneMatch(c -> c.getOwner() == player);
+        for(Castle kingdomCastle : castle.getKingdom().getCastles()){
+            if(kingdomCastle.getOwner() == player)
+                return false;
+        }
+        return true;
+        //return castle.getKingdom().getCastles().stream().noneMatch(c -> c.getOwner() == player); // less code but slower
+    }
+
+    /**
+     * @param player the player to check if an other can capture a kingdom
+     * @param castle the castle to check it's kingdom
+     * @return if the kingdom of the castle could be captured by another player than the passed one in the next round
+     */
+    public static boolean otherCanCaptureKingdom(Player player, Castle castle){
+        if(castle.getKingdom() == null)
+            return false;
+        int freeCastles = 0;
+        Player tempOwner = null;
+        for(Castle kingdomCastle : castle.getKingdom().getCastles()){
+            tempOwner = (tempOwner == null) ? kingdomCastle.getOwner() : tempOwner;
+            if(kingdomCastle.getOwner() == null) {
+                ++freeCastles;
+            } else if(kingdomCastle.getOwner() == player || kingdomCastle.getOwner() != tempOwner) {
+                return false;
+            }
+            if(freeCastles > GameConstants.CASTLES_AT_BEGINNING)
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param player the player to check if other players has castles in kingdom
+     * @param castle the castle to check the kingdom
+     * @return if other players than {@code player} has castles in the kingdom of the passed {@code castle}
+     */
+    public static boolean otherHasCastleInKingdom(Player player, Castle castle){
+        if(castle.getKingdom() == null)
+            return false;
+        for(Castle kingdomCastle : castle.getKingdom().getCastles()){
+            if(kingdomCastle.getOwner() != player && kingdomCastle.getOwner() != null)
+                return true;
+        }
+        return false;
     }
 }

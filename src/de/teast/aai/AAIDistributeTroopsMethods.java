@@ -10,14 +10,14 @@ import java.util.*;
 
 /**
  * @author Alexander Muth
- * Class to move troops depending on the situation
+ * Class to move troops
  */
 public class AAIDistributeTroopsMethods {
     /**
      * @author Alexander Muth
      * Class to save troop movement without moving
      */
-    public static class TroopMover{
+    public static class ATroopMover {
         public Castle source, destination;
         public int troopCount;
 
@@ -26,84 +26,62 @@ public class AAIDistributeTroopsMethods {
          * @param destination the destination castle
          * @param troopCount the count of troops to move
          */
-        public TroopMover(Castle source, Castle destination, int troopCount){
+        public ATroopMover(Castle source, Castle destination, int troopCount){
             this.source = source;
             this.destination = destination;
             this.troopCount = troopCount;
         }
 
         /**
+         * Moves {@link #troopCount} troops from {@link #source} to {@link #destination} if possible
          * @param game the game object where to move the troops
-         * @return if the troops where moved successfully
          */
-        public boolean move(Game game){
+        public void move(Game game){
             if(source == null || destination == null || game == null)
-                return false;
+                return;
             if(source.getTroopCount() < troopCount)
                 troopCount = source.getTroopCount() - 1;
             if(troopCount <= 1 || source.getOwner() != destination.getOwner())
-                return false;
+                return;
             game.moveTroops(source, destination, troopCount);
-            return true;
         }
     }
 
     /**
-     * Moves the troops for defense
-     * @param game the game object
-     * @param player the player to move the troops for
-     */
-    public static void moveDefenseTroops(Game game, Player player){
-        for(TroopMover mover : distributeDefenseTroops(game.getMap().getGraph(), player)){
-            mover.move(game);
-        }
-    }
-
-    /**
-     * @param castleGraph the graph, containing all castles and edges
-     * @param player the player to distribute for
-     * @return a List of {@link TroopMover}, to move the Troops in the optimal way
-     */
-    public static List<TroopMover> distributeDefenseTroops(Graph<Castle> castleGraph, Player player){
-        List<Pair<Castle, Integer>> troopDistribution = AAIDefenseEvalMethods.getBestTroopDistribution(castleGraph, player);
-
-        return generateMoves(castleGraph, troopDistribution, player);
-    }
-
-    /**
-     * Generates {@link TroopMover} objects, to distribute the troops, for the given distribution
+     * Generates {@link ATroopMover} objects, to distribute the troops, for the given distribution
      * @param castleGraph the graph, containing all castles and edges
      * @param troopDistribution the castles with the number of distributed troops
      * @param player the player to distribute for
-     * @return a list of generated {@link TroopMover}
+     * @return a list of generated {@link ATroopMover}
      */
-    public static List<TroopMover> generateMoves(Graph<Castle> castleGraph, List<Pair<Castle, Integer>> troopDistribution, Player player){
+    public static List<ATroopMover> generateMoves(Graph<Castle> castleGraph, List<Pair<Castle, Integer>> troopDistribution, Player player){
         List<Castle> castles = new LinkedList<>();
         Map<Castle, Integer> needTroopsHashMap = new HashMap<>();
         Map<Castle, Integer> hasTroopsHashMap = new HashMap<>();
         int temp, sum = 0;
         for(Pair<Castle, Integer> pair : troopDistribution){
-            temp = pair.getKey().getTroopCount() - pair.getValue();
+            temp = pair.getKey().getTroopCount() - 1 - pair.getValue();
             sum += temp;
             if(temp > 0){ // castle has more troops than needed
                 hasTroopsHashMap.put(pair.getKey(), temp);
                 castles.add(pair.getKey());
             }else if(temp < 0) { // castle has less troops than needed
-                needTroopsHashMap.put(pair.getKey(), temp);
+                needTroopsHashMap.put(pair.getKey(), Math.abs(temp));
                 castles.add(pair.getKey());
             }
         }
+        if(castles.isEmpty())
+            return new LinkedList<>();
 
         if(sum != 0){
             System.err.println("Needed Troops isn't equal to usable troops in AAIDistributeTroopsMethods#generateMoves (sum = " + sum + ")");
         }
 
-        List<TroopMover> returnList = new LinkedList<>();
+        List<ATroopMover> returnList = new LinkedList<>();
         List<List<Castle>> connectedList = AAIMethods.getConnectedCastles(castleGraph, castles, player);
         List<Castle> needTroops = new LinkedList<>();
         List<Castle> hasTroops = new LinkedList<>();
-        Integer hasValue;
-        int needValue;
+        int needValue, hasValue;
         ListIterator<Castle> iterator;
         Castle next;
         for(List<Castle> connectedCastles : connectedList){
@@ -128,17 +106,15 @@ public class AAIDistributeTroopsMethods {
                 while(iterator.hasNext()){
                     next = iterator.next();
                     hasValue = hasTroopsHashMap.get(next);
-                    if(hasValue != null){
-                        temp = (hasValue > needValue) ? needValue : hasValue;
-                        returnList.add(new TroopMover(castle, next, temp));
-                        if(temp == hasValue){
-                            hasTroopsHashMap.remove(next);
-                            iterator.remove();
-                        }else{
-                            hasTroopsHashMap.put(next, hasValue - temp);
-                        }
-                        needValue -= hasValue;
+                    temp = (hasValue > needValue) ? needValue : hasValue;
+                    returnList.add(new ATroopMover(next, castle, temp));
+                    if(temp == hasValue){
+                        hasTroopsHashMap.remove(next);
+                        iterator.remove();
+                    }else{
+                        hasTroopsHashMap.put(next, hasValue - temp);
                     }
+                    needValue -= hasValue;
                 }
 
                 if(needValue > 0){
@@ -151,5 +127,27 @@ public class AAIDistributeTroopsMethods {
 
 
         return returnList;
+    }
+
+    /**
+     * Collects all Troops at one castle
+     * @param castleGraph the graph containing all castles and edges
+     * @param targetCastle target where to collect all troops
+     * @return a list of {@link ATroopMover} objects which are necessary to collect all troops in the target castle or null
+     */
+    public static List<ATroopMover> generateCollectMoves(Graph<Castle> castleGraph, Castle targetCastle){
+        if(targetCastle == null || targetCastle.getOwner() == null)
+            return null;
+        List<ATroopMover> returnList = new LinkedList<>();
+        for(Castle castle : AAIMethods.getConnectedCastles(castleGraph, targetCastle)){
+            returnList.add(new ATroopMover(castle, targetCastle, castle.getTroopCount()-1));
+        }
+        return returnList;
+    }
+
+    public static void makeMoves(Game game, List<ATroopMover> troopMovers){
+        for(ATroopMover troopMover : troopMovers){
+            troopMover.move(game);
+        }
     }
 }

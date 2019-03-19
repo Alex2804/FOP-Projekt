@@ -120,14 +120,14 @@ public abstract class GraphAlgorithm<T> {
      */
     public List<Edge<T>> getPath(Node<T> destination) {
         if(destination == null || algorithmNodes.get(destination) == null || algorithmNodes.get(destination).previous == null)
-            return  null;
+            return null;
         AlgorithmNode<T> algorithmNode = algorithmNodes.get(destination);
         List<Edge<T>> list = new ArrayList<>();
         HashSet<AlgorithmNode<T>> passedNodes = new HashSet<>();
         while(algorithmNode.previous != null){
             list.add(graph.getEdge(algorithmNode.node, algorithmNode.previous.node));
             passedNodes.add(algorithmNode);
-            if(passedNodes.contains(algorithmNode.previous)) // if there is a infinite cycle
+            if(passedNodes.contains(algorithmNode.previous)) // if there is an infinite cycle
                 return null; // there is no path
             algorithmNode = algorithmNode.previous;
         }

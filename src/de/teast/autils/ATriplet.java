@@ -8,9 +8,9 @@ package de.teast.autils;
  * @param <T> Generic type for the third element
  */
 public class ATriplet<F, S, T> {
-    private F first;
-    private S second;
-    private T third;
+    protected F first;
+    protected S second;
+    protected T third;
 
     public ATriplet(F first, S second, T third){
         this.first = first;
@@ -18,41 +18,23 @@ public class ATriplet<F, S, T> {
         this.third = third;
     }
 
-    /**
-     * @return The first element of this triplet
-     */
     public F getFirst() {
         return first;
     }
-    /**
-     * @param first Replacement for the first element of this triplet
-     */
     public void setFirst(F first) {
         this.first = first;
     }
 
-    /**
-     * @return The second element of this triplet
-     */
     public S getSecond() {
         return second;
     }
-    /**
-     * @param second Replacement for the second element of this triplet
-     */
     public void setSecond(S second) {
         this.second = second;
     }
 
-    /**
-     * @return The third element of this triplet
-     */
     public T getThird() {
         return third;
     }
-    /**
-     * @param third Replacement for the third element of this triplet
-     */
     public void setThird(T third) {
         this.third = third;
     }

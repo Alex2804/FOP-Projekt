@@ -182,14 +182,12 @@ public class AAIMethods {
         }else{
             passed.add(node);
             List<List<Node<Castle>>> temp;
-            for(Node<Castle> neighbour : getNeighbours(castleGraph, node, player)){
+            for(Node<Castle> neighbour : getNeighbours(castleGraph, player, node)){
                 if(!passed.contains(neighbour)) {
                     temp = getPossibleCastlePairsHelper(castleGraph, player, pairSize - 1, neighbour, passed);
-                    if(temp != null){
-                        for (List<Node<Castle>> list : temp) {
-                            list.add(node);
-                            returnList.add(list);
-                        }
+                    for (List<Node<Castle>> list : temp) {
+                        list.add(node);
+                        returnList.add(list);
                     }
                 }
             }
@@ -202,11 +200,11 @@ public class AAIMethods {
      * @param castle castle to get neighbours from
      * @param player owner (could be null)
      * @return A List with all neighbour castles of castle, which has the player as owner
-     * @see #getNeighbours(Graph, Node, Player)
+     * @see #getNeighbours(Graph, Player, Node)
      */
-    public static List<Castle> getNeighbours(Graph<Castle> castleGraph, Castle castle, Player player){
+    public static List<Castle> getNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
         List<Castle> returnList = new LinkedList<>();
-        for(Node<Castle> node : getNeighbours(castleGraph, castleGraph.getNode(castle), player)){
+        for(Node<Castle> node : getNeighbours(castleGraph, player, castleGraph.getNode(castle))){
             returnList.add(node.getValue());
         }
         return returnList;
@@ -218,7 +216,7 @@ public class AAIMethods {
      * @return A List with all neighbour nodes of node, which castles has the player as owner
      * @see #filterNeightbours(Graph, Node, Predicate)
      */
-    public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Player player){
+    public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Player player, Node<Castle> node){
         return filterNeightbours(castleGraph, node, c -> c.getOwner() == player);
     }
     /**
@@ -228,7 +226,7 @@ public class AAIMethods {
      * @return A List with all neighbour castles of castle, which hasn't the player as owner
      * @see #getOtherNeighbours(Graph, Node, Player)
      */
-    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Castle castle, Player player){
+    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
         List<Castle> returnList = new LinkedList<>();
         for(Node<Castle> node : getOtherNeighbours(castleGraph, castleGraph.getNode(castle), player)){
             returnList.add(node.getValue());
@@ -336,7 +334,7 @@ public class AAIMethods {
      */
     public static List<List<Castle>> getConnectedCastles(Graph<Castle> castleGraph, List<Castle> castles, Player player){
         List<Castle> playerCastles = player.getCastles(castleGraph.getAllValues());
-        HashSet<Castle> passed = new HashSet<>();
+        Set<Castle> passed = new HashSet<>();
         List<Castle> connected;
         List<List<Castle>> returnList = new LinkedList<>();
         for(Castle castle : playerCastles){
@@ -349,7 +347,7 @@ public class AAIMethods {
         }
         // Filter all castle's, which are not in castles
         if(castleGraph.getNodes().size() != castles.size()) { // filter only if not all nodes are allowed
-            HashSet<Castle> usable = new HashSet<>(castles); // O(1) complexity
+            Set<Castle> usable = new HashSet<>(castles); // O(1) complexity
             ListIterator<Castle> iterator;
             for(List<Castle> list : returnList){
                 iterator = list.listIterator();
@@ -367,24 +365,25 @@ public class AAIMethods {
      * @param castleGraph the current graph
      * @param castle the castle to get all connected
      * @return a list of castles, which are reachable from castle and belongs to the same player
-     * as the passed {@code castle}
+     * as the passed {@code castle} (The list is empty if there are no connected castles)
      */
     public static List<Castle> getConnectedCastles(Graph<Castle> castleGraph, Castle castle){
-        return getConnectedCastlesHelper(castleGraph, castleGraph.getNode(castle), new HashSet<>());
+        Node<Castle> node = castleGraph.getNode(castle);
+        return getConnectedCastlesHelper(castleGraph, node, new HashSet<>(Collections.singletonList(node)));
     }
     /**
      * helper for {@link AAIMethods#getConnectedCastles(Graph, Castle)}
      * @param castleGraph graph to get edges from
      * @param node current node
      * @param passed passed nodes
-     * @return a list with connected nodes
+     * @return a list with connected castles (empty list if there are none)
      */
     private static List<Castle> getConnectedCastlesHelper(Graph<Castle> castleGraph, Node<Castle> node, HashSet<Node<Castle>> passed){
         List<Castle> returnList = new LinkedList<>();
         Node<Castle> otherNode;
         for(Edge<Castle> edge : castleGraph.getEdges(node)){
             otherNode = edge.getOtherNode(node);
-            if(!passed.contains(otherNode)){
+            if(!passed.contains(otherNode) && otherNode.getValue().getOwner() == node.getValue().getOwner()){
                 passed.add(otherNode);
                 returnList.add(otherNode.getValue());
                 returnList.addAll(getConnectedCastlesHelper(castleGraph, otherNode, passed));
@@ -466,6 +465,32 @@ public class AAIMethods {
                     temp = true;
             }
             if(!temp)
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean hasNeighbour(Graph<Castle> castleGraph, Player player, Castle castle){
+        boolean hasOtherNeighbour = false;
+        Node<Castle> node = castleGraph.getNode(castle);
+        if(node == null) {
+            for(Node<Castle> otherNode : castleGraph.getNeighbours(node)){
+                if(otherNode.getValue().getOwner() == player)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param castleGraph graph object containing all castles and edges
+     * @param player the player to check for
+     * @param castle the castle to check the neighbours
+     * @return if the {@code castle} has any neighbour castle with the {@code player} as owner
+     */
+    public static boolean isConnectedToPlayerCastles(Graph<Castle> castleGraph, Player player, Castle castle){
+        for(Castle neighbour : getNeighbours(castleGraph, player, castle)){
+            if(neighbour.getOwner() == player)
                 return true;
         }
         return false;

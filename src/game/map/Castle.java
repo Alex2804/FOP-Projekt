@@ -129,9 +129,7 @@ public class Castle {
      * @param kingdom Ein Königreich oder null
      */
     public void setKingdom(Kingdom kingdom) {
-        this.kingdom = kingdom;
-        if(kingdom != null)
-            kingdom.addCastle(this);
+        replaceKingdom(kingdom);
     }
     /**
      * Die Burg einem Königreich zuordnen. Die Methode ruft {@link Castle#setKingdom(Kingdom)} auf und entfernt
@@ -139,8 +137,12 @@ public class Castle {
      * @param kingdom Ein Königreich oder null
      */
     public void replaceKingdom(Kingdom kingdom) {
+        if(kingdom == this.kingdom)
+            return;
         if(this.kingdom != null)
             this.kingdom.removeCastle(this);
-        setKingdom(kingdom);
+        this.kingdom = kingdom;
+        if(kingdom != null)
+            kingdom.addCastle(this);
     }
 }

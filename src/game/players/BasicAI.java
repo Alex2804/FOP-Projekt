@@ -10,7 +10,6 @@ import base.Graph;
 import base.Node;
 import game.AI;
 import game.Game;
-import game.Player;
 import game.map.Castle;
 import gui.AttackThread;
 
@@ -20,7 +19,7 @@ public class BasicAI extends AI {
         super(name, color);
     }
 
-    private Castle getCastleWithFewestTroops(List<Castle> castles) {
+    protected Castle getCastleWithFewestTroops(List<Castle> castles) {
         Castle fewestTroops = castles.get(0);
         for(Castle castle : castles) {
             if(castle.getTroopCount() < fewestTroops.getTroopCount()) {

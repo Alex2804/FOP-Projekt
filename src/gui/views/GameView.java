@@ -222,6 +222,7 @@ public class GameView extends View implements GameInterface {
     @Override
     public void onNextTurn(Player currentPlayer, int troopsGot, boolean human) {
         jokerButton.setEnabled(currentPlayer.hasJoker());
+
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 
         if(game.getRound() == 1)
@@ -229,7 +230,7 @@ public class GameView extends View implements GameInterface {
         else
             this.logLine("%PLAYER% erhält " + troopsGot + " Truppen.", currentPlayer);
 
-        map.clearSelection();
+        map.reset();
         updateStats();
 
         button.setText(human ? "Nächste Runde" : "Überspringen");

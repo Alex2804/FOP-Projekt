@@ -1,101 +1,120 @@
 package de.teast.aai;
 
 import base.Graph;
-import de.teast.autils.ATriplet;
+import game.Game;
 import game.Player;
 import game.map.Castle;
 import javafx.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * @author Alexander Muth
+ * Class to move troops for defense dependent on the situation
+ */
 public class AAIDefenseEvalMethods {
+    /**
+     * Moves the troops for defense
+     * @param game the game object
+     * @param player the player to move the troops for
+     */
+    public static void moveDefenseTroops(Game game, Player player){
+        AAIDistributeTroopsMethods.makeMoves(game, distributeDefenseTroops(game.getMap().getGraph(), player));
+    }
+
+    /**
+     * @param castleGraph the graph, containing all castles and edges
+     * @param player the player to distribute for
+     * @return a List of {@link AAIDistributeTroopsMethods.ATroopMover}, to move the Troops in the optimal way
+     */
+    public static List<AAIDistributeTroopsMethods.ATroopMover> distributeDefenseTroops(Graph<Castle> castleGraph, Player player){
+        List<Pair<Castle, Integer>> troopDistribution = getBestDefenseTroopDistribution(castleGraph, player);
+        return AAIDistributeTroopsMethods.generateMoves(castleGraph, troopDistribution, player);
+    }
+
     /**
      * @param castleGraph the graph containing all castles and edges
      * @param player the player to distribute for
      * @return a list of pairs, with the castles as keys and the best troop count for every castle as value
      */
-    public static List<Pair<Castle, Integer>> getBestTroopDistribution(Graph<Castle> castleGraph, Player player){
+    public static List<Pair<Castle, Integer>> getBestDefenseTroopDistribution(Graph<Castle> castleGraph, Player player){
         List<List<Castle>> connectedCastles = AAIMethods.getConnectedCastles(castleGraph, player);
-        Map<Castle, Integer> troopCountTemp = new HashMap<>();
-        List<Castle> temp;
-        List<Pair<Castle, Integer>> tempRated;
-        List<ATriplet<Castle, Integer, Double>> tempDistribution; // first: castle; second: troops; third: tempCount % 1
-        int troopCount, countLeft;
-        double tempCount;
-        for(List<Castle> connected : connectedCastles){ // for all regions owned BY the player
-            troopCount = AAIMethods.getAttackTroopCount(connected);
-            temp = new LinkedList<>(); // should contain all attackable castles
-            for(Castle castle : connected){
-                if(AAIMethods.hasOtherNeighbours(castleGraph, player, castle)) {
-                    temp.add(castle);
-                }
-            }
-
-            // evalutate the rating for the castles and save it in tempRated
-            tempRated = new LinkedList<>();
-            for(Castle castle : temp){
-                tempRated.add(new Pair<>(castle, evaluateCastle(castleGraph, player, castle)));
-            }
-
-            int sum = 0; // sum all ratings, to get the percentage of each castle
-            for(Pair<Castle, Integer> pair : tempRated){
-                sum += pair.getValue();
-            }
-            tempDistribution = new LinkedList<>();
-            countLeft = troopCount;
-            for(Pair<Castle, Integer> pair : tempRated){ // distribute troops dependent on the percentage of the rating from sum
-                tempCount = troopCount * (pair.getValue() / ((double)sum));
-                tempDistribution.add(new ATriplet<>(pair.getKey(), (int)tempCount, (tempCount % 1)));
-                countLeft -= (int)tempCount;
-            }
-
-            tempDistribution = tempDistribution.stream().sorted(Comparator.comparingDouble(ATriplet::getThird)).collect(Collectors.toList());
-            Collections.reverse(tempDistribution);
-            ListIterator<ATriplet<Castle, Integer, Double>> iterator = tempDistribution.listIterator();
-            ATriplet<Castle, Integer, Double> next;
-            while(countLeft-- > 0 && !tempDistribution.isEmpty()){ // distribute remaining troops
-                if(!iterator.hasNext()){
-                    iterator = tempDistribution.listIterator();
-                }
-                next = iterator.next();
-                next.setSecond(next.getSecond() + 1);
-            }
-
-            sum = 0;
-            for(ATriplet<Castle, Integer, Double> triplet : tempDistribution){
-                sum += triplet.getSecond();
-                troopCountTemp.put(triplet.getFirst(), triplet.getSecond());
-            }
-            if(sum != troopCount){
-                System.err.println("Fehler in AAIDefenseEvalMethods.getBestTroopDistribution: Die summe aller truppen" +
-                        " sollte " + troopCount + " sein," +
-                        " ist aber " + sum);
-            }
-        }
 
         List<Pair<Castle, Integer>> returnList = new LinkedList<>();
-        Integer troops;
         for(List<Castle> connected : connectedCastles){
-            for(Castle castle : connected){
-                troops = troopCountTemp.get(castle); // save troops + 1 if distributet or 1 if not (1 for all castles without enemy neighbour)
-                returnList.add(new Pair<>(castle, (troops == null) ? 1 : (troops + 1)));
-            }
+            returnList.addAll(evalConnectedTroopDistribution(castleGraph, connected));
         }
         return returnList;
     }
     /**
+     * Evaluates the troop distribution for connected castles (the troop which must be at every castle is not included!).
+     * @param castleGraph graph containing all edges and nodes
+     * @param castles a list of connected castles
+     * @return a list of {@link Pair}, with the castles as key and troop count as values
+     */
+    public static List<Pair<Castle, Integer>> evalConnectedTroopDistribution(Graph<Castle> castleGraph, List<Castle> castles){
+        List<Pair<Castle, Double>> evalValueList = new LinkedList<>();
+        double tempValue, valueSum = 0;
+        int troopCount = AAIMethods.getAttackTroopCount(castles);
+
+        for(Castle castle : castles){
+            tempValue = evaluateCastle(castleGraph, castle);
+            if(tempValue > 0) {
+                evalValueList.add(new Pair<>(castle, tempValue));
+                valueSum += tempValue;
+            }
+        }
+        evalValueList.sort(Comparator.comparingDouble(Pair::getValue));
+        Collections.reverse(evalValueList);
+
+        Map<Castle, Integer> castleTroopCountMap = new HashMap<>();
+        double percentage;
+        int troopCountTemp;
+        for(Pair<Castle, Double> pair : evalValueList){
+            percentage = pair.getValue() / valueSum;
+            troopCountTemp = (int)(percentage * troopCount);
+            castleTroopCountMap.put(pair.getKey(), troopCountTemp);
+            troopCount -= troopCountTemp;
+        }
+        while(troopCount > 0 && !evalValueList.isEmpty()) {
+            for(Pair<Castle, Double> pair : evalValueList){
+                if(troopCount <= 0)
+                    break;
+                castleTroopCountMap.put(pair.getKey(), castleTroopCountMap.get(pair.getKey()) + 1);
+                --troopCount;
+            }
+        }
+        if(evalValueList.isEmpty()){
+            for(Castle castle : castles){
+                if(castle.getTroopCount() > 1){
+                    castleTroopCountMap.put(castle, castle.getTroopCount() - 1);
+                    troopCount -= castle.getTroopCount() - 1;
+                }
+            }
+        }
+
+        List<Pair<Castle, Integer>> returnList = new LinkedList<>();
+        for(Map.Entry<Castle, Integer> entry : castleTroopCountMap.entrySet()){
+            returnList.add(new Pair<>(entry.getKey(), entry.getValue()));
+            castles.remove(entry.getKey());
+        }
+        for(Castle castle : castles){
+            returnList.add(new Pair<>(castle, 0));
+        }
+        return returnList;
+    }
+
+    /**
      * evaluates a value, how important the defense of this castle is. The higher the value the higher is the importance
      * @param castleGraph the graph containing all nodes and edges
-     * @param player the player to calculate the value for
      * @param castle the castle to calculate the value for
      * @return the calculated value
      */
-    public static int evaluateCastle(Graph<Castle> castleGraph, Player player, Castle castle){
-        int points = 0;
+    public static double evaluateCastle(Graph<Castle> castleGraph, Castle castle){
+        double points = 0;
 
-        points += (int)(AAIMethods.getNeighbours(castleGraph, castle, player).size() * AAIConstants.EDGE_COUNT_MULTIPLIER);
-        points += (int)(getThreateningNeighboursTroopCount(castleGraph, castle) * AAIConstants.THREATENING_TROOP_COUNT_MULTIPLIER);
+        points += (getEnemyEdgeCount(castleGraph, castle) * AAIConstants.EDGE_COUNT_MULTIPLIER);
+        points += (getThreateningNeighboursTroopCount(castleGraph, castle) * AAIConstants.THREATENING_TROOP_COUNT_MULTIPLIER);
 
         return points;
     }
@@ -109,7 +128,7 @@ public class AAIDefenseEvalMethods {
         int troopCount = 0;
         HashSet<Castle> passedNeighbours = new HashSet<>();
         List<Castle> connected;
-        for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, castle, castle.getOwner())){
+        for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, castle.getOwner(), castle)){
             if(!passedNeighbours.contains(neighbour)){
                 connected = AAIMethods.getConnectedCastles(castleGraph, neighbour);
                 passedNeighbours.addAll(connected);
@@ -117,5 +136,14 @@ public class AAIDefenseEvalMethods {
             }
         }
         return troopCount;
+    }
+
+    /**
+     * @param castleGraph graph containing all edges and nodes (neighbours)
+     * @param castle the castle to check
+     * @return the count of edges to enemy players
+     */
+    public static int getEnemyEdgeCount(Graph<Castle> castleGraph, Castle castle){
+        return AAIMethods.getOtherNeighbours(castleGraph, castle.getOwner(), castle).size();
     }
 }

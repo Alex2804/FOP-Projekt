@@ -412,6 +412,8 @@ public class MapPanel extends JScrollPane {
                     Point location = translate(region.getLocationOnMap());
                     BufferedImage castle = resources.getCastle(color, region.getType());
                     g.drawImage(castle, location.x, location.y, null);
+                    g.setColor(Color.yellow);
+                    g.drawString(region.getName(), location.x, location.y);
 
                     // Draw troop count
                     if(region.getTroopCount() > 0) {
@@ -517,6 +519,7 @@ public class MapPanel extends JScrollPane {
 
     public void clearSelection() {
         this.selectedCastle = null;
+        currentAction = Action.NONE;
         repaint();
     }
 

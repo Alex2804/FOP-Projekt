@@ -1,6 +1,7 @@
 package de.teast.aai;
 
 import base.Graph;
+import de.teast.autils.ATriplet;
 import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
@@ -15,14 +16,53 @@ import java.util.stream.Collectors;
  */
 public class AAITargetEvalMethods {
     /**
-     * searches the best target castle dependent on some factors and one castle from the best Region from which to
+     * Returns the best Target and attack castle
+     * @param castleGraph graph object, containing all edges and castles
+     * @param player the player to get the best target for
+     * @return a {@link Pair} with the attacker castle (representing connected castles) as first and the target castle
+     * as second argument
+     */
+    public static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, Player player){
+        return getBestTargetCastle(castleGraph, getBestTargetCastles(castleGraph, player));
+    }
+    /**
+     * Returns the best Target and attack castle
+     * @param castleGraph graph object, containing all edges and castles
+     * @param evaluationResults result of {@link #getBestTargetCastles(Graph, Player)}
+     *                          (must be sorted like returned by this method!);
+     * @return a {@link Pair} with the attacker castle (representing connected castles) as first and the target castle
+     * as second argument
+     */
+    public static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, List<ATriplet<Castle, Integer, Castle>> evaluationResults){
+        double bestValue = Double.MIN_VALUE, value;
+        int troopDifference;
+        Castle lastTargetCastle = null, bestTargetCastle = null, bestAttackerCastle = null;
+        for(ATriplet<Castle, Integer, Castle> quadruplet : evaluationResults){
+            if(lastTargetCastle != quadruplet.getFirst()) { // list must be sorted after troop count (eval value only changes with other target castle change)
+                troopDifference = quadruplet.getFirst().getTroopCount() - AAIMethods.getAttackTroopCount(AAIMethods.getConnectedCastles(castleGraph, quadruplet.getThird()));
+                value = (quadruplet.getSecond() * AAIConstants.EVALUATION_VALUE_MULTIPLIER)
+                        - (troopDifference * AAIConstants.TROOP_DIFFERENCE_MULTIPLIER);
+                if(lastTargetCastle == null || value > bestValue) {
+                    bestValue = value;
+                    bestTargetCastle = quadruplet.getFirst();
+                    bestAttackerCastle = quadruplet.getThird();
+                }
+                lastTargetCastle = quadruplet.getFirst();
+            }
+        }
+
+        return (bestTargetCastle == null) ? null : new Pair<>(bestTargetCastle, bestAttackerCastle);
+    }
+    /**
+     * searches the best target castle dependent on some factors
      * attack (with as many troops as possible) (a region are connected castles)
      * @param castleGraph the graph containing all castles
      * @param player the player which want to attack
-     * @return the best target castle or null if there is none or the best castle does not meets the expectations
-     * and the castle from the best region to attack
+     * @return {@link ATriplet} with the target castle as first, evaluation value as second, attacker castle
+     * (representing an region) as third argument.
+     * The {@link ATriplet} are sorted with the castles with the biggest evaluation value at beginning
      */
-    private static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, Player player){
+    public static List<ATriplet<Castle, Integer, Castle>> getBestTargetCastles(Graph<Castle> castleGraph, Player player){
         List<Castle> allCastles = castleGraph.getAllValues(); // list with all castles
         // castleAttackTroops: Map which saves a castle and the sum of troop count of all reachable castles
         Map<Castle, Integer> castleAttackTroopsMap = AAIMethods.getPossibleAttackTroopCount(castleGraph, player);
@@ -37,11 +77,12 @@ public class AAITargetEvalMethods {
         // Remove all targets which has more troops than the attacker castle
         int troopCount;
         Castle next;
+        ListIterator<Castle> iterator;
         List<Castle> attackCastles;
         for(Map.Entry<Castle, Integer> entry : castleAttackTroopsMap.entrySet()){
             troopCount = entry.getValue();
             attackCastles = castleAttackTargetMap.get(entry.getKey());
-            ListIterator<Castle> iterator = attackCastles.listIterator();
+            iterator = attackCastles.listIterator();
             while(iterator.hasNext()){
                 next = iterator.next();
                 if(next.getTroopCount() >= troopCount){
@@ -51,26 +92,16 @@ public class AAITargetEvalMethods {
         }
 
         // assign values with the possible target castles
-        Map<Castle, Integer> castleAttackEvaluationMap = new HashMap<>();
+        Map<Castle, Integer> castleTargetEvaluationMap = new HashMap<>();
         List<Castle> targetCastles;
         for(Castle attackCastle : castleAttackTroopsMap.keySet()){
             targetCastles = castleAttackTargetMap.get(attackCastle);
-            if(targetCastles != null){
-                for(Castle targetCastle : targetCastles){
-                    if(castleAttackEvaluationMap.get(targetCastle) == null){
-                        castleAttackEvaluationMap.put(targetCastle, evaluateCastle(allCastles, player, targetCastle));
-                    }
+            for(Castle targetCastle : targetCastles){
+                if(castleTargetEvaluationMap.get(targetCastle) == null){
+                    castleTargetEvaluationMap.put(targetCastle, evaluateCastle(allCastles, player, targetCastle));
                 }
             }
         }
-
-        // sort the keys of the evaluation, after the evaluation value
-        List<Castle> sortedCastleAttackEvaluationKeys = castleAttackEvaluationMap.entrySet().stream().
-                sorted(Comparator.comparingInt(Map.Entry::getValue)).
-                map(Map.Entry::getKey).
-                collect(Collectors.toList());
-        // front should be the highest value
-        Collections.reverse(sortedCastleAttackEvaluationKeys);
 
         // link target castles with attack castles
         Map<Castle, List<Castle>> castleTargetAttackMap = new HashMap<>();
@@ -86,31 +117,36 @@ public class AAITargetEvalMethods {
             }
         }
 
-        Castle bestTarget = null, bestAttacker = null;
-        int bestEvalValue = AAIConstants.MIN_ATTACK_VALUE, evalValue, bestTroopDif = 0;
+        // sort the keys of the evaluation, for the evaluation value
+        List<Castle> sortedCastleAttackEvaluationKeys = castleTargetEvaluationMap.entrySet().stream().
+                sorted(Comparator.comparingInt(Map.Entry::getValue)).
+                map(Map.Entry::getKey).
+                collect(Collectors.toList());
+        // front should be the highest value
+        Collections.reverse(sortedCastleAttackEvaluationKeys);
+
+        List<ATriplet<Castle, Integer, Castle>> returnList = new LinkedList<>();
+        List<Pair<Castle, Integer>> attackerTroopsList;
+        int evalValue;
         for(Castle targetCastle : sortedCastleAttackEvaluationKeys){
-            evalValue = castleAttackEvaluationMap.get(targetCastle);
-
-            if(evalValue < bestEvalValue){ // break if the evaluation value is lower than before or smaller than the min value that is necessary to attack (at beginning)
-                break;
-            }
-            if(bestTarget == null) { // if first pass
-                bestTarget = targetCastle;
-                bestEvalValue = evalValue;
-            }
-
-            for(Castle attackCastle : castleTargetAttackMap.get(targetCastle)){ // find target and attacker castle with biggest troop difference
-                troopCount = castleAttackTroopsMap.get(attackCastle);
-                if(bestAttacker == null || troopCount - targetCastle.getTroopCount() > bestTroopDif){
-                    bestTroopDif = troopCount - targetCastle.getTroopCount();
-                    bestTarget = targetCastle;
-                    bestAttacker = attackCastle;
-                    bestEvalValue = evalValue;
+            evalValue = castleTargetEvaluationMap.get(targetCastle);
+            if(evalValue >= AAIConstants.MIN_ATTACK_VALUE) {
+                attackerTroopsList = new LinkedList<>();
+                for(Castle attackCastle : castleTargetAttackMap.get(targetCastle)){
+                    if(attackCastle.getTroopCount() >= targetCastle.getTroopCount()) {
+                        attackerTroopsList.add(new Pair<>(attackCastle, castleAttackTroopsMap.get(attackCastle)));
+                    }
+                }
+                attackerTroopsList = attackerTroopsList.stream()
+                        .sorted(Comparator.comparingInt(Pair::getValue))
+                        .collect(Collectors.toList());
+                Collections.reverse(attackerTroopsList);
+                for(Pair<Castle, Integer> attackerTroopPair : attackerTroopsList){
+                    returnList.add(new ATriplet<>(targetCastle, evalValue, attackerTroopPair.getKey()));
                 }
             }
         }
-
-        return (bestTarget != null && bestAttacker != null) ? new Pair<>(bestTarget, bestAttacker) : null;
+        return returnList;
     }
 
     /**

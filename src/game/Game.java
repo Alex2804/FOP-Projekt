@@ -290,4 +290,8 @@ public class Game {
     public boolean isOver() {
         return this.isOver;
     }
+
+    public GameInterface getGameInterface(){
+        return gameInterface;
+    }
 }

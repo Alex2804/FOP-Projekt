@@ -36,6 +36,7 @@ public class GameConstants {
     public static final Class<?> PLAYER_TYPES[] = {
         Human.class,
         BasicAI.class,
+        ABasicAI.class,
         // TODO: Add more Player types, like different AIs
     };
 

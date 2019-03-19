@@ -4,6 +4,7 @@ import base.Graph;
 import game.Game;
 import game.Player;
 import game.map.Castle;
+import game.map.Kingdom;
 import javafx.util.Pair;
 
 import java.util.*;
@@ -146,9 +147,139 @@ public class AAIDistributeTroopsMethods {
         return returnList;
     }
 
+    /**
+     * This method makes the moves of the passed {@link ATroopMover}.
+     * @param game the game object
+     * @param troopMovers A list containing {@link ATroopMover} objects
+     */
     public static void makeMoves(Game game, List<ATroopMover> troopMovers){
         for(ATroopMover troopMover : troopMovers){
             troopMover.move(game);
         }
+    }
+
+    /**
+     * Distributes troops to the castles of the {@code player}
+     * @param castleGraph graph object containing all castles and edges
+     * @param player player to distribute the troops for
+     * @param troopCount available troop count
+     * @return a list of pairs, with the castles as keys and the troop count to distribute as values
+     */
+    public static List<Pair<Castle, Integer>> distributeTroops(Graph<Castle> castleGraph, Player player, int troopCount){
+        List<Pair<List<Castle>, Double>> connectedEvalValue = new LinkedList<>();
+        double sum = 0, evalValue;
+        for(List<Castle> connected : AAIMethods.getConnectedCastles(castleGraph, player)){
+            evalValue = evaluateConnectedCastles(castleGraph, player, connected);
+            sum += evalValue;
+            connectedEvalValue.add(new Pair<>(connected, evalValue));
+        }
+
+        Map<List<Castle>, Integer> connectedTroopCountMap = new HashMap<>();
+        double percentage;
+        int tempTroopCount;
+        for(Pair<List<Castle>, Double> pair : connectedEvalValue){
+            percentage = pair.getValue() / sum;
+            tempTroopCount = (int)(troopCount * percentage);
+            troopCount -= tempTroopCount;
+            connectedTroopCountMap.put(pair.getKey(), tempTroopCount);
+        }
+
+        if(troopCount > 0){
+            connectedEvalValue.sort(Comparator.comparingDouble(Pair::getValue));
+            Collections.reverse(connectedEvalValue);
+            while(troopCount > 0){
+                for(Pair<List<Castle>, Double> pair : connectedEvalValue){
+                    connectedTroopCountMap.put(pair.getKey(), connectedTroopCountMap.get(pair.getKey()) + 1);
+                    if(--troopCount <= 0) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        List<Pair<Castle, Integer>> returnList = new LinkedList<>();
+        for(Map.Entry<List<Castle>, Integer> entry : connectedTroopCountMap.entrySet()){
+            if(!entry.getKey().isEmpty() && entry.getValue() > 0){
+                returnList.add(new Pair<>(AAIMethods.getCastleWithMostTroops(entry.getKey()), entry.getValue()));
+            }
+        }
+        return returnList;
+    }
+
+    /**
+     * @param castleGraph graph object containing all castles and edges
+     * @param player the player to evaluate for
+     * @param connectedCastles a list of connected castles
+     * @return an evaluation value of connected castles
+     */
+    public static double evaluateConnectedCastles(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
+        double points = 0;
+
+        points += connectedCastles.size() * AAIConstants.CASTLE_COUNT_MULTIPLIER;
+        points += ownedKingdomCount(connectedCastles) * AAIConstants.OWNED_KINGDOM_MULTIPLIER;
+
+        points += evaluateAttackPossibilities(castleGraph, player, connectedCastles);
+
+        return points;
+    }
+
+    /**
+     * @param connectedCastles A list of connected castles
+     * @return the count of kingdoms occupied by the passed castles
+     */
+    public static int ownedKingdomCount(List<Castle> connectedCastles){
+        boolean interrupted;
+        int count = 0;
+        Set<Castle> connectedCastlesSet = new HashSet<>(connectedCastles);
+        Set<Kingdom> passedKingdoms = new HashSet<>();
+        for(Castle castle : connectedCastles){
+            if(castle.getKingdom() != null && !passedKingdoms.contains(castle.getKingdom())){
+                passedKingdoms.add(castle.getKingdom());
+                interrupted = false;
+                for(Castle kingdomCastle : castle.getKingdom().getCastles()){
+                    if(!connectedCastlesSet.contains(kingdomCastle)){
+                        interrupted = true;
+                        break;
+                    }
+                }
+                if(!interrupted){
+                    ++count;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * @param castleGraph graph containing all nodes and edges
+     * @param player the player to evaluate for
+     * @param connectedCastles a list of connected castles
+     * @return an evaluation value for attack possibilities
+     */
+    public static int evaluateAttackPossibilities(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
+        int points = 0;
+
+        points += canUniteSplittedRegions(castleGraph, player, connectedCastles) ? AAIConstants.CAN_UNITE_SPLITTED_REGIONS : 0;
+
+        return points;
+    }
+
+    /**
+     * @param castleGraph graph containing all nodes and edges
+     * @param player the player to check for
+     * @param connectedCastles a list of connected castles
+     * @return if 2 regions could get united by an attack
+     */
+    public static boolean canUniteSplittedRegions(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
+        Set<Castle> connectedCastlesSet = new HashSet<>(connectedCastles);
+        for(Castle neighbour : AAIMethods.getOtherNeighbours(castleGraph, player, connectedCastles)){
+            for(Castle otherNeighbour : AAIMethods.getNeighbours(castleGraph, player, neighbour)){
+                if(!connectedCastlesSet.contains(otherNeighbour)
+                        && AAIMethods.getConnectedCastles(castleGraph, otherNeighbour).size() <= connectedCastles.size()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

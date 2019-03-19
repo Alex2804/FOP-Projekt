@@ -196,6 +196,38 @@ public class AAIMethods {
     }
 
     /**
+     * @param castleGraph the graph with edges and nodes
+     * @param castle the castle to get all neighbours for
+     * @return A List with all Neighbour castles of {@code castle}
+     */
+    public static List<Castle> getAllNeighbours(Graph<Castle> castleGraph, Castle castle){
+        List<Node<Castle>> neighbours = filterNeightbours(castleGraph, castleGraph.getNode(castle), c -> true);
+        List<Castle> returnList = new LinkedList<>();
+        for(Node<Castle> neighbour : neighbours){
+            returnList.add(neighbour.getValue());
+        }
+        return returnList;
+    }
+    /**
+     * @param castleGraph the graph with the edges and nodes
+     * @param player the player to get the neighbour castles owned by other players
+     * @param castles the castles to get the other neighbours from
+     * @return A List with all neighbour castles of all castles from {@code castles}, which doesn't have {@code player}
+     * as owner and aren't contained by {@code castles}.
+     */
+    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Player player, List<Castle> castles){
+        Set<Castle> castleSet = new HashSet<>(castles);
+        List<Castle> otherNeighbours = new LinkedList<>();
+        for(Castle castle : castles){
+            for(Castle neighbour : getOtherNeighbours(castleGraph, player, castle)){
+                if(!castleSet.contains(neighbour)){
+                    otherNeighbours.add(neighbour);
+                }
+            }
+        }
+        return otherNeighbours;
+    }
+    /**
      * @param castleGraph the graph with the edges and nodes
      * @param castle castle to get neighbours from
      * @param player owner (could be null)
@@ -494,5 +526,19 @@ public class AAIMethods {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * @param castles the castles to search
+     * @return The castle with the highest troop count or null if {@code castles} is empty.
+     */
+    public static Castle getCastleWithMostTroops(List<Castle> castles){
+        Castle bestCastle = null;
+        for(Castle castle : castles){
+            if(bestCastle == null || castle.getTroopCount() > bestCastle.getTroopCount()){
+                bestCastle = castle;
+            }
+        }
+        return bestCastle;
     }
 }

@@ -141,7 +141,7 @@ public class AAIDistributionEvalMethods {
      * @see #evaluateCastle(Graph, Player, Castle)
      */
     public static int evaluateCastlePair(Graph<Castle> castleGraph, Player player, List<Castle> castles, Map<Castle, Integer> evaluationMap){
-        int sum = 0;
+        int points = 0;
         Integer tempValue;
         boolean otherCanCaptureKingdom = false, otherHasCastleInKingdom = false, isFirstCastleInKingdom = false,
                 canSplitEnemyRegion = false, isConnectedToPlayerCastles = false;
@@ -149,30 +149,46 @@ public class AAIDistributionEvalMethods {
             tempValue = evaluationMap.get(castle);
             if(tempValue == null)
                 tempValue = evaluateCastle(castleGraph, player, castle);
-            sum += tempValue;
+            points += tempValue;
 
             if(!otherCanCaptureKingdom && otherCanCaptureKingdom(player, castle)){
                 otherCanCaptureKingdom = true;
-                sum += AAIConstants.OTHER_CAN_CAPTURE_KINGDOM;
+                points += AAIConstants.OTHER_CAN_CAPTURE_KINGDOM;
             }
             if(!otherHasCastleInKingdom && otherHasCastleInKingdom(player, castle)){
                 otherHasCastleInKingdom = true;
-                sum += AAIConstants.OTHER_HAS_CASTLES_IN_KINGDOM;
+                points += AAIConstants.OTHER_HAS_CASTLES_IN_KINGDOM;
             }
             if(!isFirstCastleInKingdom && isFirstCastleInKingdom(player, castle)){
                 isFirstCastleInKingdom = true;
-                sum += AAIConstants.FIRST_CASTLE_IN_KINGDOM;
+                points += AAIConstants.FIRST_CASTLE_IN_KINGDOM;
             }
             if(!canSplitEnemyRegion && canSplitEnemyRegion(castleGraph, player, castle)){
                 canSplitEnemyRegion = true;
-                sum += AAIConstants.SPLIT_ENEMY_REGION;
+                points += AAIConstants.SPLIT_ENEMY_REGION;
             }
             if(!isConnectedToPlayerCastles && AAIMethods.isConnectedToPlayerCastles(castleGraph, player, castle)){
                 isConnectedToPlayerCastles = true;
-                sum += AAIConstants.CONNECTED_TO_OWN_CASTLES;
+                points += AAIConstants.CONNECTED_TO_OWN_CASTLES;
             }
         }
-        return sum;
+
+        points += hasExpandPossibilities(castleGraph, castles) ? AAIConstants.EXPAND_POSSIBILITIES : 0;
+
+        return points;
+    }
+
+    /**
+     * @param castleGraph graph conatining all edges and castles
+     * @param castles pair of castles
+     * @return if there are expand possibilities from the pair (list of castles)
+     */
+    public static boolean hasExpandPossibilities(Graph<Castle> castleGraph, List<Castle> castles){
+        int nullNeighbourCount = 0;
+        for(Castle castle : castles){
+            nullNeighbourCount += AAIMethods.getNeighbours(castleGraph, null, castle).size();
+        }
+        return nullNeighbourCount >= AAIConstants.EXPAND_POSSIBILITIES_COUNT;
     }
 
     /**

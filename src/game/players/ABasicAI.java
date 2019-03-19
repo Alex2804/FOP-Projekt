@@ -1,16 +1,14 @@
 package game.players;
 
-import base.Edge;
 import base.Graph;
-import base.Node;
 import de.teast.aai.AAIDefenseEvalMethods;
+import de.teast.aai.AAIDistributeTroopsMethods;
 import de.teast.aai.AAIDistributionEvalMethods;
 import game.Game;
 import game.map.Castle;
-import gui.AttackThread;
+import javafx.util.Pair;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,27 +31,13 @@ public class ABasicAI extends BasicAI {
                 game.chooseCastle(castle, this);
             }
         } else {
-
-            // 1. Distribute remaining troops
-            Graph<Castle> graph = game.getMap().getGraph();
-            List<Castle> castleNearEnemy = new ArrayList<>();
-            for(Castle castle : this.getCastles(game)) {
-                Node<Castle> node = graph.getNode(castle);
-                for(Edge<Castle> edge : graph.getEdges(node)) {
-                    Castle otherCastle = edge.getOtherNode(node).getValue();
-                    if(otherCastle.getOwner() != this) {
-                        castleNearEnemy.add(castle);
-                        break;
-                    }
-                }
+            List<Pair<Castle, Integer>> troopDistribution = AAIDistributeTroopsMethods.distributeTroops(castleGraph, this, getRemainingTroops());
+            for(Pair<Castle, Integer> pair : troopDistribution){
+                sleep(timeout / 3);
+                game.addTroops(this, pair.getKey(), pair.getValue());
             }
 
-            while(this.getRemainingTroops() > 0) {
-                Castle fewestTroops = getCastleWithFewestTroops(castleNearEnemy);
-                sleep(500);
-                game.addTroops(this, fewestTroops, 1);
-            }
-
+            /**
             boolean attackWon;
             do {
                 // 2. Move troops from inside to border
@@ -87,7 +71,7 @@ public class ABasicAI extends BasicAI {
                     if(attackWon)
                         break;
                 }
-            } while(attackWon);
+            } while(attackWon);**/
 
             game.getGameInterface().onUpdate();
             AAIDefenseEvalMethods.moveDefenseTroops(game, this);

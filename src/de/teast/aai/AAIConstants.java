@@ -10,6 +10,8 @@ public class AAIConstants {
     public static int OTHER_HAS_CASTLES_IN_KINGDOM = 2;
     public static int SPLIT_ENEMY_REGION = 2;
     public static int CONNECTED_TO_OWN_CASTLES = 7;
+    public static int EXPAND_POSSIBILITIES = 5;
+    public static int EXPAND_POSSIBILITIES_COUNT = 2; // count that expand possibilities are given
 
     // Constants for AAIKingdomEvalMethods
     public static int SMALL_KINGDOM = 4;
@@ -29,4 +31,10 @@ public class AAIConstants {
     // Constants for AAIDefenseEvalMethods
     public static double EDGE_COUNT_MULTIPLIER = 0.05;
     public static double THREATENING_TROOP_COUNT_MULTIPLIER = 1;
+
+    // Constants for AAIDistributeTroopsMethods (connected evaluation)
+    public static double CASTLE_COUNT_MULTIPLIER = 1;
+    public static double OWNED_KINGDOM_MULTIPLIER = 4;
+    // attack possibilities
+    public static int CAN_UNITE_SPLITTED_REGIONS = 5;
 }

@@ -20,13 +20,22 @@ public class AAIConstants {
     // Constants for AAITargetEvalMethods
     public static int OPPORTUNITY_ELEMINATE_PLAYER = 5;
     public static int BELONGS_BIG_THREAT = 3;
-    public static int IMPORTANT_KINGDOM = 3;
     public static int CLOSE_TO_CAPTURE_KINGDOM = 6;
-    public static int BREAK_UP_KINGDOM = 5;
-    public static int LAST_CASTLE_IN_KINGDOM = 3;
-    public static int MIN_ATTACK_VALUE = 10;
-    public static double EVALUATION_VALUE_MULTIPLIER = 1;
-    public static double TROOP_DIFFERENCE_MULTIPLIER = 0.5;
+    public static int BREAK_UP_KINGDOM = 4;
+    public static int HAS_FEW_NEIGHBOURS = 4;
+    public static int UNITE_SPLITTED_REGIONS = 3;
+    // big threat?
+    public static double BIG_THREAT_KINGDOM_MULTIPLIER = 3;
+    public static double BIG_THREAT_CASTLE_MULTIPLIER = 1;
+    public static double BIG_THREAT_TROOP_MULTIPLIER = 0.7;
+    // few neighbours
+    public static int FEW_NEIGHBOUR_COUNT = 1;
+    // shouldAttackCastles
+    public static double EDGE_DIFFERENCE_MULTIPLIER = 4;
+    public static double NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER = 0.5;
+    public static double TARGET_TROOP_DIFFERNECE_MULTIPLIER = 5;
+    // getTargets
+    public static int MIN_ATTACK_VALUE = 8;
 
     // Constants for AAIDefenseEvalMethods
     public static double EDGE_COUNT_MULTIPLIER = 0.05;
@@ -37,4 +46,7 @@ public class AAIConstants {
     public static double OWNED_KINGDOM_MULTIPLIER = 4;
     // attack possibilities
     public static int CAN_UNITE_SPLITTED_REGIONS = 5;
+
+    // Constants for ABasicAI
+    public static double TROOP_DIFFERENCE_MULTIPLIER = 1.2; // 20% more
 }

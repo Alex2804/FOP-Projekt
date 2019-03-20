@@ -224,15 +224,15 @@ public class AAIDistributeTroopsMethods {
     }
 
     /**
-     * @param connectedCastles A list of connected castles
+     * @param castles A list of castles
      * @return the count of kingdoms occupied by the passed castles
      */
-    public static int ownedKingdomCount(List<Castle> connectedCastles){
+    public static int ownedKingdomCount(List<Castle> castles){
         boolean interrupted;
         int count = 0;
-        Set<Castle> connectedCastlesSet = new HashSet<>(connectedCastles);
+        Set<Castle> connectedCastlesSet = new HashSet<>(castles);
         Set<Kingdom> passedKingdoms = new HashSet<>();
-        for(Castle castle : connectedCastles){
+        for(Castle castle : castles){
             if(castle.getKingdom() != null && !passedKingdoms.contains(castle.getKingdom())){
                 passedKingdoms.add(castle.getKingdom());
                 interrupted = false;

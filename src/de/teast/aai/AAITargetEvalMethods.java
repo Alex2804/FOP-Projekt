@@ -8,233 +8,181 @@ import game.map.Kingdom;
 import javafx.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Alexander Muth
  * Evaluation Methods to choose targets for an AI
  */
 public class AAITargetEvalMethods {
-    /**
-     * Returns the best Target and attack castle
-     * @param castleGraph graph object, containing all edges and castles
-     * @param player the player to get the best target for
-     * @return a {@link Pair} with the attacker castle (representing connected castles) as first and the target castle
-     * as second argument
-     */
-    public static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, Player player){
-        return getBestTargetCastle(castleGraph, getBestTargetCastles(castleGraph, player));
-    }
-    /**
-     * Returns the best Target and attack castle
-     * @param castleGraph graph object, containing all edges and castles
-     * @param evaluationResults result of {@link #getBestTargetCastles(Graph, Player)}
-     *                          (must be sorted like returned by this method!);
-     * @return a {@link Pair} with the attacker castle (representing connected castles) as first and the target castle
-     * as second argument
-     */
-    public static Pair<Castle, Castle> getBestTargetCastle(Graph<Castle> castleGraph, List<ATriplet<Castle, Integer, Castle>> evaluationResults){
-        double bestValue = Double.MIN_VALUE, value;
-        int troopDifference;
-        Castle lastTargetCastle = null, bestTargetCastle = null, bestAttackerCastle = null;
-        for(ATriplet<Castle, Integer, Castle> quadruplet : evaluationResults){
-            if(lastTargetCastle != quadruplet.getFirst()) { // list must be sorted after troop count (eval value only changes with other target castle change)
-                troopDifference = quadruplet.getFirst().getTroopCount() - AAIMethods.getAttackTroopCount(AAIMethods.getConnectedCastles(castleGraph, quadruplet.getThird()));
-                value = (quadruplet.getSecond() * AAIConstants.EVALUATION_VALUE_MULTIPLIER)
-                        - (troopDifference * AAIConstants.TROOP_DIFFERENCE_MULTIPLIER);
-                if(lastTargetCastle == null || value > bestValue) {
-                    bestValue = value;
-                    bestTargetCastle = quadruplet.getFirst();
-                    bestAttackerCastle = quadruplet.getThird();
-                }
-                lastTargetCastle = quadruplet.getFirst();
-            }
-        }
+    public static List<Pair<List<Castle>, Castle>> getTargets(Graph<Castle> castleGraph, Player player){
+        List<ATriplet<List<Castle>, Castle, Double>> evalList = evaluateCastles(castleGraph, player);
+        evalList.sort(Comparator.comparingDouble(ATriplet::getThird));
+        Collections.reverse(evalList);
 
-        return (bestTargetCastle == null) ? null : new Pair<>(bestTargetCastle, bestAttackerCastle);
-    }
-    /**
-     * searches the best target castle dependent on some factors
-     * attack (with as many troops as possible) (a region are connected castles)
-     * @param castleGraph the graph containing all castles
-     * @param player the player which want to attack
-     * @return {@link ATriplet} with the target castle as first, evaluation value as second, attacker castle
-     * (representing an region) as third argument.
-     * The {@link ATriplet} are sorted with the castles with the biggest evaluation value at beginning
-     */
-    public static List<ATriplet<Castle, Integer, Castle>> getBestTargetCastles(Graph<Castle> castleGraph, Player player){
-        List<Castle> allCastles = castleGraph.getAllValues(); // list with all castles
-        // castleAttackTroops: Map which saves a castle and the sum of troop count of all reachable castles
-        Map<Castle, Integer> castleAttackTroopsMap = AAIMethods.getPossibleAttackTroopCount(castleGraph, player);
-        // castleAttackTargetMap: Map which saves all attackable castles from one attacker castle (from playerCastleTroops)
-        Map<Castle, List<Castle>> castleAttackTargetMap = new HashMap<>();
-
-        // get all possible targets for connected castles (represented by one castle)
-        for(Castle castle : castleAttackTroopsMap.keySet()){
-            castleAttackTargetMap.put(castle, AAIMethods.getPossibleTargetCastles(castleGraph, player, castle));
-        }
-
-        // Remove all targets which has more troops than the attacker castle
-        int troopCount;
-        Castle next;
-        ListIterator<Castle> iterator;
-        List<Castle> attackCastles;
-        for(Map.Entry<Castle, Integer> entry : castleAttackTroopsMap.entrySet()){
-            troopCount = entry.getValue();
-            attackCastles = castleAttackTargetMap.get(entry.getKey());
-            iterator = attackCastles.listIterator();
-            while(iterator.hasNext()){
-                next = iterator.next();
-                if(next.getTroopCount() >= troopCount){
-                    iterator.remove();
-                }
-            }
-        }
-
-        // assign values with the possible target castles
-        Map<Castle, Integer> castleTargetEvaluationMap = new HashMap<>();
-        List<Castle> targetCastles;
-        for(Castle attackCastle : castleAttackTroopsMap.keySet()){
-            targetCastles = castleAttackTargetMap.get(attackCastle);
-            for(Castle targetCastle : targetCastles){
-                if(castleTargetEvaluationMap.get(targetCastle) == null){
-                    castleTargetEvaluationMap.put(targetCastle, evaluateCastle(allCastles, player, targetCastle));
-                }
-            }
-        }
-
-        // link target castles with attack castles
-        Map<Castle, List<Castle>> castleTargetAttackMap = new HashMap<>();
-        List<Castle> tempCastles;
-        for(Castle attackCastle : castleAttackTargetMap.keySet()){
-            targetCastles = castleAttackTargetMap.get(attackCastle);
-            for(Castle targetCastle : targetCastles){
-                tempCastles = castleTargetAttackMap.get(targetCastle);
-                if(tempCastles == null)
-                    tempCastles = new LinkedList<>();
-                tempCastles.add(attackCastle);
-                castleTargetAttackMap.put(targetCastle, tempCastles);
-            }
-        }
-
-        // sort the keys of the evaluation, for the evaluation value
-        List<Castle> sortedCastleAttackEvaluationKeys = castleTargetEvaluationMap.entrySet().stream().
-                sorted(Comparator.comparingInt(Map.Entry::getValue)).
-                map(Map.Entry::getKey).
-                collect(Collectors.toList());
-        // front should be the highest value
-        Collections.reverse(sortedCastleAttackEvaluationKeys);
-
-        List<ATriplet<Castle, Integer, Castle>> returnList = new LinkedList<>();
-        List<Pair<Castle, Integer>> attackerTroopsList;
-        int evalValue;
-        for(Castle targetCastle : sortedCastleAttackEvaluationKeys){
-            evalValue = castleTargetEvaluationMap.get(targetCastle);
-            if(evalValue >= AAIConstants.MIN_ATTACK_VALUE) {
-                attackerTroopsList = new LinkedList<>();
-                for(Castle attackCastle : castleTargetAttackMap.get(targetCastle)){
-                    if(attackCastle.getTroopCount() >= targetCastle.getTroopCount()) {
-                        attackerTroopsList.add(new Pair<>(attackCastle, castleAttackTroopsMap.get(attackCastle)));
-                    }
-                }
-                attackerTroopsList = attackerTroopsList.stream()
-                        .sorted(Comparator.comparingInt(Pair::getValue))
-                        .collect(Collectors.toList());
-                Collections.reverse(attackerTroopsList);
-                for(Pair<Castle, Integer> attackerTroopPair : attackerTroopsList){
-                    returnList.add(new ATriplet<>(targetCastle, evalValue, attackerTroopPair.getKey()));
-                }
+        List<Pair<List<Castle>, Castle>> returnList = new LinkedList<>();
+        for(ATriplet<List<Castle>, Castle, Double> triplet : evalList){
+            if(triplet.getThird() >= AAIConstants.MIN_ATTACK_VALUE){
+                returnList.add(new Pair<>(triplet.getFirst(), triplet.getSecond()));
+            }else{
+                break;
             }
         }
         return returnList;
     }
 
-    /**
-     * Evaluates a value for passed castle dependent on some factors
-     * @param castles the available castles
-     * @param player the player to evaluate for
-     * @param castle the castle to evaluate
-     * @return the evaluated value for the castle object
-     */
-    public static int evaluateCastle(List<Castle> castles, Player player, Castle castle){
+    public static List<ATriplet<List<Castle>, Castle, Double>> evaluateCastles(Graph<Castle> castleGraph, Player player){
+        Map<List<Castle>, List<Pair<Castle, Double>>> targetAttackMap = new HashMap<>();
+        for(List<Castle> connected : AAIMethods.getConnectedCastles(castleGraph, player)){
+            targetAttackMap.put(connected,
+                                shouldAttackCastles(castleGraph, player, connected,
+                                        evaluateTargetCastles(castleGraph, player, connected)));
+        }
+
+        HashMap<Castle, Pair<List<Castle>, Double>> targetAttackerEvalMap = new HashMap<>(); // (target, (connected-attacker, eval-value))
+        for(Map.Entry<List<Castle>, List<Pair<Castle, Double>>> entry : targetAttackMap.entrySet()){
+            for(Pair<Castle, Double> pair : entry.getValue()){
+                if(!targetAttackerEvalMap.containsKey(pair.getKey())
+                        || (targetAttackerEvalMap.containsKey(pair.getKey())
+                        && targetAttackerEvalMap.get(pair.getKey()).getValue() < pair.getValue())){
+                    targetAttackerEvalMap.put(pair.getKey(), new Pair<>(entry.getKey(), pair.getValue()));
+                }
+            }
+        }
+
+        List<ATriplet<List<Castle>, Castle, Double>> returnList = new LinkedList<>();
+        for(Map.Entry<Castle, Pair<List<Castle>, Double>> entry : targetAttackerEvalMap.entrySet()){
+            returnList.add(new ATriplet<>(entry.getValue().getKey(), entry.getKey(), entry.getValue().getValue()));
+        }
+        return returnList;
+    }
+
+    public static List<Pair<Castle, Double>> shouldAttackCastles(Graph<Castle> castleGraph, Player player, List<Castle> attackerRegion, List<Pair<Castle, Integer>> evalTargets){
+        double points, temp;
+        Castle castle;
+        List<Castle> newRegion = new LinkedList<>(attackerRegion);
+        List<Pair<Castle, Double>> returnList = new LinkedList<>();
+        for(Pair<Castle, Integer> pair : evalTargets){
+            castle = pair.getKey();
+            newRegion.add(castle);
+            points = 0;
+
+            temp = (AAIMethods.getOtherNeighbours(castleGraph, player, newRegion).size()
+                    - AAIMethods.getOtherNeighbours(castleGraph, player, attackerRegion).size())
+                    * AAIConstants.EDGE_DIFFERENCE_MULTIPLIER;
+            points += temp;
+
+            temp = (AAIMethods.getNeighboursAttackTroopCount(castleGraph, player, newRegion)
+                    - AAIMethods.getNeighboursAttackTroopCount(castleGraph, player, attackerRegion))
+                    * AAIConstants.NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER;
+            points += temp;
+
+            temp = (castle.getTroopCount()
+                    - AAIMethods.getAttackTroopCount(attackerRegion))
+                    * AAIConstants.TARGET_TROOP_DIFFERNECE_MULTIPLIER;
+            points += temp;
+
+            returnList.add(new Pair<>(castle, pair.getValue() - points));
+            newRegion.remove(castle);
+        }
+        return returnList;
+    }
+
+    public static List<Pair<Castle, Integer>> evaluateTargetCastles(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
+        List<Pair<Castle, Integer>> returnList = new LinkedList<>();
+        for(Castle possibleTarget : AAIMethods.getOtherNeighbours(castleGraph, player, connectedCastles)){
+            returnList.add(new Pair<>(possibleTarget, evaluateCastle(castleGraph, player, possibleTarget)));
+        }
+        return returnList;
+    }
+
+    public static int evaluateCastle(Graph<Castle> castleGraph, Player player, Castle castle){
         int points = 0;
 
-        points += isLastCastleOfPlayer(castles, castle) ? AAIConstants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
-        points += isBigThreat(castles, player, castle.getOwner()) ? AAIConstants.BELONGS_BIG_THREAT : 0;
-        if(castle.getKingdom() != null){
-            points += isImportantKingdom(player, castle.getKingdom()) ? AAIConstants.IMPORTANT_KINGDOM : 0;
-            boolean closeToCapture = isCloseToCaptureKingdom(player, castle.getKingdom());
-            points += closeToCapture ? AAIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
+        points += canEleminateEnemyPlayer(castleGraph, castle) ? AAIConstants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
+        points += belongsBigThreat(castleGraph, player, castle) ? AAIConstants.BELONGS_BIG_THREAT : 0;
+        points += hasFewNeighbours(castleGraph, player, castle) ? AAIConstants.HAS_FEW_NEIGHBOURS : 0;
+        points += canUniteSplittedRegions(castleGraph, player, castle) ? AAIConstants.UNITE_SPLITTED_REGIONS : 0;
+        if(castle.getKingdom() != null) {
+            points += isCloseToCaptureKingdom(player, castle.getKingdom()) ? AAIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
             points += isOwnedByOnePlayer(castle.getKingdom()) ? AAIConstants.BREAK_UP_KINGDOM : 0;
-            points += isLastCastleInKingdom(player, castle) ? AAIConstants.LAST_CASTLE_IN_KINGDOM : 0;
         }
 
         return points;
     }
 
     /**
-     * Checks if the castle is the last castle, which belongs to the owner in the list of castles
-     * @param castles list of castles
-     * @param castle castle to check owner
-     * @return if the castle is the last castle of the owner
-     */
-    public static boolean isLastCastleOfPlayer(List<Castle> castles, Castle castle){
-        return castles.stream().noneMatch(c -> c.getOwner() == castle.getOwner() && c != castle);
-    }
-
-    /**
-     * Checks if a Player is a big threat for another player
+     * @param castleGraph graph containing all nodes and edges
      * @param player the player to check
-     * @param other player to check if it is a big threat
-     * @return if the other player is a big threat for player
+     * @param castle The castle to check
+     * @return if 2 regions could get united by an attack
      */
-    public static boolean isBigThreat(List<Castle> castles, Player player, Player other){
-        return player.getCastles(castles).size() <= other.getCastles(castles).size();
-    }
-
-    /**
-     * checks if a player is (one of) the strongest player in a kingdom
-     * @param player player to check if is (one of) the strongest
-     * @param kingdom kingdom to check if player is (one of) the strongest
-     * @return if the player is (one of) the strongest players in the kingdom
-     */
-    public static boolean isImportantKingdom(Player player, Kingdom kingdom){
-        Integer otherIndex;
-        int playerPoints = 0;
-        List<Integer> otherPoints = new ArrayList<>();
-        Map<Player, Integer> indices = new HashMap<>();
-        for(Castle castle : kingdom.getCastles()){
-            if(castle.getOwner() == player){
-                playerPoints += 1;
-            }else{
-                otherIndex = indices.get(castle.getOwner());
-                if(otherIndex == null){
-                    otherIndex = otherPoints.size();
-                    indices.put(castle.getOwner(), otherIndex);
-                    otherPoints.add(1);
-                }else{
-                    otherPoints.set(otherIndex, otherPoints.get(otherIndex) + 1);
-                }
+    public static boolean canUniteSplittedRegions(Graph<Castle> castleGraph, Player player, Castle castle){
+        Set<Castle> passed = new HashSet<>();
+        for(Castle neighbour : AAIMethods.getNeighbours(castleGraph, player, castle)){
+            if(!passed.isEmpty() && !passed.contains(neighbour)) {
+                return true;
+            } else {
+                passed.addAll(AAIMethods.getConnectedCastles(castleGraph, neighbour));
+                passed.add(neighbour);
             }
         }
+        return false;
+    }
 
-        for(int p : otherPoints){
-            if(p > playerPoints)
-                return false;
-        }
-        return true;
+    /**
+     * @param castleGraph the graph containing all edges and (castle)nodes
+     * @param castle the castle to check
+     * @return If the castle is the last castle of its owner
+     */
+    public static boolean canEleminateEnemyPlayer(Graph<Castle> castleGraph, Castle castle){
+        if(castle.getOwner() == null)
+            return false;
+        return castle.getOwner().getCastleNodes(castleGraph).size() <= 1;
+    }
+
+    /**
+     * @param castleGraph the graph containing all edges and (castle)nodes
+     * @param player the player to check if the owner is a big threat to
+     * @param castle the castle to check its owner
+     * @return if the owner is a big threat to the player
+     */
+    public static boolean belongsBigThreat(Graph<Castle> castleGraph, Player player, Castle castle){
+        if(castle.getOwner() == null)
+            return false;
+        List<Castle> allCastles = castleGraph.getAllValues();
+        List<Castle> enemyCastles = castle.getOwner().getCastles(allCastles);
+        List<Castle> playerCastles = player.getCastles(allCastles);
+        int enemyKingdomCount = AAIDistributeTroopsMethods.ownedKingdomCount(enemyCastles);
+        int playerKingdomCount = AAIDistributeTroopsMethods.ownedKingdomCount(playerCastles);
+        int enemyTroopCount = AAIMethods.getAttackTroopCount(enemyCastles);
+        int playerTroopCount = AAIMethods.getAttackTroopCount(playerCastles);
+
+        double points = 0;
+
+        points += (enemyKingdomCount - playerKingdomCount) * AAIConstants.BIG_THREAT_KINGDOM_MULTIPLIER;
+        points += (enemyCastles.size() - playerCastles.size()) * AAIConstants.BIG_THREAT_CASTLE_MULTIPLIER;
+        points += (enemyTroopCount - playerTroopCount) * AAIConstants.BIG_THREAT_TROOP_MULTIPLIER;
+
+        return points > 0;
     }
 
     /**
      * Checks if a player is close to capture a kingdom
-     * @param player player to check for
-     * @param kingdom kingdom to check for
+     * @param player player to check
+     * @param kingdom kingdom to check
      * @return if the player is close to capture the kingdom
      */
     public static boolean isCloseToCaptureKingdom(Player player, Kingdom kingdom){
-        double playerCastleCount =  kingdom.getCastles().stream().filter(c -> c.getOwner() != player).collect(Collectors.toList()).size();
-        double percentage = playerCastleCount / kingdom.getCastles().size();
-        return percentage >= 0.7; // more than 70% of the kingdom is owned by the player
+        List<Castle> castles = kingdom.getCastles();
+        if(castles.isEmpty())
+            return false;
+        int playerCastleCount = 0;
+        for(Castle kingdomCastle : castles){
+            if(kingdomCastle.getOwner() == player)
+                ++playerCastleCount;
+        }
+        double percentage = ((double)playerCastleCount) / castles.size();
+        return percentage >= 0.8 || (castles.size() - playerCastleCount <= 1);
     }
 
     /**
@@ -253,12 +201,12 @@ public class AAITargetEvalMethods {
     }
 
     /**
-     * Checks if the castle is the last castle in the kingdom, owned by another player than the passed one
-     * @param player the player to check if their are other players in the kingdom
-     * @param castle the castle to check if it is the last
-     * @return if the castle is the last one owned by another player
+     * @param castleGraph the graph containing all castles and edges
+     * @param player the player to check for
+     * @param castle the castle to check the neighbours
+     * @return if the passed {@code castle} has few enemy neighbours
      */
-    public static boolean isLastCastleInKingdom(Player player, Castle castle){
-        return castle.getKingdom().getCastles().stream().noneMatch(c -> c.getOwner() != player && c != castle);
+    public static boolean hasFewNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
+        return AAIMethods.getOtherNeighbours(castleGraph, player, castle).size() <= AAIConstants.FEW_NEIGHBOUR_COUNT;
     }
 }

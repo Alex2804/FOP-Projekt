@@ -1,11 +1,10 @@
 package game.players;
 
 import base.Graph;
-import de.teast.aai.AAIDefenseEvalMethods;
-import de.teast.aai.AAIDistributeTroopsMethods;
-import de.teast.aai.AAIDistributionEvalMethods;
+import de.teast.aai.*;
 import game.Game;
 import game.map.Castle;
+import gui.AttackThread;
 import javafx.util.Pair;
 
 import java.awt.Color;
@@ -37,41 +36,32 @@ public class ABasicAI extends BasicAI {
                 game.addTroops(this, pair.getKey(), pair.getValue());
             }
 
-            /**
+            List<Pair<List<Castle>, Castle>> targets = AAITargetEvalMethods.getTargets(castleGraph, this);
+            Castle attacker;
             boolean attackWon;
-            do {
-                // 2. Move troops from inside to border
-                for (Castle castle : this.getCastles(game)) {
-                    if (!castleNearEnemy.contains(castle) && castle.getTroopCount() > 1) {
-                        Castle fewestTroops = getCastleWithFewestTroops(castleNearEnemy);
-                        game.moveTroops(castle, fewestTroops, castle.getTroopCount() - 1);
+            int attackTroopCount, targetTroopCount;
+            double percentage, worstPercentage = -1;
+            for(Pair<List<Castle>, Castle> pair : targets){
+                attackTroopCount = AAIMethods.getAttackTroopCount(pair.getKey());
+                targetTroopCount = pair.getValue().getTroopCount();
+                percentage = attackTroopCount / ((double)(attackTroopCount + targetTroopCount));
+                if((worstPercentage >= 0 && percentage > worstPercentage)
+                        || (worstPercentage < 0
+                            && AAIMethods.getAttackTroopCount(pair.getKey()) > (pair.getValue().getTroopCount() * AAIConstants.TROOP_DIFFERENCE_MULTIPLIER))){
+                    attacker = pair.getValue().getNearest(pair.getKey());
+                    AAIDistributeTroopsMethods.makeMoves(game, AAIDistributeTroopsMethods.generateCollectMoves(castleGraph, attacker));
+
+                    AttackThread attackThread = game.startAttack(attacker, pair.getValue(), attackTroopCount);
+                    if(fastForward)
+                        attackThread.fastForward();
+
+                    attackThread.join();
+                    attackWon = attackThread.getWinner() == this;
+                    if(!attackWon){
+                        worstPercentage = percentage;
                     }
                 }
-
-                // 3. attack!
-                attackWon = false;
-                for (Castle castle : castleNearEnemy) {
-                    if(castle.getTroopCount() < 2)
-                        continue;
-
-                    Node<Castle> node = graph.getNode(castle);
-                    for (Edge<Castle> edge : graph.getEdges(node)) {
-                        Castle otherCastle = edge.getOtherNode(node).getValue();
-                        if (otherCastle.getOwner() != this && castle.getTroopCount() >= otherCastle.getTroopCount()) {
-                            AttackThread attackThread = game.startAttack(castle, otherCastle, castle.getTroopCount());
-                            if(fastForward)
-                                attackThread.fastForward();
-
-                            attackThread.join();
-                            attackWon = attackThread.getWinner() == this;
-                            break;
-                        }
-                    }
-
-                    if(attackWon)
-                        break;
-                }
-            } while(attackWon);**/
+            }
 
             game.getGameInterface().onUpdate();
             AAIDefenseEvalMethods.moveDefenseTroops(game, this);

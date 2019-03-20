@@ -3,6 +3,7 @@ package game.map;
 import game.Player;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * Diese Klasse representiert eine Burg.
@@ -54,8 +55,8 @@ public class Castle {
     /**
      * Truppen von dieser Burg zur angegebenen Burg bewegen.
      * Dies funktioniert nur, wenn die Besitzer übereinstimmen und bei der aktuellen Burg mindestens eine Truppe übrig bleibt
-     * @param target
-     * @param troops
+     * @param target the target castle
+     * @param troops the amount of troops
      */
     public void moveTroops(Castle target, int troops) {
 
@@ -93,6 +94,25 @@ public class Castle {
     public double distance(Castle next) {
         Point otherLocation = next.getLocationOnMap();
         return this.distance(otherLocation);
+    }
+
+    /**
+     * @param castles a list of castles
+     * @return the castle from {@code castles} with the smallest distance to this castle or null if {@code castles} is
+     * empty.
+     */
+    public Castle getNearest(List<Castle> castles){
+        Castle nearest = null;
+        double smallestDistance = Double.MAX_VALUE;
+        double distance;
+        for(Castle castle : castles){
+            distance = distance(castle);
+            if(nearest == null || distance < smallestDistance){
+                smallestDistance = distance;
+                nearest = castle;
+            }
+        }
+        return nearest;
     }
 
     public void setOwner(Player player) {

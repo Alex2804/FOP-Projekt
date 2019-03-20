@@ -342,8 +342,12 @@ public class AAIMethods {
      */
     public static int getAttackTroopCount(List<Castle> castles){
         int sum = 0;
+        Set<Castle> passed = new HashSet<>();
         for(Castle castle : castles){
-            sum += castle.getTroopCount();
+            if(!passed.contains(castle)) {
+                passed.add(castle);
+                sum += castle.getTroopCount();
+            }
         }
         return sum - castles.size();
     }
@@ -379,7 +383,7 @@ public class AAIMethods {
         }
         // Filter all castle's, which are not in castles
         if(castleGraph.getNodes().size() != castles.size()) { // filter only if not all nodes are allowed
-            Set<Castle> usable = new HashSet<>(castles); // O(1) complexity
+            Set<Castle> usable = new HashSet<>(castles);
             ListIterator<Castle> iterator;
             for(List<Castle> list : returnList){
                 iterator = list.listIterator();
@@ -397,7 +401,8 @@ public class AAIMethods {
      * @param castleGraph the current graph
      * @param castle the castle to get all connected
      * @return a list of castles, which are reachable from castle and belongs to the same player
-     * as the passed {@code castle} (The list is empty if there are no connected castles)
+     * as the passed {@code castle} (The list is empty if there are no connected castles and {@code castle} is not
+     * contained in the returned list)
      */
     public static List<Castle> getConnectedCastles(Graph<Castle> castleGraph, Castle castle){
         Node<Castle> node = castleGraph.getNode(castle);
@@ -540,5 +545,27 @@ public class AAIMethods {
             }
         }
         return bestCastle;
+    }
+
+    /**
+     * @param castleGraph the graph containing all edges and (castle)nodes
+     * @param player the player to check other players
+     * @param connectedCastles the region to check the neighbours
+     * @return the amount of troops, which can attack the region of {@code connectedCastles}
+     */
+    public static int getNeighboursAttackTroopCount(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
+        int sum = 0;
+        Set<Castle> passed = new HashSet<>();
+        passed.addAll(connectedCastles);
+        List<Castle> connected;
+        for(Castle neighbour : getOtherNeighbours(castleGraph, player, connectedCastles)){
+            if(!passed.contains(neighbour)){
+                connected = getConnectedCastles(castleGraph, neighbour);
+                connected.add(neighbour);
+                passed.addAll(connected);
+                sum += getAttackTroopCount(connected);
+            }
+        }
+        return sum;
     }
 }

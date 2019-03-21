@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
  * Evaluation Methods to choose castles during distribution period for an AI
  */
 public class AAIDistributionEvalMethods {
+    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+
     /**
      * Get the best castles during distribution period
      * @param castleGraph the graph containing all castles
@@ -153,27 +155,29 @@ public class AAIDistributionEvalMethods {
 
             if(!otherCanCaptureKingdom && otherCanCaptureKingdom(player, castle)){
                 otherCanCaptureKingdom = true;
-                points += AAIConstants.OTHER_CAN_CAPTURE_KINGDOM;
+                points += constants.OTHER_CAN_CAPTURE_KINGDOM;
             }
             if(!otherHasCastleInKingdom && otherHasCastleInKingdom(player, castle)){
                 otherHasCastleInKingdom = true;
-                points += AAIConstants.OTHER_HAS_CASTLES_IN_KINGDOM;
+                points += constants.OTHER_HAS_CASTLES_IN_KINGDOM;
             }
             if(!isFirstCastleInKingdom && isFirstCastleInKingdom(player, castle)){
                 isFirstCastleInKingdom = true;
-                points += AAIConstants.FIRST_CASTLE_IN_KINGDOM;
+                points += constants.FIRST_CASTLE_IN_KINGDOM;
             }
             if(!canSplitEnemyRegion && canSplitEnemyRegion(castleGraph, player, castle)){
                 canSplitEnemyRegion = true;
-                points += AAIConstants.SPLIT_ENEMY_REGION;
+                points += constants.SPLIT_ENEMY_REGION;
             }
             if(!isConnectedToPlayerCastles && AAIMethods.isConnectedToPlayerCastles(castleGraph, player, castle)){
                 isConnectedToPlayerCastles = true;
-                points += AAIConstants.CONNECTED_TO_OWN_CASTLES;
+                points += constants.CONNECTED_TO_OWN_CASTLES;
             }
         }
 
-        points += hasExpandPossibilities(castleGraph, castles) ? AAIConstants.EXPAND_POSSIBILITIES : 0;
+        points += AAIMethods.getNeighbours(castleGraph, null, castles).size() * constants.FREE_NEIGHBOURS_MULTIPLIER;
+
+        points += hasExpandPossibilities(castleGraph, castles) ? constants.EXPAND_POSSIBILITIES : 0;
 
         return points;
     }
@@ -188,7 +192,7 @@ public class AAIDistributionEvalMethods {
         for(Castle castle : castles){
             nullNeighbourCount += AAIMethods.getNeighbours(castleGraph, null, castle).size();
         }
-        return nullNeighbourCount >= AAIConstants.EXPAND_POSSIBILITIES_COUNT;
+        return nullNeighbourCount >= constants.EXPAND_POSSIBILITIES_COUNT;
     }
 
     /**
@@ -205,10 +209,10 @@ public class AAIDistributionEvalMethods {
 
         List<Player> tempPlayers = new ArrayList<>(2);
         tempPlayers.add(player);
-        points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AAIConstants.NO_ENEMY_NEIGHBOUR + AAIConstants.SURROUNDED_BY_OWN_CASTLES : 0;
+        points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? constants.NO_ENEMY_NEIGHBOUR + constants.SURROUNDED_BY_OWN_CASTLES : 0;
         if(points <= 0){
             tempPlayers.add(null);
-            points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? AAIConstants.NO_ENEMY_NEIGHBOUR : 0;
+            points += !AAIMethods.hasOtherNeighbours(castleGraph, tempPlayers, castle) ? constants.NO_ENEMY_NEIGHBOUR : 0;
         }
         if(castle.getKingdom() != null){
             points += AAIKingdomEvalMethods.evaluateKingdom(castleGraph, castle.getKingdom());

@@ -21,23 +21,22 @@ public class GameConstants {
     public static final Color COLOR_STONE = Color.GRAY;
     public static final Color COLOR_SNOW  = Color.WHITE;
 
-    public static final Color PLAYER_COLORS[] = {
+    public static final Color[] PLAYER_COLORS = {
         Color.CYAN,
         Color.RED,
         Color.GREEN,
         Color.ORANGE
     };
 
-    public static final Goal GAME_GOALS[] = {
+    public static final Goal[] GAME_GOALS = {
         new ConquerGoal(),
         // TODO: Add more Goals
     };
 
-    public static final Class<?> PLAYER_TYPES[] = {
+    public static final Class<?>[] PLAYER_TYPES = {
         Human.class,
         BasicAI.class,
-        ABasicAI.class,
-        // TODO: Add more Player types, like different AIs
+        ABasicAI.class
     };
 
     public static final int MAX_EDGE_COUNT_CASTLES = 4;

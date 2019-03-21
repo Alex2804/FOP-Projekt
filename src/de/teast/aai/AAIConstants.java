@@ -3,15 +3,16 @@ package de.teast.aai;
 public class AAIConstants {
     // Constants for AAIDistributionEvalMethods
     public static int SURROUNDED_BY_OWN_CASTLES = 3;
-    public static int NO_ENEMY_NEIGHBOUR = 1;
+    public static int NO_ENEMY_NEIGHBOUR = 0;
     // Constants for AAIDistributionEvalMethods (pair evaluation)
-    public static int FIRST_CASTLE_IN_KINGDOM = 2;
+    public static int FIRST_CASTLE_IN_KINGDOM = 1;
     public static int OTHER_CAN_CAPTURE_KINGDOM = 4;
-    public static int OTHER_HAS_CASTLES_IN_KINGDOM = 2;
+    public static int OTHER_HAS_CASTLES_IN_KINGDOM = 1;
     public static int SPLIT_ENEMY_REGION = 2;
     public static int CONNECTED_TO_OWN_CASTLES = 7;
     public static int EXPAND_POSSIBILITIES = 5;
-    public static int EXPAND_POSSIBILITIES_COUNT = 2; // count that expand possibilities are given
+    public static int EXPAND_POSSIBILITIES_COUNT = 4; // count of neighbours (owner == null) that expand possibilities are given
+    public static double FREE_NEIGHBOURS_MULTIPLIER = 2;
 
     // Constants for AAIKingdomEvalMethods
     public static int SMALL_KINGDOM = 4;
@@ -48,5 +49,5 @@ public class AAIConstants {
     public static int CAN_UNITE_SPLITTED_REGIONS = 5;
 
     // Constants for ABasicAI
-    public static double TROOP_DIFFERENCE_MULTIPLIER = 1.2; // 20% more
+    public static double TROOP_DIFFERENCE_MULTIPLIER = 1.3;
 }

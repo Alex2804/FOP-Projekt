@@ -11,6 +11,7 @@ import java.util.List;
  * Evaluation Methos to choose the best kingdom for an AI
  */
 public class AAIKingdomEvalMethods {
+    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
 
     /**
      * Evaluates a value for passed kingdom dependent on some factors
@@ -23,8 +24,8 @@ public class AAIKingdomEvalMethods {
         List<Kingdom> kingdoms = AAIMethods.getAllKingdoms(castles);
         int points = 0;
 
-        points += isSmallKingdom(kingdoms, kingdom) ? AAIConstants.SMALL_KINGDOM : 0;
-        points += hasFewEdgesToOtherKingdoms(castleGraph, kingdoms, kingdom) ? AAIConstants.HAS_FEW_EDGES_TO_OTHER_KINGDOMS : 0;
+        points += isSmallKingdom(kingdoms, kingdom) ? constants.SMALL_KINGDOM : 0;
+        points += hasFewEdgesToOtherKingdoms(castleGraph, kingdoms, kingdom) ? constants.HAS_FEW_EDGES_TO_OTHER_KINGDOMS : 0;
 
         return points;
     }

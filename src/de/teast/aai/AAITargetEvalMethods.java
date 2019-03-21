@@ -14,6 +14,8 @@ import java.util.*;
  * Evaluation Methods to choose targets for an AI
  */
 public class AAITargetEvalMethods {
+    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+
     public static List<Pair<List<Castle>, Castle>> getTargets(Graph<Castle> castleGraph, Player player){
         List<ATriplet<List<Castle>, Castle, Double>> evalList = evaluateCastles(castleGraph, player);
         evalList.sort(Comparator.comparingDouble(ATriplet::getThird));
@@ -21,7 +23,8 @@ public class AAITargetEvalMethods {
 
         List<Pair<List<Castle>, Castle>> returnList = new LinkedList<>();
         for(ATriplet<List<Castle>, Castle, Double> triplet : evalList){
-            if(triplet.getThird() >= AAIConstants.MIN_ATTACK_VALUE){
+            if(triplet.getThird() >= constants.MIN_ATTACK_VALUE
+                    || (AAIMethods.getAttackTroopCount(triplet.getFirst()) > triplet.getSecond().getTroopCount() * 1.3)){
                 returnList.add(new Pair<>(triplet.getFirst(), triplet.getSecond()));
             }else{
                 break;
@@ -68,17 +71,17 @@ public class AAITargetEvalMethods {
 
             temp = (AAIMethods.getOtherNeighbours(castleGraph, player, newRegion).size()
                     - AAIMethods.getOtherNeighbours(castleGraph, player, attackerRegion).size())
-                    * AAIConstants.EDGE_DIFFERENCE_MULTIPLIER;
+                    * constants.EDGE_DIFFERENCE_MULTIPLIER;
             points += temp;
 
             temp = (AAIMethods.getNeighboursAttackTroopCount(castleGraph, player, newRegion)
                     - AAIMethods.getNeighboursAttackTroopCount(castleGraph, player, attackerRegion))
-                    * AAIConstants.NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER;
+                    * constants.NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER;
             points += temp;
 
             temp = (castle.getTroopCount()
                     - AAIMethods.getAttackTroopCount(attackerRegion))
-                    * AAIConstants.TARGET_TROOP_DIFFERNECE_MULTIPLIER;
+                    * constants.TARGET_TROOP_DIFFERNECE_MULTIPLIER;
             points += temp;
 
             returnList.add(new Pair<>(castle, pair.getValue() - points));
@@ -98,13 +101,13 @@ public class AAITargetEvalMethods {
     public static int evaluateCastle(Graph<Castle> castleGraph, Player player, Castle castle){
         int points = 0;
 
-        points += canEleminateEnemyPlayer(castleGraph, castle) ? AAIConstants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
-        points += belongsBigThreat(castleGraph, player, castle) ? AAIConstants.BELONGS_BIG_THREAT : 0;
-        points += hasFewNeighbours(castleGraph, player, castle) ? AAIConstants.HAS_FEW_NEIGHBOURS : 0;
-        points += canUniteSplittedRegions(castleGraph, player, castle) ? AAIConstants.UNITE_SPLITTED_REGIONS : 0;
+        points += canEleminateEnemyPlayer(castleGraph, castle) ? constants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
+        points += belongsBigThreat(castleGraph, player, castle) ? constants.BELONGS_BIG_THREAT : 0;
+        points += hasFewNeighbours(castleGraph, player, castle) ? constants.HAS_FEW_NEIGHBOURS : 0;
+        points += canUniteSplittedRegions(castleGraph, player, castle) ? constants.UNITE_SPLITTED_REGIONS : 0;
         if(castle.getKingdom() != null) {
-            points += isCloseToCaptureKingdom(player, castle.getKingdom()) ? AAIConstants.CLOSE_TO_CAPTURE_KINGDOM : 0;
-            points += isOwnedByOnePlayer(castle.getKingdom()) ? AAIConstants.BREAK_UP_KINGDOM : 0;
+            points += isCloseToCaptureKingdom(player, castle.getKingdom()) ? constants.CLOSE_TO_CAPTURE_KINGDOM : 0;
+            points += isOwnedByOnePlayer(castle.getKingdom()) ? constants.BREAK_UP_KINGDOM : 0;
         }
 
         return points;
@@ -159,9 +162,9 @@ public class AAITargetEvalMethods {
 
         double points = 0;
 
-        points += (enemyKingdomCount - playerKingdomCount) * AAIConstants.BIG_THREAT_KINGDOM_MULTIPLIER;
-        points += (enemyCastles.size() - playerCastles.size()) * AAIConstants.BIG_THREAT_CASTLE_MULTIPLIER;
-        points += (enemyTroopCount - playerTroopCount) * AAIConstants.BIG_THREAT_TROOP_MULTIPLIER;
+        points += (enemyKingdomCount - playerKingdomCount) * constants.BIG_THREAT_KINGDOM_MULTIPLIER;
+        points += (enemyCastles.size() - playerCastles.size()) * constants.BIG_THREAT_CASTLE_MULTIPLIER;
+        points += (enemyTroopCount - playerTroopCount) * constants.BIG_THREAT_TROOP_MULTIPLIER;
 
         return points > 0;
     }
@@ -207,6 +210,6 @@ public class AAITargetEvalMethods {
      * @return if the passed {@code castle} has few enemy neighbours
      */
     public static boolean hasFewNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
-        return AAIMethods.getOtherNeighbours(castleGraph, player, castle).size() <= AAIConstants.FEW_NEIGHBOUR_COUNT;
+        return AAIMethods.getOtherNeighbours(castleGraph, player, castle).size() <= constants.FEW_NEIGHBOUR_COUNT;
     }
 }

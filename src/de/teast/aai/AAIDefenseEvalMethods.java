@@ -13,6 +13,8 @@ import java.util.*;
  * Class to move troops for defense dependent on the situation
  */
 public class AAIDefenseEvalMethods {
+    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+
     /**
      * Moves the troops for defense
      * @param game the game object
@@ -113,8 +115,8 @@ public class AAIDefenseEvalMethods {
     public static double evaluateCastle(Graph<Castle> castleGraph, Castle castle){
         double points = 0;
 
-        points += (getEnemyEdgeCount(castleGraph, castle) * AAIConstants.EDGE_COUNT_MULTIPLIER);
-        points += (getThreateningNeighboursTroopCount(castleGraph, castle) * AAIConstants.THREATENING_TROOP_COUNT_MULTIPLIER);
+        points += (getEnemyEdgeCount(castleGraph, castle) * constants.EDGE_COUNT_MULTIPLIER);
+        points += (getThreateningNeighboursTroopCount(castleGraph, castle) * constants.THREATENING_TROOP_COUNT_MULTIPLIER);
 
         return points;
     }

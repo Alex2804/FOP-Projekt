@@ -9,9 +9,6 @@ import gui.components.NumberChooser;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.font.TextAttribute;
 import java.util.*;
 
 import javax.swing.*;
@@ -29,6 +26,8 @@ public class GameMenu extends View {
     private JComboBox goal;
     private JComponent[][] playerConfig;
     private JButton btnStart, btnBack;
+
+    private static final boolean training = true;
 
     // map size, type?
     // goal?
@@ -206,7 +205,12 @@ public class GameMenu extends View {
 
                 // Set Goal
                 Goal goal = GameConstants.GAME_GOALS[goalIndex];
-                GameView gameView = new GameView(getWindow(), game);
+                GameView gameView;
+                if(!training) {
+                    gameView = new GameView(getWindow(), game);
+                }else {
+                    gameView = new GameViewTraining(getWindow(), game);
+                }
                 game.setMapSize(MapSize.values()[mapSize]);
                 game.setGoal(goal);
                 game.start(gameView);

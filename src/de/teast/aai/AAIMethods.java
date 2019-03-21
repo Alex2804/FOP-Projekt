@@ -210,22 +210,23 @@ public class AAIMethods {
     }
     /**
      * @param castleGraph the graph with the edges and nodes
-     * @param player the player to get the neighbour castles owned by other players
-     * @param castles the castles to get the other neighbours from
-     * @return A List with all neighbour castles of all castles from {@code castles}, which doesn't have {@code player}
+     * @param player the player to get the neighbour castles owned by this player
+     * @param castles the castles to get the neighbours from
+     * @return A List with all neighbour castles of all castles from {@code castles}, which has {@code player}
      * as owner and aren't contained by {@code castles}.
      */
-    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Player player, List<Castle> castles){
+    public static List<Castle> getNeighbours(Graph<Castle> castleGraph, Player player, List<Castle> castles){
         Set<Castle> castleSet = new HashSet<>(castles);
-        List<Castle> otherNeighbours = new LinkedList<>();
+        List<Castle> returnList = new LinkedList<>();
         for(Castle castle : castles){
-            for(Castle neighbour : getOtherNeighbours(castleGraph, player, castle)){
+            for(Castle neighbour : getNeighbours(castleGraph, player, castle)){
                 if(!castleSet.contains(neighbour)){
-                    otherNeighbours.add(neighbour);
+                    castleSet.add(neighbour);
+                    returnList.add(neighbour);
                 }
             }
         }
-        return otherNeighbours;
+        return returnList;
     }
     /**
      * @param castleGraph the graph with the edges and nodes
@@ -250,6 +251,26 @@ public class AAIMethods {
      */
     public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Player player, Node<Castle> node){
         return filterNeightbours(castleGraph, node, c -> c.getOwner() == player);
+    }
+    /**
+     * @param castleGraph the graph with the edges and nodes
+     * @param player the player to get the neighbour castles owned by other players
+     * @param castles the castles to get the other neighbours from
+     * @return A List with all neighbour castles of all castles from {@code castles}, which doesn't have {@code player}
+     * as owner and aren't contained by {@code castles}.
+     */
+    public static List<Castle> getOtherNeighbours(Graph<Castle> castleGraph, Player player, List<Castle> castles){
+        Set<Castle> castleSet = new HashSet<>(castles);
+        List<Castle> otherNeighbours = new LinkedList<>();
+        for(Castle castle : castles){
+            for(Castle neighbour : getOtherNeighbours(castleGraph, player, castle)){
+                if(!castleSet.contains(neighbour)){
+                    castleSet.add(neighbour);
+                    otherNeighbours.add(neighbour);
+                }
+            }
+        }
+        return otherNeighbours;
     }
     /**
      * @param castleGraph the graph with the edges and nodes
@@ -555,8 +576,7 @@ public class AAIMethods {
      */
     public static int getNeighboursAttackTroopCount(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
         int sum = 0;
-        Set<Castle> passed = new HashSet<>();
-        passed.addAll(connectedCastles);
+        Set<Castle> passed = new HashSet<>(connectedCastles);
         List<Castle> connected;
         for(Castle neighbour : getOtherNeighbours(castleGraph, player, connectedCastles)){
             if(!passed.contains(neighbour)){

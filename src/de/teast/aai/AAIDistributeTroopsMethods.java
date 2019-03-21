@@ -48,6 +48,8 @@ public class AAIDistributeTroopsMethods {
         }
     }
 
+    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+
     /**
      * Generates {@link ATroopMover} objects, to distribute the troops, for the given distribution (only troops of
      * castles in {@code troopDistribution} are used)
@@ -215,8 +217,8 @@ public class AAIDistributeTroopsMethods {
     public static double evaluateConnectedCastles(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
         double points = 0;
 
-        points += connectedCastles.size() * AAIConstants.CASTLE_COUNT_MULTIPLIER;
-        points += ownedKingdomCount(connectedCastles) * AAIConstants.OWNED_KINGDOM_MULTIPLIER;
+        points += connectedCastles.size() * constants.CASTLE_COUNT_MULTIPLIER;
+        points += ownedKingdomCount(connectedCastles) * constants.OWNED_KINGDOM_MULTIPLIER;
 
         points += evaluateAttackPossibilities(castleGraph, player, connectedCastles);
 
@@ -259,7 +261,7 @@ public class AAIDistributeTroopsMethods {
     public static int evaluateAttackPossibilities(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
         int points = 0;
 
-        points += canUniteSplittedRegions(castleGraph, player, connectedCastles) ? AAIConstants.CAN_UNITE_SPLITTED_REGIONS : 0;
+        points += canUniteSplittedRegions(castleGraph, player, connectedCastles) ? constants.CAN_UNITE_SPLITTED_REGIONS : 0;
 
         return points;
     }

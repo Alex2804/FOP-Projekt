@@ -42,6 +42,9 @@ public class Game {
         this.goal = goal;
         this.goal.setGame(this);
     }
+    public Goal getGoal(){
+        return goal;
+    }
 
     public int getRound() {
         return round;
@@ -49,6 +52,9 @@ public class Game {
 
     public void setMapSize(MapSize mapSize) {
         this.mapSize = mapSize;
+    }
+    public MapSize getMapSize(){
+        return mapSize;
     }
 
     private void generateMap() {
@@ -84,6 +90,7 @@ public class Game {
         this.generateMap();
 
         // Create random player order
+        startingPlayer = null;
         this.gameInterface = gameInterface;
         List<Player> tempList = new ArrayList<>(players);
         playerQueue = new ArrayDeque<>();
@@ -103,13 +110,16 @@ public class Game {
     }
 
     public AttackThread startAttack(Castle source, Castle target, int troopCount) {
+        return startAttack(source, target, troopCount, false);
+    }
+    public AttackThread startAttack(Castle source, Castle target, int troopCount, boolean fastForward) {
         if(attackThread != null)
             return attackThread;
 
         if(source.getOwner() == target.getOwner() || troopCount < 1)
             return null;
 
-        attackThread = new AttackThread(this, source, target, troopCount);
+        attackThread = new AttackThread(this, source, target, troopCount, fastForward);
         attackThread.start();
         gameInterface.onAttackStarted(source, target, troopCount);
         return attackThread;

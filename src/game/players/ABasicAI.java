@@ -15,7 +15,8 @@ import java.util.List;
  * Basic implementation of a better AI than {@link BasicAI} for {@link game.goals.ConquerGoal}
  */
 public class ABasicAI extends BasicAI {
-    private int timeout = 0;
+    public AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    private int timeout = 1000;
 
     public ABasicAI(String name, Color color) {
         super(name, color);
@@ -23,16 +24,24 @@ public class ABasicAI extends BasicAI {
 
     @Override
     protected void actions(Game game) throws InterruptedException {
+        if(constants == null)
+            constants = new AAIConstantsWrapper("best21.txt");
+        AAIDefenseEvalMethods.constants = constants;
+        AAIDistributeTroopsMethods.constants = constants;
+        AAIDistributionEvalMethods.constants = constants;
+        AAIKingdomEvalMethods.constants = constants;
+        AAITargetEvalMethods.constants = constants;
+
         Graph<Castle> castleGraph = game.getMap().getGraph();
         if(game.getRound() == 1){
             for(Castle castle : AAIDistributionEvalMethods.getBestCastleDistribution(castleGraph, this, getRemainingTroops())){
-                sleep(timeout + 10); // +10 or exception is thrown (necessary to update gui)
+                sleep(timeout + 10);
                 game.chooseCastle(castle, this);
             }
         } else {
             List<Pair<Castle, Integer>> troopDistribution = AAIDistributeTroopsMethods.distributeTroops(castleGraph, this, getRemainingTroops());
             for(Pair<Castle, Integer> pair : troopDistribution){
-                sleep(timeout / 3);
+                sleep((timeout / 3) + 10);
                 game.addTroops(this, pair.getKey(), pair.getValue());
             }
 
@@ -47,14 +56,19 @@ public class ABasicAI extends BasicAI {
                 percentage = attackTroopCount / ((double)(attackTroopCount + targetTroopCount));
                 if((worstPercentage >= 0 && percentage > worstPercentage)
                         || (worstPercentage < 0
-                            && AAIMethods.getAttackTroopCount(pair.getKey()) > (pair.getValue().getTroopCount() * AAIConstants.TROOP_DIFFERENCE_MULTIPLIER))){
+                            && AAIMethods.getAttackTroopCount(pair.getKey()) > (pair.getValue().getTroopCount() * constants.TROOP_DIFFERENCE_MULTIPLIER))
+                        || targets.size() <= 1
+                        || attackTroopCount > targetTroopCount * 1.5){
                     attacker = pair.getValue().getNearest(pair.getKey());
+                    if(pair.getValue() == null || attacker == null){
+                        continue;
+                    }
                     AAIDistributeTroopsMethods.makeMoves(game, AAIDistributeTroopsMethods.generateCollectMoves(castleGraph, attacker));
 
-                    AttackThread attackThread = game.startAttack(attacker, pair.getValue(), attackTroopCount);
-                    if(fastForward)
-                        attackThread.fastForward();
+                    AttackThread attackThread = game.startAttack(attacker, pair.getValue(), attackTroopCount, fastForward);
 
+                    if(attackThread == null)
+                        continue;
                     attackThread.join();
                     attackWon = attackThread.getWinner() == this;
                     if(!attackWon){

@@ -138,7 +138,7 @@ public class Resources {
      * @throws IOException Eine IOException wird geworfen, wenn Probleme beim Schreiben auftreten.
      */
     private void saveScoreEntries() throws IOException {
-        File file = new File("res/highscores.txt");
+        File file = new File("highscores.txt");
         try(PrintWriter writer = new PrintWriter(file)){
             for(ScoreEntry scoreEntry : scoreEntries){
                 scoreEntry.write(writer);
@@ -156,7 +156,7 @@ public class Resources {
      * @see #addScoreEntry(ScoreEntry)
      */
     private void loadScoreEntries() {
-        try(BufferedReader reader = new BufferedReader(new FileReader("res/highscores.txt"))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader("highscores.txt"))) {
             scoreEntries = new LinkedList<>();
             String line;
             while(null != (line = reader.readLine())){

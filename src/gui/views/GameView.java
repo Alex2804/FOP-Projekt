@@ -1,7 +1,11 @@
 package gui.views;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import game.*;
+import game.map.Castle;
+import gui.GameWindow;
+import gui.View;
+import gui.components.DicePanel;
+import gui.components.MapPanel;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -9,13 +13,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-
-import game.*;
-import game.map.Castle;
-import gui.GameWindow;
-import gui.View;
-import gui.components.DicePanel;
-import gui.components.MapPanel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class GameView extends View implements GameInterface {
 
@@ -60,13 +59,12 @@ public class GameView extends View implements GameInterface {
         txtStats.setSize(sidebarWidth, 50 + 20 * game.getPlayers().size());
         dices.setSize(sidebarWidth, 50);
         scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - 2 * BUTTON_SIZE.height);
-        scrollLog.revalidate();
         scrollLog.repaint();
         
         button.setSize(sidebarWidth, BUTTON_SIZE.height);
         jokerButton.setSize(button.getSize());
 
-        JComponent components[] = { txtStats, dices, jokerButton, scrollLog, button};
+        JComponent[] components = {txtStats, dices, jokerButton, scrollLog, button};
         for(JComponent component : components) {
             component.setLocation(x, y);
             y += 10 + component.getHeight();
@@ -188,7 +186,6 @@ public class GameView extends View implements GameInterface {
     }
 
     private void logLine(String line, Player... playerFormat) {
-
         StyledDocument doc = this.gameLog.getStyledDocument();
         Style style = this.gameLog.getStyle("PlayerColor");
 
@@ -221,7 +218,7 @@ public class GameView extends View implements GameInterface {
 
     @Override
     public void onNextTurn(Player currentPlayer, int troopsGot, boolean human) {
-        jokerButton.setEnabled(currentPlayer.hasJoker());
+        jokerButton.setEnabled(currentPlayer.hasJoker() && human);
 
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 

@@ -12,13 +12,37 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class GameViewTraining extends GameView {
+    public static class ATrainingThread extends Thread{
+        public GameViewTraining view;
+        public GameWindow gameWindow;
+        public Game game;
+        public int threadID;
+
+        public ATrainingThread(GameWindow gameWindow, Game game, int threadID){
+            this.gameWindow = gameWindow;
+            this.game = game;
+            this.threadID = threadID;
+        }
+
+        public GameViewTraining createView(){
+            return new GameViewTraining(gameWindow, game);
+        }
+
+        @Override
+        public void run() {
+            if(view == null)
+                view = createView();
+            view.threadID = threadID;
+            game.start(view);
+        }
+    }
+
     private DicePanel dices;
     private Game game;
 
-    public static boolean update = false;
+    public int threadID = 0;
 
     GameViewTraining(GameWindow gameWindow, Game game) {
         super(gameWindow, game);
@@ -71,10 +95,12 @@ public class GameViewTraining extends GameView {
     private int gameCount = 0;
     private int maxWins = 0;
     private int currentWins = 0;
-    private static final int roundsPerConstants = 1000;
+    private static final int roundsPerConstants = 500;
     private AAIConstantsWrapper currentConstants = null;
+    private long start = 0;
     @Override
     public void onGameOver(Player winner) {
+        ++gameCount;
         if(winner != null && winner.getClass() == ABasicAI.class)
             ++currentWins;
         if(autoRestart){
@@ -92,24 +118,29 @@ public class GameViewTraining extends GameView {
 
     @Override
     public void onGameStarted(Game game) {
-        System.out.println("Played Games: " + ++gameCount);
-        System.out.println("Max-Wins: " + maxWins + "   ;   Current-Wins: " + currentWins);
         if(gameCount % roundsPerConstants == 0 || currentConstants == null){
+            System.out.println("" +
+                    "=================================================================\n" +
+                    "Thread: " + threadID + "\n" +
+                    "Played Games: " + gameCount + "\n" +
+                    "Max-Wins: " + maxWins + "   ;   Current-Wins: " + currentWins + "\n" +
+                    "Time Needed: " + (System.currentTimeMillis() - start) / 1000.0 + " seconds\n" +
+                    "=================================================================");
+            start = System.currentTimeMillis();
             if(maxWins < currentWins && currentConstants != null){
                 maxWins = currentWins;
-                System.out.println(Arrays.toString(currentConstants.save()));
-                currentWins = 0;
                 try {
-                    currentConstants.write("best.txt");
+                    currentConstants.write("best"+threadID+".txt");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
             if(currentConstants == null){
-                currentConstants = new AAIConstantsWrapper("best.txt");
+                currentConstants = new AAIConstantsWrapper("best"+threadID+".txt");
             }else{
                 currentConstants = new AAIConstantsWrapper(true);
             }
+            currentWins = 0;
         }
         for (Player player : game.getPlayers()){
             if(player.getClass() == ABasicAI.class){

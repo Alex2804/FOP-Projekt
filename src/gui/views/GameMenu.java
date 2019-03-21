@@ -10,6 +10,7 @@ import gui.components.NumberChooser;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -27,7 +28,8 @@ public class GameMenu extends View {
     private JComponent[][] playerConfig;
     private JButton btnStart, btnBack;
 
-    private static final boolean training = true;
+    public static final boolean training = Game.training;
+    public static final int threadCount = 4;
 
     // map size, type?
     // goal?
@@ -203,18 +205,28 @@ public class GameMenu extends View {
                     game.addPlayer(player);
                 }
 
-                // Set Goal
                 Goal goal = GameConstants.GAME_GOALS[goalIndex];
                 GameView gameView;
                 if(!training) {
                     gameView = new GameView(getWindow(), game);
-                }else {
-                    gameView = new GameViewTraining(getWindow(), game);
                 }
                 game.setMapSize(MapSize.values()[mapSize]);
                 game.setGoal(goal);
-                game.start(gameView);
-                getWindow().setView(gameView);
+                if(!training) {
+                    game.start(gameView);
+                    getWindow().setView(gameView);
+                }else{
+                    List<GameViewTraining.ATrainingThread> threads = new LinkedList<>();
+                    for(int i=0; i<threadCount; i++){
+                        GameViewTraining.ATrainingThread trainingThread = new GameViewTraining.ATrainingThread(getWindow(), game.copy(), i);
+                        threads.add(trainingThread);
+                        trainingThread.start();
+                    }
+                    while(!threads.isEmpty() && threads.get(0).view == null){
+
+                    }
+                    getWindow().setView(threads.get(0).view);
+                }
             } catch(IllegalArgumentException ex) {
                 ex.printStackTrace();
                 showErrorMessage("Fehler beim Erstellen des Spiels: " + ex.getMessage(), "Interner Fehler");

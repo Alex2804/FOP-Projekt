@@ -25,7 +25,7 @@ public class AAIConstantsWrapper {
         try {
             read(filename);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("File \"" + filename + "\" not found. Using hardcoded constant values");
         }
     }
 

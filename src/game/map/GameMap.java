@@ -434,7 +434,7 @@ public class GameMap {
         if (scale <= 0 || castleCount <= 0)
             throw new IllegalArgumentException();
 
-        System.out.println(String.format("Generating new map, castles=%d, width=%d, height=%d, kingdoms=%d", castleCount, width, height, kingdomCount));
+        //System.out.println(String.format("Generating new map, castles=%d, width=%d, height=%d, kingdoms=%d", castleCount, width, height, kingdomCount));
         GameMap gameMap = new GameMap(width, height, scale);
         gameMap.generateBackground();
         gameMap.generateCastles(castleCount);

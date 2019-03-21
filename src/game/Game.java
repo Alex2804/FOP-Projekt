@@ -1,5 +1,6 @@
 package game;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import game.map.Castle;
@@ -23,6 +24,8 @@ public class Game {
     private Player currentPlayer;
     private GameInterface gameInterface;
     private AttackThread attackThread;
+
+    public static final boolean training = true;
 
     public Game() {
         this.isOver = false;
@@ -55,6 +58,25 @@ public class Game {
     }
     public MapSize getMapSize(){
         return mapSize;
+    }
+
+    /**
+     * @return an independet copy of this game object
+     */
+    public Game copy(){
+        Game copy = new Game();
+        for(Player player : players){
+            copy.addPlayer(Player.createPlayer(player.getClass(), player.getName(), player.getColor()));
+        }
+        copy.setMapSize(getMapSize());
+        try {
+            Goal goal = this.goal.getClass().getConstructor().newInstance();
+            copy.setGoal(goal);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return copy;
     }
 
     private void generateMap() {
@@ -218,8 +240,10 @@ public class Game {
             addScore(goal.getWinner(), 150);
 
         Resources resources = Resources.getInstance();
-        for(Player player : players) {
-            resources.addScoreEntry(new ScoreEntry(player, goal));
+        if(!training) {
+            for (Player player : players) {
+                resources.addScoreEntry(new ScoreEntry(player, goal));
+            }
         }
 
         gameInterface.onGameOver(winner);

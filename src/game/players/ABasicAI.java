@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class ABasicAI extends BasicAI {
     public AAIConstantsWrapper constants = new AAIConstantsWrapper();
-    private int timeout = 1000;
+    private int timeout = 600;
 
     public ABasicAI(String name, Color color) {
         super(name, color);
@@ -25,7 +25,7 @@ public class ABasicAI extends BasicAI {
     @Override
     protected void actions(Game game) throws InterruptedException {
         if(constants == null)
-            constants = new AAIConstantsWrapper("best21.txt");
+            constants = new AAIConstantsWrapper("best401Mittel.txt");
         AAIDefenseEvalMethods.constants = constants;
         AAIDistributeTroopsMethods.constants = constants;
         AAIDistributionEvalMethods.constants = constants;
@@ -66,9 +66,10 @@ public class ABasicAI extends BasicAI {
                     AAIDistributeTroopsMethods.makeMoves(game, AAIDistributeTroopsMethods.generateCollectMoves(castleGraph, attacker));
 
                     AttackThread attackThread = game.startAttack(attacker, pair.getValue(), attackTroopCount, fastForward);
-
                     if(attackThread == null)
                         continue;
+                    if(fastForward)
+                        attackThread.fastForward();
                     attackThread.join();
                     attackWon = attackThread.getWinner() == this;
                     if(!attackWon){

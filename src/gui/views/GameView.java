@@ -2,6 +2,7 @@ package gui.views;
 
 import game.*;
 import game.map.Castle;
+import game.players.ABasicAI;
 import gui.GameWindow;
 import gui.View;
 import gui.components.DicePanel;
@@ -25,6 +26,8 @@ public class GameView extends View implements GameInterface {
     private JTextPane gameLog;
     private JButton button, jokerButton;
     private Game game;
+
+    private static final boolean autoRestart = true;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow);
@@ -218,6 +221,8 @@ public class GameView extends View implements GameInterface {
 
     @Override
     public void onNextTurn(Player currentPlayer, int troopsGot, boolean human) {
+        if(beginner == null)
+            beginner = currentPlayer;
         jokerButton.setEnabled(currentPlayer.hasJoker() && human);
 
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
@@ -238,6 +243,14 @@ public class GameView extends View implements GameInterface {
         this.logLine(String.format("Runde %d.", round));
     }
 
+    private static int aBasicAIWins = 0;
+    private static int basicAIWins = 0;
+    private static int aBasicWins = 0;
+    private static int basicWins = 0;
+    private static int lostWhenStarted = 0;
+    private static int lost = 0;
+    private static Player beginner = null;
+    private static int playedGames = 0;
     @Override
     public void onGameOver(Player winner) {
         if(winner == null) {
@@ -248,6 +261,30 @@ public class GameView extends View implements GameInterface {
 
         button.setText("Beenden");
         updateStats();
+
+        if(autoRestart){
+            System.out.println("Gespielte Spiele: " + ++playedGames);
+            if(winner != null){
+                if(winner.getClass() == ABasicAI.class){
+                    aBasicAIWins++;
+                }else{
+                    basicAIWins++;
+                    lost++;
+                    if(beginner.getClass() == ABasicAI.class)
+                        lostWhenStarted++;
+                }
+                beginner = null;
+                System.out.println("Verloren: " + lost + "  ;   Wenn begonnnen: " + lostWhenStarted);
+                if(aBasicAIWins + basicAIWins >= 5){
+                    aBasicWins += (aBasicAIWins >= 4) ? 1 : 0;
+                    basicWins += (aBasicAIWins >= 4) ? 0 : 1;
+                    aBasicAIWins = basicAIWins = 0;
+                    System.out.println("ABasicAI: " + aBasicWins + "    ;   BasicAI: " + basicWins);
+                }
+            }
+            Game newGame = game.copy();
+            newGame.start(this);
+        }
     }
 
     @Override

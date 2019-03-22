@@ -14,5 +14,16 @@ public interface GameInterface {
     void onConquer(Castle castle, Player player);
     void onUpdate();
     void onAddScore(Player player, int score);
+    /**
+     * Log text to show it the user
+     * @param text the text as String
+     */
+    void onLogText(String text);
+    /**
+     * Log text to show it the user
+     * @param text the text as String
+     * @param playerFormat format the players
+     */
+    void onLogText(String text, Player... playerFormat);
     int[] onRoll(Player player, int dices, boolean fastForward);
 }

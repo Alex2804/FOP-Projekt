@@ -1,8 +1,8 @@
 package game;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import game.goals.ACaptureTheFlagGoal;
 import game.map.Castle;
 import game.map.Kingdom;
 import game.map.GameMap;
@@ -12,20 +12,20 @@ import gui.Resources;
 
 public class Game {
 
-    private Goal goal;
-    private List<Player> players;
-    private boolean isOver;
-    private boolean hasStarted;
-    private int round;
-    private MapSize mapSize;
-    private GameMap gameMap;
-    private Queue<Player> playerQueue;
-    private Player startingPlayer;
-    private Player currentPlayer;
-    private GameInterface gameInterface;
-    private AttackThread attackThread;
+    protected Goal goal;
+    protected List<Player> players;
+    protected boolean isOver;
+    protected boolean hasStarted;
+    protected int round;
+    protected MapSize mapSize;
+    protected GameMap gameMap;
+    protected Queue<Player> playerQueue;
+    protected Player startingPlayer;
+    protected Player currentPlayer;
+    protected GameInterface gameInterface;
+    protected AttackThread attackThread;
 
-    public static final boolean training = true;
+    public static final boolean training = false;
 
     public Game() {
         this.isOver = false;
@@ -61,7 +61,7 @@ public class Game {
     }
 
     /**
-     * @return an independet copy of this game object
+     * @return an independent copy of this game object
      */
     public Game copy(){
         Game copy = new Game();
@@ -163,6 +163,8 @@ public class Game {
                     defenderCastle.setOwner(attacker);
                     defenderCastle.addTroops(1);
                     gameInterface.onConquer(defenderCastle, attacker);
+                    if(isCaptureTheFlagGoal())
+                        captureTheFlagGoal().conquered(defenderCastle, attacker);
                     addScore(attacker, 50);
                     break;
                 } else {
@@ -178,9 +180,15 @@ public class Game {
     }
 
     public void moveTroops(Castle source, Castle destination, int troopCount) {
-        if(troopCount >= source.getTroopCount() || source.getOwner() != destination.getOwner())
+        if(troopCount >= source.getTroopCount() || (destination.getOwner() != null && source.getOwner() != destination.getOwner()))
             return;
 
+        if(destination.getOwner() == null){
+            source.getOwner().addTroops(1);
+            source.removeTroops(1);
+            chooseCastle(destination, source.getOwner(), false);
+            --troopCount;
+        }
         source.moveTroops(destination, troopCount);
         gameInterface.onUpdate();
     }
@@ -194,7 +202,7 @@ public class Game {
         return gameInterface.onRoll(player, dices, fastForward);
     }
 
-    private boolean allCastlesChosen() {
+    public boolean allCastlesChosen() {
         return gameMap.getCastles().stream().noneMatch(c -> c.getOwner() == null);
     }
 
@@ -203,6 +211,9 @@ public class Game {
     }
 
     public void chooseCastle(Castle castle, Player player) {
+        chooseCastle(castle, player, true);
+    }
+    private void chooseCastle(Castle castle, Player player, boolean doNextTurn){
         if(castle.getOwner() != null || player.getRemainingTroops() == 0)
             return;
 
@@ -212,7 +223,7 @@ public class Game {
         castle.addTroops(1);
         addScore(player, 5);
 
-        if(player.getRemainingTroops() == 0 || allCastlesChosen()) {
+        if(doNextTurn && (player.getRemainingTroops() == 0 || allCastlesChosen())) {
             player.removeTroops(player.getRemainingTroops());
             nextTurn();
         }
@@ -277,7 +288,7 @@ public class Game {
         }
 
         currentPlayer = nextPlayer;
-        if(round == 0 || (round == 1 && allCastlesChosen()) || (round > 1 && currentPlayer == startingPlayer)) {
+        if(round == 0 || (round == 1 && allCastlesChosen() && allFlagsChosen()) || (round > 1 && currentPlayer == startingPlayer)) {
             round++;
             gameInterface.onNewRound(round);
         }
@@ -286,7 +297,11 @@ public class Game {
 
         int addTroops;
         if(round == 1)
-            addTroops = GameConstants.CASTLES_AT_BEGINNING;
+            if(isCaptureTheFlagGoal() && allCastlesChosen()){
+                addTroops = 0;
+            } else {
+                addTroops = GameConstants.CASTLES_AT_BEGINNING;
+            }
         else {
             addTroops = Math.max(3, numRegions / GameConstants.TROOPS_PER_ROUND_DIVISOR);
             addScore(currentPlayer, addTroops * 5);
@@ -307,6 +322,32 @@ public class Game {
         }
 
         playerQueue.add(currentPlayer);
+    }
+
+    /**
+     * @return if all flags are chosen and always true if the goal is not an instance of ACaptureTheFlagGoal
+     */
+    public boolean allFlagsChosen(){
+        if(isCaptureTheFlagGoal() && round == 1){
+            return captureTheFlagGoal().getFlagsChoosen().size() == players.size();
+        }else {
+            return true;
+        }
+    }
+    /**
+     * @return A ACaptureTheFlagGoal object if the goal is an instance of this or null
+     */
+    public ACaptureTheFlagGoal captureTheFlagGoal(){
+        if(isCaptureTheFlagGoal())
+            return (ACaptureTheFlagGoal)goal;
+        else
+            return null;
+    }
+    /**
+     * @return if the goal is an instance of ACaptureTheFlagGoal
+     */
+    public boolean isCaptureTheFlagGoal(){
+        return goal instanceof ACaptureTheFlagGoal;
     }
 
     public Player getCurrentPlayer() {

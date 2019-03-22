@@ -27,7 +27,7 @@ public class GameView extends View implements GameInterface {
     private JButton button, jokerButton;
     private Game game;
 
-    private static final boolean autoRestart = true;
+    private static final boolean autoRestart = false;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow);
@@ -228,7 +228,15 @@ public class GameView extends View implements GameInterface {
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 
         if(game.getRound() == 1)
-            this.logLine("%PLAYER% muss " + troopsGot + " Burgen auswählen.", currentPlayer);
+            if(game.isCaptureTheFlagGoal() && game.allCastlesChosen()){
+                if(game.captureTheFlagGoal().hasChosen(currentPlayer)) {
+                    game.nextTurn();
+                }else {
+                    this.logLine("%PLAYER% muss seine Flagge auf einer seiner Burgen positionieren", currentPlayer);
+                }
+            }else {
+                this.logLine("%PLAYER% muss " + troopsGot + " Burgen auswählen.", currentPlayer);
+            }
         else
             this.logLine("%PLAYER% erhält " + troopsGot + " Truppen.", currentPlayer);
 
@@ -322,6 +330,15 @@ public class GameView extends View implements GameInterface {
     @Override
     public void onAddScore(Player player, int score) {
         updateStats();
+    }
+
+    @Override
+    public void onLogText(String text) {
+        logLine(text);
+    }
+    @Override
+    public void onLogText(String text, Player... playerFormat) {
+        logLine(text, playerFormat);
     }
 
     @Override

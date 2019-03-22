@@ -2273,6 +2273,7 @@ Spieler 2;1553249562420;545;Eroberung
 Spieler 2;1553249077231;540;Eroberung
 Spieler 2;1553249254535;540;Eroberung
 Spieler 2;1553250108082;540;Eroberung
+Spieler 2;1553268880558;540;Eroberung der Flagge
 Spieler 2;1553201142372;535;Eroberung
 Spieler 2;1553201146580;535;Eroberung
 Spieler 2;1553248936176;535;Eroberung
@@ -2357,6 +2358,7 @@ Spieler 2;1553249562675;445;Eroberung
 Spieler 1;1553249990063;445;Eroberung
 Spieler 2;1553250003399;445;Eroberung
 Spieler 2;1553248794570;440;Eroberung
+Spieler 1;1553268880557;440;Eroberung der Flagge
 Spieler 2;1553248782660;435;Eroberung
 Spieler 2;1553249269453;435;Eroberung
 Spieler 2;1553249999027;435;Eroberung

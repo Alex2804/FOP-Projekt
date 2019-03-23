@@ -61,7 +61,7 @@ public class GameView extends View implements GameInterface {
 
         txtStats.setSize(sidebarWidth, 50 + 20 * game.getPlayers().size());
         dices.setSize(sidebarWidth, 50);
-        scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - 2 * BUTTON_SIZE.height);
+        scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - 2 * BUTTON_SIZE.height - 10);
         scrollLog.repaint();
         
         button.setSize(sidebarWidth, BUTTON_SIZE.height);

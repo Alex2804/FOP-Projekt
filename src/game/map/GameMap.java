@@ -1,6 +1,8 @@
 package game.map;
 
 import base.*;
+import de.teast.AConstants;
+import de.teast.APath;
 import game.Game;
 import game.GameConstants;
 import gui.Resources;
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
  * Diese Klasse representiert das Spielfeld. Sie beinhaltet das Hintergrundbild, welches mit Perlin noise erzeugt wurde,
  * eine Liste mit Königreichen und alle Burgen und deren Verbindungen als Graphen.
  *
- * Die Karte wird in mehreren Schritten generiert, siehe dazu {@link #generateRandomMap(int, int, int, int, int)}
+ * Die Karte wird in mehreren Schritten generiert, siehe dazu {@link #generateRandomMap(Game, int, int, int, int, int)}
  */
 public class GameMap {
 
@@ -27,10 +29,11 @@ public class GameMap {
     // Map Generation
     private double[][] noiseValues;
     private int width, height, scale;
+    private Game game;
 
     /**
      * Erzeugt eine neue leere Karte. Der Konstruktor sollte niemals direkt aufgerufen werden.
-     * Um eine neue Karte zu erstellen, muss {@link #generateRandomMap(int, int, int, int, int)} verwendet werden
+     * Um eine neue Karte zu erstellen, muss {@link #generateRandomMap(Game, int, int, int, int, int)} verwendet werden
      * @param width die Breite der Karte
      * @param height die Höhe der Karte
      * @param scale der Skalierungsfaktor
@@ -420,6 +423,7 @@ public class GameMap {
      *   2. Burgen generieren
      *   3. Kanten hinzufügen
      *   4. Burgen in Köngireiche unterteilen
+     * @param game Das Game Objekt
      * @param width die Breite des Spielfelds
      * @param height die Höhe des Spielfelds
      * @param scale die Skalierung
@@ -427,8 +431,7 @@ public class GameMap {
      * @param kingdomCount die Anzahl der Königreiche
      * @return eine neue GameMap-Instanz
      */
-    public static GameMap generateRandomMap(int width, int height, int scale, int castleCount, int kingdomCount) {
-
+    public static GameMap generateRandomMap(Game game, int width, int height, int scale, int castleCount, int kingdomCount) {
         width = Math.max(width, 15);
         height = Math.max(height, 10);
 
@@ -439,10 +442,22 @@ public class GameMap {
             System.out.println(String.format("Generating new map, castles=%d, width=%d, height=%d, kingdoms=%d", castleCount, width, height, kingdomCount));
         GameMap gameMap = new GameMap(width, height, scale);
         gameMap.generateBackground();
-        gameMap.generateCastles(castleCount);
-        gameMap.generateKingdoms(kingdomCount);
-        //gameMap.generateEdges();
-        gameMap.generateKingdomEdges();
+        if(game.isClashOfArmiesGoal()) {
+            gameMap.castleGraph = new APath(new LinkedList<>());
+            Castle castle1 = new Castle(new Point(30, (height*scale)/2), "Test1");
+            Castle castle2 = new Castle(new Point(width*scale - 80, (height*scale)/2), "Test2");
+            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 5, scale);
+            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 6, scale);
+            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 7, scale);
+            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 8, scale);
+            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 9, scale);
+
+        } else {
+            gameMap.generateCastles(castleCount);
+            gameMap.generateKingdoms(kingdomCount);
+            //gameMap.generateEdges();
+            gameMap.generateKingdomEdges();
+        }
 
         if(!gameMap.getGraph().allNodesConnected()) {
             System.out.println("Fehler bei der Verifikation: Es sind nicht alle Knoten miteinander verbunden!");

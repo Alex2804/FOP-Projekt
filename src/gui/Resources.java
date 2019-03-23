@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class Resources {
 
-    private static final int NUM_CASTLES = 6;
+    private static final int NUM_CASTLES = 7;
     private static Resources instance;
     private Map<Color, BufferedImage[]> castlesColored;
     private BufferedImage[] dices;

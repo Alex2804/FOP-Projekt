@@ -3,6 +3,7 @@ package game;
 import java.util.*;
 
 import game.goals.ACaptureTheFlagGoal;
+import game.goals.AClashOfArmiesGoal;
 import game.map.Castle;
 import game.map.Kingdom;
 import game.map.GameMap;
@@ -95,7 +96,7 @@ public class Game {
 
         int continents = Math.max(3, playerCount + this.mapSize.ordinal());
 
-        this.gameMap = GameMap.generateRandomMap(width, height, 40, numRegions, continents);
+        this.gameMap = GameMap.generateRandomMap(this, width, height, 40, numRegions, continents);
     }
 
     public void start(GameInterface gameInterface) {
@@ -348,6 +349,22 @@ public class Game {
      */
     public boolean isCaptureTheFlagGoal(){
         return goal instanceof ACaptureTheFlagGoal;
+    }
+
+    /**
+     * @return A AClashOfArmiesGoal object if the goal is an instance of this or null
+     */
+    public AClashOfArmiesGoal clashOfArmiesGoal(){
+        if(isClashOfArmiesGoal())
+            return (AClashOfArmiesGoal) goal;
+        else
+            return null;
+    }
+    /**
+     * @return if the goal is an instance of AClashOfArmiesGoal
+     */
+    public boolean isClashOfArmiesGoal(){
+        return goal instanceof AClashOfArmiesGoal;
     }
 
     public Player getCurrentPlayer() {

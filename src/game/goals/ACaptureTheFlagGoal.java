@@ -30,20 +30,8 @@ public class ACaptureTheFlagGoal extends Goal {
 
     @Override
     public Player getWinner() {
-        if(getGame().getRound() < 2)
-            return null;
-        for(Map.Entry<Player, Castle> entry : flagPlayerCastleMap.entrySet()){
-            if(entry.getKey() != entry.getValue().getOwner()) {
-                flagPlayerCastleMap.remove(entry.getKey());
-                flagCastlePlayerMap.remove(entry.getValue());
-            }
-        }
-        if(flagPlayerCastleMap.size() == 1)
-            return (Player)flagPlayerCastleMap.keySet().toArray()[0];
-        else
-            return null;
+        return getWinner(getGame().getMap().getCastles());
     }
-
     @Override
     public Player getWinner(List<Castle> castles) {
         if(getGame().getRound() < 2)
@@ -62,15 +50,11 @@ public class ACaptureTheFlagGoal extends Goal {
 
     @Override
     public boolean hasLost(Player player) {
-        if(getGame().getRound() < 2)
-            return false;
-        Castle castle = flagPlayerCastleMap.get(player);
-        return castle == null || castle.getOwner() != player;
+        return hasLost(player, getGame().getMap().getCastles(), getGame().getRound());
     }
-
     @Override
     public boolean hasLost(Player player, List<Castle> castles, int round) {
-        if(getGame().getRound() < 2)
+        if(round < 2)
             return false;
         Castle castle = flagPlayerCastleMap.get(player);
         return castle == null || castle.getOwner() != player || !castles.contains(castle);

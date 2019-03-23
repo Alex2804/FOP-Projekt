@@ -76,6 +76,9 @@ public class Castle {
         return this.location;
     }
 
+    public void setLocation(Point location){
+        this.location = location;
+    }
     /**
      * Berechnet die eukldische Distanz zu dem angegebenen Punkt
      * @param dest die Zielkoordinate

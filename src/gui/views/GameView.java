@@ -227,18 +227,19 @@ public class GameView extends View implements GameInterface {
 
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 
-        if(game.getRound() == 1)
-            if(game.isCaptureTheFlagGoal() && game.allCastlesChosen()){
-                if(game.captureTheFlagGoal().hasChosen(currentPlayer)) {
+        if(!game.isClashOfArmiesGoal() && game.getRound() == 1) {
+            if (game.isCaptureTheFlagGoal() && game.allCastlesChosen()) {
+                if (game.captureTheFlagGoal().hasChosen(currentPlayer)) {
                     game.nextTurn();
-                }else {
+                } else {
                     this.logLine("%PLAYER% muss seine Flagge auf einer seiner Burgen positionieren", currentPlayer);
                 }
-            }else {
+            } else {
                 this.logLine("%PLAYER% muss " + troopsGot + " Burgen auswählen.", currentPlayer);
             }
-        else
+        }else if(!game.isClashOfArmiesGoal()){
             this.logLine("%PLAYER% erhält " + troopsGot + " Truppen.", currentPlayer);
+        }
 
         map.reset();
         updateStats();
@@ -329,6 +330,9 @@ public class GameView extends View implements GameInterface {
 
     @Override
     public void onAddScore(Player player, int score) {
+        if(game.isClashOfArmiesGoal() && score > 0){
+            logLine("%PLAYER% erhält " + score + " Punkte.", player);
+        }
         updateStats();
     }
 

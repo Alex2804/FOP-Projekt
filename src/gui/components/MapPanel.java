@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.util.List;
 
 import javax.swing.*;
@@ -156,7 +157,23 @@ public class MapPanel extends JScrollPane {
                 if (selectedCastle != null && canPerformAction()) {
                     Point castlePos = selectedCastle.getLocationOnMap();
 
-                    if(canChooseCastle()) {
+                    if(game.isClashOfArmiesGoal()){
+                        if(selectedCastle.getOwner() == game.getCurrentPlayer()){
+                            Rectangle iconPlus  = getBoundsPlusIcon(castlePos);
+                            Rectangle iconArrow  = getBoundsArrowIcon(castlePos);
+                            selectNew = false;
+
+                            if(iconPlus.contains(mousePos) && game.clashOfArmiesGoal().isBase(selectedCastle)) {
+                                game.clashOfArmiesGoal().addTroops(selectedCastle);
+                            } else if (iconArrow.contains(mousePos)) {
+                                if(!game.clashOfArmiesGoal().getTroops(selectedCastle).isEmpty()) {
+                                    currentAction = (currentAction == Action.MOVING ? Action.NONE : Action.MOVING);
+                                }
+                            } else {
+                                selectNew = true;
+                            }
+                        }
+                    }else if(canChooseCastle()) {
                         Rectangle iconCheck = getBoundsIconCheck(castlePos);
                         if (iconCheck.contains(mousePos)) {
                             game.chooseCastle(selectedCastle, currentPlayer);
@@ -209,7 +226,9 @@ public class MapPanel extends JScrollPane {
                         currentAction = Action.NONE;
                         selectedCastle = nextCastle;
                         setCursor(Cursor.getDefaultCursor());
-                    } else if(currentAction == Action.MOVING && pathFinding.getPath(nextCastle) != null) {
+                    }else if(game.isClashOfArmiesGoal() && currentAction == Action.MOVING && game.clashOfArmiesGoal().tryMove(selectedCastle, nextCastle, pathFinding.getPath(nextCastle)) != null) {
+                        game.clashOfArmiesGoal().move(selectedCastle, nextCastle, pathFinding.getPath(nextCastle));
+                    }else if(!game.isClashOfArmiesGoal() && currentAction == Action.MOVING && pathFinding.getPath(nextCastle) != null) {
                         NumberDialog nd = new NumberDialog("Wie viele Truppen möchtest du verschieben?", 1, selectedCastle.getTroopCount() - 1, 1);
                         if(nd.showDialog(MapPanel.this)) {
                             game.moveTroops(selectedCastle, nextCastle, nd.getValue());
@@ -221,7 +240,7 @@ public class MapPanel extends JScrollPane {
                             setCursor(Cursor.getDefaultCursor());
                             gameView.updateStats();
                         }
-                    } else if(currentAction == Action.ATTACKING && pathFinding.getPath(nextCastle) != null && nextCastle.getOwner() != selectedCastle.getOwner()) {
+                    } else if(!game.isClashOfArmiesGoal() && currentAction == Action.ATTACKING && pathFinding.getPath(nextCastle) != null && nextCastle.getOwner() != selectedCastle.getOwner()) {
                         NumberDialog nd = new NumberDialog("Mit wie vielen Truppen möchtest du angreifen?", 1, selectedCastle.getTroopCount(), selectedCastle.getTroopCount()  - 1);
                         if(nd.showDialog(MapPanel.this)) {
                             game.startAttack(selectedCastle, nextCastle, nd.getValue());
@@ -245,7 +264,26 @@ public class MapPanel extends JScrollPane {
             if (selectedCastle != null && getCursor().getType() != Cursor.MOVE_CURSOR) {
                 Point castlePos = selectedCastle.getLocationOnMap();
 
-                if (canChooseCastle()) {
+                if(game.isClashOfArmiesGoal()){
+                    if(selectedCastle.getOwner() == game.getCurrentPlayer()) {
+                        if(!game.clashOfArmiesGoal().getTroops(selectedCastle).isEmpty()) {
+                            Rectangle iconArrow = getBoundsArrowIcon(castlePos);
+                            if (iconArrow.contains(mousePos)) {
+                                setToolTipText("Truppen bewegen");
+                                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                                return;
+                            }
+                        }
+                        if(game.clashOfArmiesGoal().isBase(selectedCastle)){
+                            Rectangle iconPlus  = getBoundsPlusIcon(castlePos);
+                            if(iconPlus.contains(mousePos)){
+                                setToolTipText("Truppen hinzufügen");
+                                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                                return;
+                            }
+                        }
+                    }
+                } else if (canChooseCastle()) {
                     Rectangle iconCheck = getBoundsIconCheck(castlePos);
                     if (iconCheck.contains(mousePos)) {
                         setToolTipText("Diese Burg besetzen");
@@ -277,7 +315,10 @@ public class MapPanel extends JScrollPane {
 
                 if(currentAction == Action.MOVING || currentAction == Action.ATTACKING) {
                     targetCastle = getRegion(mousePos);
-                    if(targetCastle != null) {
+                    if(game.isClashOfArmiesGoal() && targetCastle != null){
+                        highlightedEdges = game.clashOfArmiesGoal().tryMove(selectedCastle, targetCastle, pathFinding.getPath(targetCastle));
+                        repaint();
+                    }else if(targetCastle != null) {
                         if(currentAction != Action.ATTACKING || targetCastle.getOwner() != selectedCastle.getOwner()) {
                             highlightedEdges = pathFinding.getPath(targetCastle);
                             repaint();
@@ -443,8 +484,6 @@ public class MapPanel extends JScrollPane {
                     Point location = translate(region.getLocationOnMap());
                     BufferedImage castle = resources.getCastle(color, region.getType());
                     g.drawImage(castle, location.x, location.y, null);
-                    g.setColor(Color.yellow);
-                    g.drawString(region.getName(), location.x, location.y);
 
                     // Draw troop count
                     if(region.getTroopCount() > 0) {
@@ -484,7 +523,7 @@ public class MapPanel extends JScrollPane {
                     g.drawRect(location.x - 5, location.y - 5, CASTLE_SIZE + 10, CASTLE_SIZE + 10);
 
                     if(canPerformAction()) {
-                        if (canChooseCastle()) {
+                        if (!game.isClashOfArmiesGoal() && canChooseCastle()) {
                             BufferedImage icon = resources.getCheckIcon();
                             Rectangle bounds = getBoundsIconCheck(location);
                             g.drawImage(icon, bounds.x, bounds.y, ICON_SIZE, ICON_SIZE, null);
@@ -494,7 +533,27 @@ public class MapPanel extends JScrollPane {
                             int[] yPoints = {bounds.y, bounds.y + bounds.height, bounds.y + bounds.height / 2};
                             g.setColor(selectedCastle.getOwner().getColor());
                             g.fillPolygon(xPoints, yPoints, 3);
-                        }else if (selectedCastle.getOwner() == game.getCurrentPlayer() && game.getRound() > 1) {
+                        }else if(game.isClashOfArmiesGoal() && selectedCastle.getOwner() == game.getCurrentPlayer()){
+                            boolean canMove = !game.clashOfArmiesGoal().getTroops(selectedCastle).isEmpty();
+
+                            BufferedImage plusIcon = game.clashOfArmiesGoal().enoughPoints(game.getCurrentPlayer()) ? resources.getPlusIcon() : resources.getPlusIconDeactivated();
+                            BufferedImage arrowIcon = resources.getArrowIcon();
+
+                            int iconsX = location.x - 5 + (CASTLE_SIZE + 10 - (3 * (ICON_SIZE + 2))) / 2;
+                            int iconsY = location.y - 6 - ICON_SIZE;
+
+                            BufferedImage[] icons = {};
+                            if(canMove && game.clashOfArmiesGoal().isBase(selectedCastle)){
+                                icons = new BufferedImage[]{plusIcon, arrowIcon};
+                            }else if(game.clashOfArmiesGoal().isBase(selectedCastle)){
+                                icons = new BufferedImage[]{plusIcon};
+                            }else if(canMove){
+                                icons = new BufferedImage[]{arrowIcon};
+                            }
+                            for (int i = 0; i < icons.length; i++) {
+                                g.drawImage(icons[i], iconsX + (ICON_SIZE + 2) * i, iconsY, ICON_SIZE, ICON_SIZE, null);
+                            }
+                        }else if (!game.isClashOfArmiesGoal() && selectedCastle.getOwner() == game.getCurrentPlayer() && game.getRound() > 1) {
                             boolean hasTroops = game.getCurrentPlayer().getRemainingTroops() > 0;
                             boolean canMove = selectedCastle.getTroopCount() > 1;
 
@@ -502,13 +561,13 @@ public class MapPanel extends JScrollPane {
                             BufferedImage swordsIcon = resources.getSwordsIcon();
                             BufferedImage arrowIcon = canMove ? resources.getArrowIcon() : resources.getArrowIconDeactivated();
 
-                            int totalWidth = 3 * (ICON_SIZE + 2);
-                            int iconsX = location.x - 5 + (CASTLE_SIZE + 10 - totalWidth) / 2;
+                            int iconsX = location.x - 5 + (CASTLE_SIZE + 10 - (3 * (ICON_SIZE + 2))) / 2;
                             int iconsY = location.y - 6 - ICON_SIZE;
 
                             BufferedImage icons[] = {plusIcon, arrowIcon, swordsIcon};
-                            for (int i = 0; i < icons.length; i++)
+                            for (int i = 0; i < icons.length; i++) {
                                 g.drawImage(icons[i], iconsX + (ICON_SIZE + 2) * i, iconsY, ICON_SIZE, ICON_SIZE, null);
+                            }
                         }
                     }
                 }
@@ -520,7 +579,8 @@ public class MapPanel extends JScrollPane {
     public void paint(Graphics g) {
         super.paint(g);
 
-        if(selectedCastle != null) {
+        if((selectedCastle != null && !game.isClashOfArmiesGoal())
+                || (selectedCastle != null && game.isClashOfArmiesGoal() && game.clashOfArmiesGoal().isBase(selectedCastle))) {
 
             String titleText;
             if(currentAction == Action.NONE) {

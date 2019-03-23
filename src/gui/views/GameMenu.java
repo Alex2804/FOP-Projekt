@@ -155,7 +155,6 @@ public class GameMenu extends View {
         else if(actionEvent.getSource() == btnStart) {
 
             try {
-
                 // Check Inputs
                 int playerCount = this.playerCount.getValue();
                 int mapSize = this.mapSize.getSelectedIndex();
@@ -207,11 +206,21 @@ public class GameMenu extends View {
 
                 Goal goal = GameConstants.GAME_GOALS[goalIndex];
                 GameView gameView;
+                game.setGoal(goal);
+                if(game.isClashOfArmiesGoal() && playerCount > 2){
+                    showInfoMessage("ClashOfArmies kann nur zu zweit gespielt werden!\n" +
+                            "Wähle einen anderen Spielmodus oder entferne " + ((playerCount - 2 > 1) ? playerCount - 2 + " Spieler" : "einen Spieler"), "Zu viele Spieler");
+                    return;
+                }
+                game.setMapSize(MapSize.values()[mapSize]);
+                if(game.isClashOfArmiesGoal() && game.getMapSize() == MapSize.SMALL){
+                    showInfoMessage("ClashOfArmies kann nicht auf einer kleinen Karte gespielt werden!\n" +
+                            "Wähle einen anderen Spielmodus oder eine größere Karte", "Zu kleine Karte");
+                    return;
+                }
                 if(!training) {
                     gameView = new GameView(getWindow(), game);
                 }
-                game.setMapSize(MapSize.values()[mapSize]);
-                game.setGoal(goal);
                 if(!training) {
                     game.start(gameView);
                     getWindow().setView(gameView);

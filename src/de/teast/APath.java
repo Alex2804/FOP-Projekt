@@ -14,7 +14,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 public class APath extends Graph<Castle> {
     Map<Castle, Node<Castle>> castleMap;
@@ -30,15 +29,31 @@ public class APath extends Graph<Castle> {
         stops = new LinkedList<>();
     }
 
+    public Map<Castle, Node<Castle>> getCastleMap(){
+        return castleMap;
+    }
+    public List<ATriplet<Castle, Castle, List<Castle>>> getAllStops(){
+        return stops;
+    }
+
+    public Node<Castle> addCastle(Castle castle){
+        Node<Castle> castleNode = castleMap.get(castle);
+        if(castleNode == null) {
+            castleNode = addNode(castle);
+            castleMap.put(castle, castleNode);
+        }
+        return castleNode;
+    }
+
     public void generateStops(Castle source, Castle destination, int stopCount){
         generateStops(source, destination, stopCount, AConstants.AVOID_DISTANCE_SCALE_MULTIPLIER * 40);
     }
     public void generateStops(Castle source, Castle destination, int stopCount, double scale){
         if(!castleMap.containsKey(source)){
-            castleMap.put(source, addNode(source));
+            addCastle(source);
         }
         if(!castleMap.containsKey(destination)){
-            castleMap.put(destination, addNode(destination));
+            addCastle(destination);
         }
         Set<Edge<Castle>> edges = new HashSet<>();
         for(List<Castle> stop : getStops(source, destination)){

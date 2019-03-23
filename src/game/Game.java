@@ -2,6 +2,7 @@ package game;
 
 import java.util.*;
 
+import de.teast.AConstants;
 import game.goals.ACaptureTheFlagGoal;
 import game.goals.AClashOfArmiesGoal;
 import game.map.Castle;
@@ -81,7 +82,6 @@ public class Game {
     }
 
     private void generateMap() {
-
         int mapSizeMultiplier = this.mapSize.ordinal() + 1;
         int playerCount = players.size();
         int numRegions = playerCount * GameConstants.CASTLES_NUMBER_MULTIPLIER * mapSizeMultiplier;
@@ -97,6 +97,11 @@ public class Game {
         int continents = Math.max(3, playerCount + this.mapSize.ordinal());
 
         this.gameMap = GameMap.generateRandomMap(this, width, height, 40, numRegions, continents);
+
+        if(isClashOfArmiesGoal()){
+            clashOfArmiesGoal().generateBases();
+            clashOfArmiesGoal().generatePaths();
+        }
     }
 
     public void start(GameInterface gameInterface) {
@@ -289,37 +294,45 @@ public class Game {
         }
 
         currentPlayer = nextPlayer;
-        if(round == 0 || (round == 1 && allCastlesChosen() && allFlagsChosen()) || (round > 1 && currentPlayer == startingPlayer)) {
+        if(isClashOfArmiesGoal() && currentPlayer == startingPlayer){
+            round++;
+            gameInterface.onNewRound(round);
+        }else if(round == 0 || (round == 1 && allCastlesChosen() && allFlagsChosen()) || (round > 1 && currentPlayer == startingPlayer)) {
             round++;
             gameInterface.onNewRound(round);
         }
 
         int numRegions = currentPlayer.getNumRegions(this);
 
-        int addTroops;
-        if(round == 1)
-            if(isCaptureTheFlagGoal() && allCastlesChosen()){
-                addTroops = 0;
-            } else {
-                addTroops = GameConstants.CASTLES_AT_BEGINNING;
-            }
-        else {
-            addTroops = Math.max(3, numRegions / GameConstants.TROOPS_PER_ROUND_DIVISOR);
-            addScore(currentPlayer, addTroops * 5);
+        int addTroops = 0;
+        if(!isClashOfArmiesGoal()) {
+            if (round == 1)
+                if (isCaptureTheFlagGoal() && allCastlesChosen()) {
+                    addTroops = 0;
+                } else {
+                    addTroops = GameConstants.CASTLES_AT_BEGINNING;
+                }
+            else {
+                addTroops = Math.max(3, numRegions / GameConstants.TROOPS_PER_ROUND_DIVISOR);
+                addScore(currentPlayer, addTroops * 5);
 
-            for(Kingdom kingdom : gameMap.getKingdoms()) {
-                if(kingdom.getOwner() == currentPlayer) {
-                    addScore(currentPlayer, 10);
-                    addTroops++;
+                for (Kingdom kingdom : gameMap.getKingdoms()) {
+                    if (kingdom.getOwner() == currentPlayer) {
+                        addScore(currentPlayer, 10);
+                        addTroops++;
+                    }
                 }
             }
+            currentPlayer.addTroops(addTroops);
         }
-
-        currentPlayer.addTroops(addTroops);
         boolean isAI = (currentPlayer instanceof AI);
         gameInterface.onNextTurn(currentPlayer, addTroops, !isAI);
-        if(isAI) {
-            ((AI)currentPlayer).doNextTurn(this);
+        if(isClashOfArmiesGoal()){
+            int points = AConstants.POINTS_PER_ROUND + (AConstants.POINTS_PER_BASE * clashOfArmiesGoal().getBases(currentPlayer).size());
+            addScore(currentPlayer, points);
+        }
+        if (isAI) {
+            ((AI) currentPlayer).doNextTurn(this);
         }
 
         playerQueue.add(currentPlayer);

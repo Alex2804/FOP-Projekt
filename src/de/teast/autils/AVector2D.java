@@ -9,6 +9,10 @@ public class AVector2D {
         this.x = x;
         this.y = y;
     }
+    public AVector2D(Point source, Point destination){
+        this.x = destination.x - source.x;
+        this.y = destination.y - source.y;
+    }
     public double length(){
         return Math.sqrt((x*x)+(y*y));
     }
@@ -30,7 +34,7 @@ public class AVector2D {
 
     public AVector2D scale(double length){
         double l = length();
-        if(l == length)
+        if(l == length || length == 0)
             return clone();
         return new AVector2D((x/l)*length, (y/l)*length);
     }
@@ -47,5 +51,10 @@ public class AVector2D {
     @Override
     public AVector2D clone() {
         return new AVector2D(x, y);
+    }
+
+    @Override
+    public String toString() {
+        return getClass() + "[x="+x+",y="+y+"]";
     }
 }

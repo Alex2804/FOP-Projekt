@@ -10,6 +10,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
@@ -61,7 +62,7 @@ public class Resources {
      * @return das Bild als {@link BufferedImage}-Objekt
      * @throws IOException Eine IOException wird geworfen, falls das Bild nicht gefunden wurde oder andere Probleme beim Laden auftreten
      */
-    private BufferedImage loadImage(String name) throws IOException {
+    public BufferedImage loadImage(String name) throws IOException {
         URL res = Resources.class.getClassLoader().getResource(name);
         if(res == null)
             throw new IOException("Resource not found: " + name);
@@ -283,6 +284,14 @@ public class Resources {
         images[index] = colorImage(castleGeneric, color);
         castlesColored.put(color, images);
         return images[index];
+    }
+    /**
+     * @param index the index of the castle image
+     * @return the size of the castle image
+     */
+    public Dimension getCastleSize(int index){
+        BufferedImage image = getCastle(Color.WHITE, index);
+        return new Dimension(image.getWidth(), image.getHeight());
     }
 
     public BufferedImage getDice(int value) {

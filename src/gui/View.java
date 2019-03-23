@@ -132,4 +132,8 @@ public abstract class View extends Container implements ActionListener {
     protected void showErrorMessage(String text, String title) {
         JOptionPane.showMessageDialog(this, text, title, JOptionPane.ERROR_MESSAGE);
     }
+
+    protected void showInfoMessage(String text, String title) {
+        JOptionPane.showMessageDialog(this, text, title, JOptionPane.INFORMATION_MESSAGE);
+    }
 }

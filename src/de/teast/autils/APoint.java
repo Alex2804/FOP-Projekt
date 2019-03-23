@@ -13,4 +13,8 @@ public class APoint extends Point {
     public APoint add(AVector2D vector){
         return new APoint(x + (int)vector.x, y + (int)vector.y);
     }
+
+    public double distance(APoint point){
+        return Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+    }
 }

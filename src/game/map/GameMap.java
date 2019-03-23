@@ -444,14 +444,6 @@ public class GameMap {
         gameMap.generateBackground();
         if(game.isClashOfArmiesGoal()) {
             gameMap.castleGraph = new APath(new LinkedList<>());
-            Castle castle1 = new Castle(new Point(30, (height*scale)/2), "Test1");
-            Castle castle2 = new Castle(new Point(width*scale - 80, (height*scale)/2), "Test2");
-            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 5, scale);
-            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 6, scale);
-            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 7, scale);
-            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 8, scale);
-            ((APath) gameMap.castleGraph).generateStops(castle1, castle2, 9, scale);
-
         } else {
             gameMap.generateCastles(castleCount);
             gameMap.generateKingdoms(kingdomCount);
@@ -501,6 +493,10 @@ public class GameMap {
         return new Dimension(this.getWidth(), this.getHeight());
     }
 
+    public int getScale(){
+        return scale;
+    }
+
     public List<Castle> getCastles() {
         return castleGraph.getAllValues();
     }
@@ -515,5 +511,9 @@ public class GameMap {
 
     public List<Kingdom> getKingdoms() {
         return this.kingdoms;
+    }
+
+    public void setKingdoms(List<Kingdom> kingdoms){
+        this.kingdoms = kingdoms;
     }
 }

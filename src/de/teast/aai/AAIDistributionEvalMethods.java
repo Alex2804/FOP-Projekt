@@ -51,8 +51,7 @@ public class AAIDistributionEvalMethods {
             castleEvaluationMap.put(castle, evaluateCastle(castleGraph, player, castle));
         }
 
-        int pairSize = castleCount, valueSum;
-        Integer tempValue;
+        int pairSize = castleCount;
         while(pairSize > 0){
             List<List<Castle>> pairs = AAIMethods.getPossibleCastlePairs(castleGraph, null, pairSize);
             List<Pair<List<Castle>, Integer>> pairsValueList = new LinkedList<>();
@@ -136,6 +135,7 @@ public class AAIDistributionEvalMethods {
     /**
      * This Method sums up all values of the castles in the pair and adds an extra value for the first castle in
      * a kingdom, if an other player could capture the kingdom and if other players has castles in the kingdom
+     * @param castleGraph the graph containing all castles and edges
      * @param player the player to check the value for
      * @param castles the castles to sum up the values
      * @param evaluationMap the map containing the castles connected with the values

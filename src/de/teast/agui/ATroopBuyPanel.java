@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
  * @author Alexander Muth
  */
 public class ATroopBuyPanel extends ATroopMovePanel {
-    ASynchronizer synchronizer;
+	private static final long serialVersionUID = -912260969922416623L;
+	ASynchronizer synchronizer;
     int troopCount = 0;
     public static Color defaultColor = null;
 
@@ -103,7 +104,8 @@ public class ATroopBuyPanel extends ATroopMovePanel {
      * available points
      */
     private static class ASynchronizer extends JLabel{
-        public int availablePoints;
+		private static final long serialVersionUID = 8948390271883358989L;
+		public int availablePoints;
         public int points;
         public List<ATroopBuyPanel> buyPanels;
 
@@ -157,7 +159,8 @@ public class ATroopBuyPanel extends ATroopMovePanel {
      * Class to display a {@link ATroopBuyDialogPanel}
      */
     public static class ATroopBuyDialog extends ATroopMoveDialog {
-        public ATroopBuyDialog(ATroop[] availableTroops, int points, Window owner){
+		private static final long serialVersionUID = 3051461916514783705L;
+		public ATroopBuyDialog(ATroop[] availableTroops, int points, Window owner){
             super(Arrays.stream(availableTroops).map(t -> new ATroops(t, 0)).collect(Collectors.toList()), owner);
             troopBuyDialogPanel().syncronizer.availablePoints = troopBuyDialogPanel().syncronizer.points = points;
             troopBuyDialogPanel().syncronizer.update();
@@ -178,7 +181,8 @@ public class ATroopBuyPanel extends ATroopMovePanel {
      * Class to display multiple {@link ATroopBuyPanel}s.
      */
     public static class ATroopBuyDialogPanel extends ATroopMoveDialogPanel{
-        ASynchronizer syncronizer;
+		private static final long serialVersionUID = 7916594190215345526L;
+		ASynchronizer syncronizer;
         public ATroopBuyDialogPanel(List<ATroops> availableTroops, int points, Window owner){
             super(availableTroops, owner);
             add(syncronizer, BorderLayout.NORTH);

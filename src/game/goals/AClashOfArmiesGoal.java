@@ -23,6 +23,9 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * @author Alexander Muth
+ */
 public class AClashOfArmiesGoal extends Goal {
     public ATroopCountPanel troopCountPanel = null;
     private Map<Castle, List<ATroops>> castleTroops = new HashMap<>();

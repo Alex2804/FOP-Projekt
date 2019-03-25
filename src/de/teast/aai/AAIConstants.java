@@ -84,6 +84,9 @@ public class AAIConstants {
     // Constants for ABasicAI
     public double TROOP_DIFFERENCE_MULTIPLIER = 1.4;
 
+    /**
+     * @return an array with all values
+     */
     public double[] save(){
         return new double[]{
                 SURROUNDED_BY_OWN_CASTLES, NO_ENEMY_NEIGHBOUR,
@@ -100,6 +103,9 @@ public class AAIConstants {
                 TROOP_DIFFERENCE_MULTIPLIER
         };
     }
+    /**
+     * @param values values to load
+     */
     public void load(double[] values){
         if(values.length < valueCount)
             return;
@@ -137,6 +143,9 @@ public class AAIConstants {
         TROOP_DIFFERENCE_MULTIPLIER = values[31];
     }
 
+    /**
+     * generates random values for this object
+     */
     public void generateRandom(){
         SURROUNDED_BY_OWN_CASTLES = ThreadLocalRandom.current().nextInt(0, 10);
         NO_ENEMY_NEIGHBOUR = ThreadLocalRandom.current().nextInt(0, 10);
@@ -172,6 +181,11 @@ public class AAIConstants {
         TROOP_DIFFERENCE_MULTIPLIER = ThreadLocalRandom.current().nextDouble(0, 10); // DOUBLE!!!
     }
 
+    /**
+     * writes the values to file
+     * @param filename the filename of the file to write to
+     * @throws IOException
+     */
     public void write (String filename) throws IOException {
         double[] x = save();
         BufferedWriter outputWriter = new BufferedWriter(new FileWriter(filename));
@@ -181,7 +195,11 @@ public class AAIConstants {
         }
         outputWriter.close();
     }
-
+    /**
+     * reads the values from a file
+     * @param filename the filename of the file to read from
+     * @throws IOException
+     */
     public void read(String filename) throws IOException {
         List<Double> lines = new ArrayList<>(32);
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -195,121 +213,5 @@ public class AAIConstants {
             values[i++] = value;
         }
         load(values);
-    }
-
-    public void reset(double value){
-        double[] values = new double[valueCount];
-        for(int i=0; i<valueCount; i++){
-            values[i] = value;
-        }
-        load(values);
-    }
-
-    public void set(int index, double value){
-        switch (index){
-            case 0: SURROUNDED_BY_OWN_CASTLES = (int)value;
-                break;
-            case 1: NO_ENEMY_NEIGHBOUR = (int)value;
-                break;
-            case 2: FIRST_CASTLE_IN_KINGDOM = (int)value;
-                break;
-            case 3: OTHER_CAN_CAPTURE_KINGDOM = (int)value;
-                break;
-            case 4: OTHER_HAS_CASTLES_IN_KINGDOM = (int)value;
-                break;
-            case 5: SPLIT_ENEMY_REGION = (int)value;
-                break;
-            case 6: CONNECTED_TO_OWN_CASTLES = (int)value;
-                break;
-            case 7: EXPAND_POSSIBILITIES = (int)value;
-                break;
-            case 8: EXPAND_POSSIBILITIES_COUNT = (int)value;
-                break;
-            case 9: FREE_NEIGHBOURS_MULTIPLIER = value;
-                break;
-            case 10: SMALL_KINGDOM = (int)value;
-                break;
-            case 11: HAS_FEW_EDGES_TO_OTHER_KINGDOMS = (int)value;
-                break;
-            case 12: OPPORTUNITY_ELEMINATE_PLAYER = (int)value;
-                break;
-            case 13: BELONGS_BIG_THREAT = (int)value;
-                break;
-            case 14: CLOSE_TO_CAPTURE_KINGDOM = (int)value;
-                break;
-            case 15: BREAK_UP_KINGDOM = (int)value;
-                break;
-            case 16: HAS_FEW_NEIGHBOURS = (int)value;
-                break;
-            case 17: UNITE_SPLITTED_REGIONS = (int)value;
-                break;
-            case 18: BIG_THREAT_KINGDOM_MULTIPLIER = value;
-                break;
-            case 19: BIG_THREAT_CASTLE_MULTIPLIER = value;
-                break;
-            case 20: BIG_THREAT_TROOP_MULTIPLIER = value;
-                break;
-            case 21: FEW_NEIGHBOUR_COUNT = (int)value;
-                break;
-            case 22: EDGE_DIFFERENCE_MULTIPLIER = value;
-                break;
-            case 23: NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER = value;
-                break;
-            case 24: TARGET_TROOP_DIFFERNECE_MULTIPLIER = value;
-                break;
-            case 25: MIN_ATTACK_VALUE = (int)value;
-                break;
-            case 26: EDGE_COUNT_MULTIPLIER = value;
-                break;
-            case 27: THREATENING_TROOP_COUNT_MULTIPLIER = value;
-                break;
-            case 28: CASTLE_COUNT_MULTIPLIER = value;
-                break;
-            case 29: OWNED_KINGDOM_MULTIPLIER = value;
-                break;
-            case 30: CAN_UNITE_SPLITTED_REGIONS = (int)value;
-                break;
-            case 31: TROOP_DIFFERENCE_MULTIPLIER = value;
-                break;
-            default: break;
-        }
-    }
-
-    public double get(int index){
-        switch (index){
-            case 0: return  SURROUNDED_BY_OWN_CASTLES;
-            case 1: return  NO_ENEMY_NEIGHBOUR;
-            case 2: return  FIRST_CASTLE_IN_KINGDOM;
-            case 3: return  OTHER_CAN_CAPTURE_KINGDOM;
-            case 4: return  OTHER_HAS_CASTLES_IN_KINGDOM;
-            case 5: return  SPLIT_ENEMY_REGION;
-            case 6: return  CONNECTED_TO_OWN_CASTLES;
-            case 7: return  EXPAND_POSSIBILITIES;
-            case 8: return  EXPAND_POSSIBILITIES_COUNT;
-            case 9: return  FREE_NEIGHBOURS_MULTIPLIER;
-            case 10: return  SMALL_KINGDOM;
-            case 11: return  HAS_FEW_EDGES_TO_OTHER_KINGDOMS;
-            case 12: return  OPPORTUNITY_ELEMINATE_PLAYER;
-            case 13: return  BELONGS_BIG_THREAT;
-            case 14: return  CLOSE_TO_CAPTURE_KINGDOM;
-            case 15: return  BREAK_UP_KINGDOM;
-            case 16: return  HAS_FEW_NEIGHBOURS;
-            case 17: return  UNITE_SPLITTED_REGIONS;
-            case 18: return  BIG_THREAT_KINGDOM_MULTIPLIER;
-            case 19: return  BIG_THREAT_CASTLE_MULTIPLIER;
-            case 20: return  BIG_THREAT_TROOP_MULTIPLIER;
-            case 21: return  FEW_NEIGHBOUR_COUNT;
-            case 22: return  EDGE_DIFFERENCE_MULTIPLIER;
-            case 23: return  NEIGHBOUR_TROOP_DIFFERENCE_MULTIPLIER;
-            case 24: return  TARGET_TROOP_DIFFERNECE_MULTIPLIER;
-            case 25: return  MIN_ATTACK_VALUE;
-            case 26: return  EDGE_COUNT_MULTIPLIER;
-            case 27: return  THREATENING_TROOP_COUNT_MULTIPLIER;
-            case 28: return  CASTLE_COUNT_MULTIPLIER;
-            case 29: return  OWNED_KINGDOM_MULTIPLIER;
-            case 30: return  CAN_UNITE_SPLITTED_REGIONS;
-            case 31: return  TROOP_DIFFERENCE_MULTIPLIER;
-            default: return -1;
-        }
     }
 }

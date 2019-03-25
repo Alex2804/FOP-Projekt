@@ -82,6 +82,7 @@ public class ACaptureTheFlagGoal extends Goal {
     /**
      * Remove a conquered castle from the Maps, if there was the flag
      * @param conqueredCastle the conquered castle
+     * @param conqueror the player who has conquerored the castle
      */
     public void conquered(Castle conqueredCastle, Player conqueror){
         Player player = flagCastlePlayerMap.get(conqueredCastle);

@@ -8,7 +8,8 @@ import java.awt.*;
  * @author Alexander Muth
  */
 public class APoint extends Point {
-    public APoint(int x, int y){
+	private static final long serialVersionUID = -6055528765131261491L;
+	public APoint(int x, int y){
         super(x, y);
     }
     public APoint(Point point){

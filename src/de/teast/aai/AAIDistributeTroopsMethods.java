@@ -62,10 +62,9 @@ public class AAIDistributeTroopsMethods {
         List<Castle> castles = new LinkedList<>();
         Map<Castle, Integer> needTroopsHashMap = new HashMap<>();
         Map<Castle, Integer> hasTroopsHashMap = new HashMap<>();
-        int temp, sum = 0;
+        int temp;
         for(Pair<Castle, Integer> pair : troopDistribution){
             temp = pair.getKey().getTroopCount() - 1 - pair.getValue();
-            sum += temp;
             if(temp > 0){ // castle has more TROOPS than needed
                 hasTroopsHashMap.put(pair.getKey(), temp);
                 castles.add(pair.getKey());

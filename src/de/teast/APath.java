@@ -36,6 +36,9 @@ public class APath extends Graph<Castle> {
         stops = new LinkedList<>();
     }
 
+    /**
+     * @return the map of bases
+     */
     public Map<Castle, Node<Castle>> getCastleMap(){
         return castleMap;
     }

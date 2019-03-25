@@ -3,6 +3,10 @@ package de.teast.aextensions.ajoker;
 import game.Game;
 import game.Player;
 
+/**
+ * Abstract class representing a joker
+ * @author Alexander Muth
+ */
 public abstract class AJoker {
     private String name, description;
     protected Game game;

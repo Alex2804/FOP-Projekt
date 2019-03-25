@@ -4,6 +4,10 @@ import de.teast.AConstants;
 import game.Game;
 import game.Player;
 
+/**
+ * Joker which adds troops to the player if used
+ * @author Alexander Muth
+ */
 public class ATroopJoker extends AJoker{
     private boolean usable = true;
 

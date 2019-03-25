@@ -17,8 +17,13 @@ import java.awt.event.MouseListener;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Panel which displays Troops which can be moved
+ * @author Alexander Muth
+ */
 public class ATroopMovePanel extends JPanel implements ChangeListener {
-    public JLabel imageLabel;
+	private static final long serialVersionUID = 4626949115047288268L;
+	public JLabel imageLabel;
     public JSlider troopCountSlider;
     public JSpinner troopCountSpinner;
     public SpinnerNumberModel troopCountSpinnerModel;
@@ -132,7 +137,8 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
      * Panel which displays the health of a troop
      */
     public class AHealthPanel extends JPanel{
-        public static final int width = 20;
+		private static final long serialVersionUID = 3074606997746745982L;
+		public static final int width = 20;
         @Override
         public void paint(Graphics g) {
             super.paint(g);
@@ -155,7 +161,8 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
      * Dialog which displays {@link ATroopMoveDialogPanel} and ok and cancel buttons
      */
     public static class ATroopMoveDialog extends JDialog{
-        public JButton okButton, cancelButton;
+		private static final long serialVersionUID = -6567922416045463880L;
+		public JButton okButton, cancelButton;
         protected ATroopMoveDialogPanel contentPanel;
         public ATroopMoveDialog(List<ATroops> troops, Window owner){
             super(owner, "Truppen verschieben");
@@ -223,8 +230,12 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
         }
     }
 
+    /**
+     * Panel which displays multiple {@link #ATroopMovePanel(List, Window)}
+     */
     public static class ATroopMoveDialogPanel extends JPanel{
-        List<ATroopMovePanel> movePanels;
+		private static final long serialVersionUID = -3020259341867619444L;
+		List<ATroopMovePanel> movePanels;
         public ATroopMoveDialogPanel(List<ATroops> troops, Window owner){
             super();
             setLayout(new BorderLayout());

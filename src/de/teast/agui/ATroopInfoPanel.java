@@ -12,8 +12,9 @@ import java.awt.*;
  * @author Alexander Muth
  */
 public class ATroopInfoPanel extends JPanel {
+	private static final long serialVersionUID = -711686613865429L;
 
-    public ATroopInfoPanel(ATroop troop){
+	public ATroopInfoPanel(ATroop troop){
         super(new GridBagLayout());
 
         GridBagConstraints c = new GridBagConstraints();
@@ -112,7 +113,8 @@ public class ATroopInfoPanel extends JPanel {
      * {@link JDialog}, showing an {@link ATroopInfoPanel}
      */
     public static class ATroopInfoDialog extends JDialog{
-        ATroopInfoPanel infoPanel;
+		private static final long serialVersionUID = 8083027676521766591L;
+		ATroopInfoPanel infoPanel;
         public ATroopInfoDialog(ATroop troop, Window owner){
             super(owner);
 

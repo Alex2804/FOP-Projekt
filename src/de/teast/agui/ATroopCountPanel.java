@@ -16,7 +16,8 @@ import java.util.List;
  * @author Alexander Muth
  */
 public class ATroopCountPanel extends JScrollPane {
-    public static final int VERTICAL_SPACING = 10;
+	private static final long serialVersionUID = -2373404656626347438L;
+	public static final int VERTICAL_SPACING = 10;
     public Castle castle;
 
     public ATroopCountPanel(Window owner, List<ATroops> troops, Castle castle){
@@ -49,7 +50,9 @@ public class ATroopCountPanel extends JScrollPane {
      * Class to display one {@link ATroops} object (with its count)
      */
     private static class ATroopCountTroopPanel extends ATroopMovePanel{
-        public ATroopCountTroopPanel(Window owner, ATroops troops){
+		private static final long serialVersionUID = -8202976648120546459L;
+
+		public ATroopCountTroopPanel(Window owner, ATroops troops){
             super(troops, owner);
             imageLabel.setIcon(new ImageIcon(Resources.scaleImage(troops.troop().image, AConstants.TROOP_IMAGE_TROOPS_PANEL_SIZE, AConstants.TROOP_IMAGE_TROOPS_PANEL_SIZE)));
             remove(troopCountSlider);

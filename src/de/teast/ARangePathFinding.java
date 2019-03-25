@@ -39,15 +39,15 @@ public class ARangePathFinding extends GraphAlgorithm<Castle> {
     }
 
     @Override
-    protected double getValue(Edge edge) {
+    protected double getValue(Edge<Castle> edge) {
         return 1;
     }
     @Override
-    protected boolean isPassable(Edge edge) {
+    protected boolean isPassable(Edge<Castle> edge) {
         return true;
     }
     @Override
-    protected boolean isPassable(Node node) {
+    protected boolean isPassable(Node<Castle> node) {
         return true;
     }
 }

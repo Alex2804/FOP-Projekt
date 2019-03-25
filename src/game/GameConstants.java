@@ -32,7 +32,7 @@ public class GameConstants {
         new ConquerGoal(),
         new ACaptureTheFlagGoal(),
         new AClashOfArmiesGoal(),
-        // TODO: Add more Goals
+        new AFlagEmpireGoal()
     };
 
     public static final Class<?>[] PLAYER_TYPES = {

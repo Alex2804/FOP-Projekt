@@ -66,7 +66,7 @@ public class AttackThread extends Thread {
                 int[] defenderDice = game.roll(defender, defenderCount, fastForward);
 
                 game.doAttack(attackerCastle, defenderCastle, attackerDice, defenderDice);
-                if(defenderCastle.getOwner() == attacker) {
+                if(defenderCastle.getOwner() == attacker || (game.isFlagEmpireGoal() && game.flagEmpireGoal().isFlagSet(defenderCastle) && defenderCastle.getTroopCount() <= 0)) {
                     winner = attacker;
                     break;
                 }

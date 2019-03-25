@@ -31,6 +31,7 @@ public abstract class GraphAlgorithm<T> {
 
     // Diese Liste enthält alle Knoten, die noch nicht abgearbeitet wurden
     private List<Node<T>> availableNodes;
+    protected Node<T> sourceNode;
 
     // Diese Map enthält alle Zuordnungen
     private Map<Node<T>, AlgorithmNode<T>> algorithmNodes;
@@ -48,6 +49,7 @@ public abstract class GraphAlgorithm<T> {
         for(Node<T> node : graph.getNodes())
             this.algorithmNodes.put(node, new AlgorithmNode<>(node, null, -1));
 
+        this.sourceNode = sourceNode;
         this.algorithmNodes.get(sourceNode).value = 0;
     }
 

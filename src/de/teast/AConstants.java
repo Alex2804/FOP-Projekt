@@ -34,4 +34,6 @@ public class AConstants {
     public static final int TROOP_IMAGE_TROOPS_PANEL_SIZE = 40;
     public static final int TROOP_IMAGE_MOVE_PANEL_SIZE = 40;
     public static final int TROOP_IMAGE_BUY_PANEL_SIZE = 40;
+
+    public static final int FLAG_POINTS = 100;
 }

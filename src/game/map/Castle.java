@@ -135,8 +135,6 @@ public class Castle {
 
     public void removeTroops(int i) {
         this.troopCount = Math.max(0, this.troopCount - i);
-        if(this.troopCount == 0)
-            this.owner = null;
     }
 
     /**

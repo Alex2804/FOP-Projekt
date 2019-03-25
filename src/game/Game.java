@@ -5,6 +5,7 @@ import java.util.*;
 import de.teast.AConstants;
 import game.goals.ACaptureTheFlagGoal;
 import game.goals.AClashOfArmiesGoal;
+import game.goals.AFlagEmpireGoal;
 import game.map.Castle;
 import game.map.Kingdom;
 import game.map.GameMap;
@@ -165,10 +166,15 @@ public class Game {
             if(rollAttackerSorted[i] > rollDefenderSorted[i]) {
                 defenderCastle.removeTroops(1);
                 if(defenderCastle.getTroopCount() == 0) {
-                    attackerCastle.removeTroops(1);
-                    defenderCastle.setOwner(attacker);
-                    defenderCastle.addTroops(1);
-                    gameInterface.onConquer(defenderCastle, attacker);
+                    if(!isFlagEmpireGoal() || !flagEmpireGoal().isFlagSet(defenderCastle)) {
+                        attackerCastle.removeTroops(1);
+                        defenderCastle.setOwner(attacker);
+                        defenderCastle.addTroops(1);
+                        gameInterface.onConquer(defenderCastle, attacker);
+                    }else if(isFlagEmpireGoal() && flagEmpireGoal().isFlagSet(defenderCastle)){
+                        gameInterface.onLogText("%PLAYER% hat " + defenderCastle.getName() + " besiegt.", attacker);
+                        gameInterface.onUpdate();
+                    }
                     if(isCaptureTheFlagGoal())
                         captureTheFlagGoal().conquered(defenderCastle, attacker);
                     addScore(attacker, 50);
@@ -350,35 +356,48 @@ public class Game {
         }
     }
     /**
-     * @return A ACaptureTheFlagGoal object if the goal is an instance of this or null
+     * @return {@link ACaptureTheFlagGoal} object if the goal is an instance of {@link ACaptureTheFlagGoal} or null
      */
     public ACaptureTheFlagGoal captureTheFlagGoal(){
         if(isCaptureTheFlagGoal())
             return (ACaptureTheFlagGoal)goal;
-        else
-            return null;
+        return null;
     }
     /**
-     * @return if the goal is an instance of ACaptureTheFlagGoal
+     * @return if the goal is an instance of {@link ACaptureTheFlagGoal}
      */
     public boolean isCaptureTheFlagGoal(){
         return goal instanceof ACaptureTheFlagGoal;
     }
 
     /**
-     * @return A AClashOfArmiesGoal object if the goal is an instance of this or null
+     * @return {@link AClashOfArmiesGoal} object if the goal is an instance of {@link AClashOfArmiesGoal} or null
      */
     public AClashOfArmiesGoal clashOfArmiesGoal(){
         if(isClashOfArmiesGoal())
             return (AClashOfArmiesGoal) goal;
-        else
-            return null;
+        return null;
     }
     /**
-     * @return if the goal is an instance of AClashOfArmiesGoal
+     * @return if the goal is an instance of {@link AClashOfArmiesGoal}
      */
     public boolean isClashOfArmiesGoal(){
         return goal instanceof AClashOfArmiesGoal;
+    }
+
+    /**
+     * @return {@link AFlagEmpireGoal} object if the goal is an instance of {@link AFlagEmpireGoal} or null
+     */
+    public AFlagEmpireGoal flagEmpireGoal(){
+        if(isFlagEmpireGoal())
+            return (AFlagEmpireGoal) goal;
+        return null;
+    }
+    /**
+     * @return if the goal is an instance of {@link AFlagEmpireGoal}
+     */
+    public boolean isFlagEmpireGoal(){
+        return goal instanceof AFlagEmpireGoal;
     }
 
     public Player getCurrentPlayer() {

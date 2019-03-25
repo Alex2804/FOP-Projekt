@@ -8,8 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * Panel that displays infos for {@link ATroop}
  * @author Alexander Muth
- * Panel, displaying infos to an passed troop
  */
 public class ATroopInfoPanel extends JPanel {
 
@@ -26,7 +26,7 @@ public class ATroopInfoPanel extends JPanel {
         c.gridy = 1;
         add(new JLabel(new ImageIcon(Resources.scaleImage(troop.image, AConstants.TROOP_IMAGE_INFO_SIZE, AConstants.TROOP_IMAGE_INFO_SIZE)), SwingConstants.CENTER), c);
         c.gridy = 2;
-        add(getValuePanel("Kosten: ", Integer.toString(troop.price) + " Punkte", new Font("Arial", Font.BOLD, 14)), c);
+        add(getValuePanel("Kosten: ", troop.price+" Punkte", new Font("Arial", Font.BOLD, 14)), c);
         c.gridy = 3;
         c.insets = new Insets(10, 0, 0, 0);
         tempLabel = new JLabel("Nahkampf:", SwingConstants.CENTER);
@@ -63,7 +63,7 @@ public class ATroopInfoPanel extends JPanel {
         c.insets = new Insets(0, 0, 10, 0);
         c.gridy = 9;
         c.gridx = 0;
-        add(getValuePanel("Leben: ", Integer.toString(troop.life) + "/" + Integer.toString(troop.fullLife)), c);
+        add(getValuePanel("Leben: ", troop.life+"/"+troop.fullLife), c);
     }
     /**
      * Returns a {@link JPanel}, with 2 {@link JLabel}, one is the title and one the value |title value|
@@ -98,13 +98,18 @@ public class ATroopInfoPanel extends JPanel {
         return panel;
     }
 
-    public static void showTroopInfoDialog(ATroop troop, Window owner){
-        ATroopInfoDialog dialog = new ATroopInfoDialog(troop, owner);
+    /**
+     * Creates a new {@link ATroopInfoDialog} and returns it
+     * @param troop the troop to display
+     * @param owner the owner of this dialog
+     * @return the created dialog
+     */
+    public static ATroopInfoDialog getTroopInfoDialog(ATroop troop, Window owner){
+        return new ATroopInfoDialog(troop, owner);
     }
 
     /**
-     * @author Alexander Muth
-     * {@link JFrame}, showing an {@link ATroopInfoPanel}
+     * {@link JDialog}, showing an {@link ATroopInfoPanel}
      */
     public static class ATroopInfoDialog extends JDialog{
         ATroopInfoPanel infoPanel;
@@ -119,7 +124,6 @@ public class ATroopInfoPanel extends JPanel {
             pack();
             center(owner);
             setModal(true);
-            setVisible(true);
         }
         public void center(Window owner){
             setLocation((owner.getX() + (owner.getWidth()/  2)) - (getWidth() / 2),

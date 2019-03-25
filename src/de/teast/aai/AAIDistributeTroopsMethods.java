@@ -10,8 +10,8 @@ import javafx.util.Pair;
 import java.util.*;
 
 /**
+ * Class to move and distribute troops
  * @author Alexander Muth
- * Class to move TROOPS
  */
 public class AAIDistributeTroopsMethods {
     /**
@@ -48,7 +48,7 @@ public class AAIDistributeTroopsMethods {
         }
     }
 
-    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    public static AAIConstants constants = new AAIConstants();
 
     /**
      * Generates {@link ATroopMover} objects, to distribute the TROOPS, for the given distribution (only TROOPS of
@@ -77,10 +77,6 @@ public class AAIDistributeTroopsMethods {
         if(castles.isEmpty())
             return new LinkedList<>();
 
-        if(sum != 0){
-            System.err.println("Needed Troops isn't equal to usable TROOPS in AAIDistributeTroopsMethods#generateMoves (sum = " + sum + ")");
-        }
-
         List<ATroopMover> returnList = new LinkedList<>();
         List<List<Castle>> connectedList = AAIMethods.getConnectedCastles(castleGraph, castles, player);
         List<Castle> needTroops = new LinkedList<>();
@@ -103,10 +99,6 @@ public class AAIDistributeTroopsMethods {
                 needValue = needTroopsHashMap.get(castle);
 
                 iterator = hasTroops.listIterator();
-                if(!iterator.hasNext()){
-                    System.err.println("No Castle with TROOPS anymore");
-                    return null;
-                }
                 while(iterator.hasNext()){
                     next = iterator.next();
                     hasValue = hasTroopsHashMap.get(next);
@@ -121,10 +113,6 @@ public class AAIDistributeTroopsMethods {
                     needValue -= hasValue;
                 }
 
-                if(needValue > 0){
-                    System.err.println("Not enough Troops ("+ needTroopsHashMap.get(castle) +") for castle: "  + castle.getName() + " (" + castle + ")");
-                    return null;
-                }
                 needTroopsHashMap.remove(castle);
             }
         }

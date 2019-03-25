@@ -9,11 +9,11 @@ import javafx.util.Pair;
 import java.util.*;
 
 /**
+ * Class to move troops for defense dependent on the situation
  * @author Alexander Muth
- * Class to move TROOPS for defense dependent on the situation
  */
 public class AAIDefenseEvalMethods {
-    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    public static AAIConstants constants = new AAIConstants();
 
     /**
      * Moves the TROOPS for defense

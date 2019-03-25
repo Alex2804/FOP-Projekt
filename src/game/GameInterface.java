@@ -36,14 +36,30 @@ public interface GameInterface {
     void onLogText(String text, Player... playerFormat);
     int[] onRoll(Player player, int dices, boolean fastForward);
 
-    ATroopMovePanel.ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops);
-    ATroopBuyPanel.ATroopBuyDialog getTroopBuyDialog(ATroop[] availableTroops, int availablePoints);
-
+    /**
+     * add the troop count panel in the sidebar
+     * @param troopCountPanel new troop count panel
+     */
     void addTroopCountPanel(ATroopCountPanel troopCountPanel);
+    /**
+     * replaces the troop count panel in the sidebar
+     * @param troopCountPanel new troop count panel
+     */
     void replaceTroopCountPanel(ATroopCountPanel troopCountPanel);
+    /**
+     * removes the troop count panel from the sidebar
+     */
     void removeTroopCountPanel();
 
+    /**
+     * @return the Game window (Here it is always {@link gui.GameWindow})
+     */
     Window getGameWindow();
 
+    /**
+     * updates the joker button and adds/removes it from the sidepanel
+     * @param visible if the joker button should be visible
+     * @param nextJoker the next joker to display
+     */
     void onUpdateJokerButton(boolean visible, AJoker nextJoker);
 }

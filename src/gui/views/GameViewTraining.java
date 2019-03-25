@@ -1,6 +1,6 @@
 package gui.views;
 
-import de.teast.aai.AAIConstantsWrapper;
+import de.teast.aai.AAIConstants;
 import game.Game;
 import game.Player;
 import game.map.Castle;
@@ -96,7 +96,7 @@ public class GameViewTraining extends GameView {
     private int maxWins = 0;
     private int currentWins = 0;
     private static final int roundsPerConstants = 100;
-    private AAIConstantsWrapper currentConstants = null;
+    private AAIConstants currentConstants = null;
     private long start = 0;
     @Override
     public void onGameOver(Player winner) {
@@ -136,9 +136,9 @@ public class GameViewTraining extends GameView {
                 }
             }
             if(currentConstants == null){
-                currentConstants = new AAIConstantsWrapper("best"+threadID+".txt");
+                currentConstants = new AAIConstants("best"+threadID+".txt");
             }else{
-                currentConstants = new AAIConstantsWrapper(true);
+                currentConstants = new AAIConstants(true);
             }
             currentWins = 0;
         }

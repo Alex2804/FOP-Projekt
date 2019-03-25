@@ -1,5 +1,9 @@
 package de.teast.atroops;
 
+/**
+ * This class saves {@link ATroop} and a troop count
+ * @author Alexander Muth
+ */
 public class ATroops {
     ATroop troop;
     int count;
@@ -9,21 +13,38 @@ public class ATroops {
         this.count = count;
     }
 
+    /**
+     * @return the troop count saved by this
+     */
     public int troopCount(){
         return this.count;
     }
+    /**
+     * @param count the troop count to add
+     * @return the new troop count
+     */
     public int addTroop(int count){
         this.count += count;
         return this.count;
     }
+    /**
+     * @param count the troop count to remove
+     * @return the new troop count
+     */
     public int removeTroops(int count){
-        this.count = Math.max(0, this.count - count);
+        setTroopCount(this.count - count);
         return this.count;
     }
+    /**
+     * @param count the new troop count (troop count never gets negative)
+     */
     public void setTroopCount(int count){
-        this.count = count;
+        this.count = Math.max(0, count);
     }
 
+    /**
+     * @return the {@link ATroop} object
+     */
     public ATroop troop(){
         return troop;
     }

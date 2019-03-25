@@ -186,8 +186,11 @@ public abstract class Player {
      * @return if the player has a usable joker left
      */
     public boolean hasJoker(){
-        return (jokers == null || jokers.isEmpty()) ? false : jokers.get(0).isUsable();
+        return jokers != null && !jokers.isEmpty() && jokers.get(0).isUsable();
     }
+    /**
+     * @return the next joker of this player
+     */
     public AJoker getNextJoker(){
         return (jokers == null || jokers.isEmpty()) ? null : jokers.get(0);
     }

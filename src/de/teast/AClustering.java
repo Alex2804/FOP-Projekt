@@ -11,11 +11,24 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Replaces {@link game.map.Clustering} for {@link game.goals.AClashOfArmiesGoal} (does not create clusters but doesn't
+ * matter :D)
+ * @author Alexander Muth
+ *
+ * @see game.goals.AClashOfArmiesGoal
+ */
 public class AClustering {
+    /**
+     * Generates random {@link Castle}s and moves them with an negative gravity to each other, until they doesn't move
+     * anymore or the max iteration count is reached.
+     * @param players the players to generate the bases for
+     * @param mapSize the size of the map
+     * @return a {@link List} of the generated bases.
+     */
     public static List<Castle> generateBases(List<Player> players, Dimension mapSize){
         List<Castle> bases = generateRandomCastles(players, mapSize);
         Map<Castle, Point> basesPositions = new HashMap<>();
-        int j=0;
         for(Castle base : bases){
             basesPositions.put(base, base.getLocationOnMap());
         }
@@ -25,9 +38,9 @@ public class AClustering {
         Point oldPos;
         while(changed && (i++ < AConstants.MAX_ITER_CLUSTERING)){
             changed = false;
-            for(Castle base : generateBasesHelper(bases, players, mapSize)){
+            for(Castle base : generateBasesHelper(bases, players.size(), mapSize)){
                 oldPos = basesPositions.put(base, base.getLocationOnMap());
-                if(!oldPos.equals(base.getLocationOnMap())){
+                if(oldPos == null || !oldPos.equals(base.getLocationOnMap())){
                     changed = true;
                 }
             }
@@ -36,7 +49,14 @@ public class AClustering {
         return bases;
     }
 
-    private static List<Castle> generateBasesHelper(List<Castle> bases, List<Player> players, Dimension mapSize){
+    /**
+     * Moves the {@link Castle}s with an negative gravity to each other
+     * @param bases the castles to move
+     * @param playerCount the count of the players
+     * @param mapSize the size of the map
+     * @return a {@link List} of the moved {@link Castle}s
+     */
+    private static List<Castle> generateBasesHelper(List<Castle> bases, int playerCount, Dimension mapSize){
 
         Map<Castle, List<AVector2D>> baseVectorsMap = new HashMap<>();
         for(Castle base : bases){
@@ -55,7 +75,7 @@ public class AClustering {
 
         APoint newPos;
         Dimension castleDim = Resources.getInstance().getCastleSize(0);
-        double castleEdgeDistance = AConstants.CASTLE_EDGE_DISTANCE * (AConstants.CASTLE_EDGE_DISTANCE_PLAYER_MULTIPLIER * players.size());
+        double castleEdgeDistance = AConstants.CASTLE_EDGE_DISTANCE * (AConstants.CASTLE_EDGE_DISTANCE_PLAYER_MULTIPLIER * playerCount);
         for(Map.Entry<Castle, AVector2D> entry : baseGravityVectorMap.entrySet()){
             newPos = new APoint(entry.getKey().getLocationOnMap());
             newPos = newPos.add(scaleCastleVectors(entry.getKey(), entry.getValue(), mapSize));
@@ -69,12 +89,18 @@ public class AClustering {
         return new LinkedList<>(baseGravityVectorMap.keySet());
     }
 
+    /**
+     * generates random {@link Castle}s inside the map for the players
+     * @param players the players to generate castles for
+     * @param mapSize the size of the map
+     * @return a {@link List} containing the generated {@link Castle}s.
+     */
     public static List<Castle> generateRandomCastles(List<Player> players, Dimension mapSize){
         List<Castle> returnList = new LinkedList<>();
         Point position;
-        int i=0;
         Point posMin, posMax;
         Castle castle;
+        //int i=0;
         for(Player player : players){
             /*if((i++) % 4 == 0){
                 posMin = new Point(0, 0);
@@ -103,6 +129,12 @@ public class AClustering {
         return returnList;
     }
 
+    /**
+     * Generates a list of {@link AVector2D}, where every {@link AVector2D} points to an castle
+     * @param castle castle to generate vectors for
+     * @param castles list of castles to generate vectors to
+     * @return the generated {@link AVector2D} objects in a {@link List}
+     */
     public static List<AVector2D> generateCastleVectors(Castle castle, Collection<Castle> castles){
         List<AVector2D> returnList = new LinkedList<>();
         for(Castle c : castles){
@@ -113,6 +145,13 @@ public class AClustering {
         return returnList;
     }
 
+    /**
+     * Scales the castle vector, that it is as long as required to intersect with the border
+     * @param castle the Castle set the offset of the vector
+     * @param vector the vector to scale
+     * @param mapSize the size of the map
+     * @return the scaled vector
+     */
     public static AVector2D scaleCastleVectors(Castle castle, AVector2D vector, Dimension mapSize){
         APoint xIntersection, yIntersection;
         double xDistance, yDistance;
@@ -135,6 +174,14 @@ public class AClustering {
         return new AVector2D(castlePos, (xDistance < yDistance) ? xIntersection : yIntersection);
     }
 
+    /**
+     * Calculates the intersection point of 2 lines
+     * @param A1 the start point of the first line
+     * @param A2 the end point of the first line
+     * @param B1 the start point of the second line
+     * @param B2 the start point of the third line
+     * @return The intersection point of the lines, or null if tey are parallel
+     */
     public static APoint linesIntersectionPoint(Point A1, Point A2, Point B1, Point B2){
         double a1 = A2.y - A1.y;
         double b1 = A1.x - A2.x;

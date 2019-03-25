@@ -7,11 +7,11 @@ import game.map.Kingdom;
 import java.util.List;
 
 /**
- * @author Alexander Muth
  * Evaluation Methos to choose the best kingdom for an AI
+ * @author Alexander Muth
  */
 public class AAIKingdomEvalMethods {
-    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    public static AAIConstants constants = new AAIConstants();
 
     /**
      * Evaluates a value for passed kingdom dependent on some factors

@@ -5,11 +5,12 @@ import game.Goal;
 import game.Player;
 import game.map.Castle;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * @author Alexander Muth
+ */
 public class AFlagEmpireGoal extends Goal {
     Map<Castle, Player> flags = new HashMap<>();
 
@@ -34,19 +35,39 @@ public class AFlagEmpireGoal extends Goal {
 
     @Override
     public Player getWinner() {
-        return getWinner(new LinkedList<>(flags.keySet()));
+        return getWinner(new LinkedList<>(getGame().getMap().getCastles()));
     }
 
     @Override
     public Player getWinner(List<Castle> castles) {
-        Player player = null;
-        for(Castle castle : flags.keySet()){
-            if((castle.getOwner() == null) || (player != null && player != castle.getOwner()))
-                return null;
-            else if(player == null)
-                player = castle.getOwner();
+        if(flags.size() < castles.size()){
+            return null;
         }
-        return player;
+        List<Player> bestPlayers = new LinkedList<>();
+        int flagCount, bestFlagCount = -1;
+        for(Player player : getGame().getPlayers()){
+            flagCount = getFlags(player).size();
+            if(flagCount > bestFlagCount){
+                bestPlayers.clear();
+                bestPlayers.add(player);
+            }else if(flagCount == bestFlagCount){
+                bestPlayers.add(player);
+            }
+        }
+
+        if(bestPlayers.size() == 1){
+            return bestPlayers.get(0);
+        }else if(bestPlayers.isEmpty()){
+            return null;
+        }
+
+        int maxPoints = getGame().getPlayers().stream().mapToInt(Player::getPoints).max().orElse(-1);
+        bestPlayers = getGame().getPlayers().stream().filter(p -> p.getPoints() >= maxPoints).collect(Collectors.toList());
+        if(bestPlayers.size() == 1){
+            return bestPlayers.get(0); // return player with most points
+        }
+
+        return getGame().getPlayers().stream().max(Comparator.comparingInt(p -> p.getCastles(getGame()).size())).orElse(null); // return player with most castles (or any player)
     }
 
     @Override
@@ -59,9 +80,18 @@ public class AFlagEmpireGoal extends Goal {
         return player.getCastles(castles).isEmpty() && round > 1;
     }
 
+    /**
+     * @param castle the castle to get the flag
+     * @return the Player, which has placed a flag on {@code castle}
+     */
     public Player getFlag(Castle castle){
         return flags.get(castle);
     }
+    /**
+     *
+     * @param player the player to get all flags for
+     * @return all castles where the {@code player} has placed a flag
+     */
     public List<Castle> getFlags(Player player){
         List<Castle> returnList = new LinkedList<>();
         for(Castle castle : flags.keySet()){
@@ -72,9 +102,18 @@ public class AFlagEmpireGoal extends Goal {
         return returnList;
     }
 
+    /**
+     * @param castle the castle to check
+     * @return if there is a flag at the passed {@code castle}
+     */
     public boolean isFlagSet(Castle castle){
         return getFlag(castle) != null;
     }
+    /**
+     * @param castle the castle to place the flag at
+     * @param player the player to place the flag for
+     * @return if the flag was set
+     */
     public boolean setFlag(Castle castle, Player player){
         if(isFlagSet(castle) || player.getPoints() < AConstants.FLAG_POINTS)
             return false;

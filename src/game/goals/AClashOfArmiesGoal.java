@@ -1,7 +1,6 @@
 package game.goals;
 
 import base.Edge;
-import base.Graph;
 import de.teast.AClustering;
 import de.teast.AConstants;
 import de.teast.APath;
@@ -71,14 +70,25 @@ public class AClashOfArmiesGoal extends Goal {
         return player.getNumRegions(castles) == 0;
     }
 
+    /**
+     * @return the graph as {@link APath}
+     */
     public APath getPath(){
         return (APath)getGame().getMap().getGraph();
     }
+    /**
+     * Generates a path between source and destination
+     * @param source the source castle
+     * @param destination the destination castle
+     */
     public void generatePath(Castle source, Castle destination){
         int stopCount = ThreadLocalRandom.current().nextInt((int)(AConstants.MIN_STOP_COUNT * (AConstants.STOP_COUNT_PLAYER_MULTIPLIER * getGame().getPlayers().size())),
                                                             (int)((AConstants.MAX_STOP_COUNT + 1) * (AConstants.STOP_COUNT_PLAYER_MULTIPLIER * getGame().getPlayers().size())));
         getPath().generateStops(source, destination, stopCount,getGame().getMap().getScale());
     }
+    /**
+     * generate all paths between the castles
+     */
     public void generatePaths(){
         List<Pair<Castle, Castle>> pairs = new LinkedList<>();
         int i=0;
@@ -111,15 +121,30 @@ public class AClashOfArmiesGoal extends Goal {
         }
     }
 
+    /**
+     * @param castle the castle to check
+     * @return if {@code castle} is a base
+     */
     public boolean isBase(Castle castle){
         return getPath().getCastleMap().containsKey(castle);
     }
+    /**
+     * adds {@code castle} to the bases
+     * @param castle the castle to add
+     */
     public void addBase(Castle castle){
         getPath().addCastle(castle);
     }
+    /**
+     * @return all bases
+     */
     public List<Castle> getBases(){
         return new LinkedList<>(getPath().getCastleMap().keySet());
     }
+    /**
+     * @param player the player to get all bases for
+     * @return all bases of {@code player}
+     */
     public List<Castle> getBases(Player player){
         List<Castle> returnList = new LinkedList<>();
         for(Castle base : getBases()){
@@ -129,6 +154,9 @@ public class AClashOfArmiesGoal extends Goal {
         }
         return returnList;
     }
+    /**
+     * generates the bases in the Graph (APath)
+     */
     public void generateBases(){
         List<Kingdom> kingdomList = new LinkedList<>();
         Kingdom kingdom;
@@ -145,12 +173,20 @@ public class AClashOfArmiesGoal extends Goal {
         }
         getGame().getMap().setKingdoms(kingdomList);
     }
-
+    /**
+     * @param castle the castle to get the troops for
+     * @return a {@link List} of {@link ATroops} positioned at the castle
+     */
     public List<ATroops> getTroops(Castle castle){
         List<ATroops> returnList = castleTroops.get(castle);
         return (returnList == null) ? new LinkedList<>() : returnList;
     }
-
+    /**
+     * @param source the source castle
+     * @param destination the destination castle
+     * @param path the path of edges
+     * @return a list of edges is the move is valid or null if not
+     */
     public List<Edge<Castle>> tryMove(Castle source, Castle destination, List<Edge<Castle>> path){
         List<ATroops> movable = getMovableTroops(source, destination, path);
         if(movable != null && !movable.isEmpty())
@@ -158,6 +194,12 @@ public class AClashOfArmiesGoal extends Goal {
         return null;
     }
 
+    /**
+     * @param source the source castle
+     * @param destination the destination castle
+     * @param path the path of edges
+     * @return a list of troops, which have enough speed to reach the destination with one move
+     */
     private List<ATroops> getMovableTroops(Castle source, Castle destination, List<Edge<Castle>> path){
         List<ATroops> returnList = new LinkedList<>();
         if(path == null || path.isEmpty())
@@ -182,15 +224,27 @@ public class AClashOfArmiesGoal extends Goal {
         }
         return returnList;
     }
+    /**
+     * Opens an {@link de.teast.agui.ATroopMovePanel.ATroopMoveDialog} to choose the troops to move
+     * @param source the source castle
+     * @param destination the destination castle
+     * @param path the path of edges
+     */
     public void move(Castle source, Castle destination, List<Edge<Castle>> path){
         if(moveDialog != null && buyDialog.isDisplayable())
             moveDialog.dispose();
-        moveDialog = getGame().getGameInterface().getTroopMoveDialog(getMovableTroops(source, destination, path));
+        moveDialog = ATroopMovePanel.getTroopMoveDialog(getMovableTroops(source, destination, path), getGame().getGameInterface().getGameWindow());
         moveDialog.addButtonListener(new AMoveListener(moveDialog, source, destination));
         if(destination.getOwner() != null && destination.getOwner() != source.getOwner())
             moveDialog.setTitle("Truppen für Angriff wählen");
         moveDialog.setVisible(true);
     }
+    /**
+     * Moves troops and attacks if necessary
+     * @param source the source castle
+     * @param destination the destination castle
+     * @param troops the troops to move
+     */
     private void doMoves(Castle source, Castle destination, List<ATroops> troops){
         if(destination.getOwner() != null && destination.getOwner() != source.getOwner()){ // Attack
             Pair<Castle, List<ATroops>> attacker = new Pair<>(source, troops);
@@ -216,13 +270,22 @@ public class AClashOfArmiesGoal extends Goal {
         updateSelectedCastle();
     }
 
+    /**
+     * Opens an {@link de.teast.agui.ATroopBuyPanel.ATroopBuyDialog}
+     * @param base the base to buy troops for
+     */
     public void addTroops(Castle base){
         if(buyDialog != null && buyDialog.isDisplayable())
             buyDialog.dispose();
-        buyDialog = getGame().getGameInterface().getTroopBuyDialog(AConstants.TROOPS, base.getOwner().getPoints());
+        buyDialog = ATroopBuyPanel.getTroopBuyDialog(AConstants.TROOPS, base.getOwner().getPoints(), getGame().getGameInterface().getGameWindow());
         buyDialog.addButtonListener(new ABuyListener(buyDialog, base));
         buyDialog.setVisible(true);
     }
+    /**
+     * add troops to a castle
+     * @param castle the castle to add troops
+     * @param troops the troops to add
+     */
     public void addTroops(Castle castle, ATroops troops){
         List<ATroops> castleTroops = getTroops(castle);
         if(castleTroops.isEmpty())
@@ -235,14 +298,28 @@ public class AClashOfArmiesGoal extends Goal {
         }
         castleTroops.add(troops);
     }
+    /**
+     * add troops to a castle
+     * @param castle the castle to add troops
+     * @param troops the troops to add
+     */
     public void addTroops(Castle castle, List<ATroops> troops){
         for(ATroops t : troops){
             addTroops(castle, t);
         }
     }
+    /**
+     * remove all troops from a castle
+     * @param castle the castle to remove the troops from
+     */
     public void removeTroops(Castle castle){
         castleTroops.remove(castle);
     }
+    /**
+     * remove troops from a castle
+     * @param castle the castle to remove the troops from
+     * @param troops the troops to remove
+     */
     public void removeTroops(Castle castle, ATroops troops){
         if(!castleTroops.containsKey(castle))
             return;
@@ -262,11 +339,22 @@ public class AClashOfArmiesGoal extends Goal {
             this.castleTroops.remove(castle);
         }
     }
+    /**
+     * remove troops from a castle
+     * @param castle the castle to remove the troops from
+     * @param troops the troops to remove
+     */
     public void removeTroops(Castle castle, List<ATroops> troops){
         for(ATroops t : troops){
             removeTroops(castle, t);
         }
     }
+
+    /**
+     * Buys troops
+     * @param base the base to place the bought troops
+     * @param troops the troops to buy
+     */
     private void doBuy(Castle base, List<ATroops> troops){
         if(troops == null || troops.isEmpty())
             return;
@@ -290,7 +378,10 @@ public class AClashOfArmiesGoal extends Goal {
             updateSelectedCastle();
         }
     }
-
+    /**
+     * @param player the player to check
+     * @return if the player has enough points to buy any available troop
+     */
     public boolean hasEnoughPointsToBuy(Player player){
         for(ATroop troop : availableTroops){
             if(player.getPoints() >= troop.price){
@@ -299,6 +390,10 @@ public class AClashOfArmiesGoal extends Goal {
         }
         return false;
     }
+    /**
+     * @param troops the troops to get the price for
+     * @return the price of all the troops
+     */
     public int getPrice(List<ATroops> troops){
         int sum = 0;
         for(ATroops t : troops){
@@ -307,6 +402,10 @@ public class AClashOfArmiesGoal extends Goal {
         return sum;
     }
 
+    /**
+     * Changes the troopCountPanel in the gui if an castle gets selected
+     * @param castle the selected castle
+     */
     public void castleSelected(Castle castle){
         if(castle == null) {
             getGame().getGameInterface().removeTroopCountPanel();
@@ -321,6 +420,9 @@ public class AClashOfArmiesGoal extends Goal {
             }
         }
     }
+    /**
+     * updates the displayed troops of the selected castle
+     */
     public void updateSelectedCastle(){
         if(troopCountPanel != null){
             castleSelected(troopCountPanel.castle);
@@ -329,10 +431,22 @@ public class AClashOfArmiesGoal extends Goal {
         }
     }
 
+    /**
+     * Runs battles, the {@code attacker} and {@code defender} attributes has the Castles which battles as keys and the
+     * troops which battles as values;
+     * @param attacker the attacker
+     * @param defender the defender
+     * @return a {@link ATriplet}, containing the winner of the battle as first, the castle as second and the remaining
+     * troops of the winner as third value
+     */
     public ATriplet<Player, Castle, List<ATroops>> battle(Pair<Castle, List<ATroops>> attacker, Pair<Castle, List<ATroops>> defender){
         return new ATriplet<>(attacker.getKey().getOwner(), attacker.getKey(), attacker.getValue());
     }
 
+    /**
+     * Let the long range troops do their attacks for all possibilities
+     * @param player the player to do all attacks for
+     */
     public void doLongRangeAttacks(Player player){
         List<ATroops> troops;
         int range, biggestRange = 0;
@@ -351,6 +465,12 @@ public class AClashOfArmiesGoal extends Goal {
             }
         }
     }
+    /**
+     * This method do a long range attack
+     * @param attacker the attacker castle
+     * @param target the target castle
+     * @param range the range from the attacker to the target castle
+     */
     private void doLongRangeAttack(Castle attacker, Castle target, int range){
         List<ATriplet<ATroops, Integer, String>> attackerTroops = new LinkedList<>();
         for(ATroops t : getTroops(attacker)){
@@ -408,6 +528,11 @@ public class AClashOfArmiesGoal extends Goal {
         }
     }
 
+    /**
+     * Add points if a player has made damage
+     * @param player the player who has made damage
+     * @param damage the damage the player has made
+     */
     public void madeDamage(Player player, int damage){
         if(damage <= 0)
             return;
@@ -415,6 +540,11 @@ public class AClashOfArmiesGoal extends Goal {
         getGame().getGameInterface().onUpdate();
     }
 
+    /**
+     * @param castle the castle from where te range starts
+     * @param range the range enemy castles must be in
+     * @return all enemy castles which are in range
+     */
     public List<Castle> getEnemyCastlesInRange(Castle castle, int range){
         if(castle.getOwner() == null)
             return null;
@@ -426,6 +556,11 @@ public class AClashOfArmiesGoal extends Goal {
         }
         return returnList;
     }
+    /**
+     * @param castle the castle from where te range starts
+     * @param range the range castles must be in
+     * @return all castles which are in range
+     */
     public Set<Castle> getCastlesInRange(Castle castle, int range){
         if(range <= 0)
             return new HashSet<>();
@@ -433,6 +568,15 @@ public class AClashOfArmiesGoal extends Goal {
         castleSet.remove(castle);
         return castleSet;
     }
+    /**
+     * helper method for {@link #getCastlesInRange(Castle, int)}
+     * @param currentCastle the current castle
+     * @param rangeLeft the range which is left
+     * @param castleSet the passed castles
+     * @return the passed castles
+     *
+     * @see #getCastlesInRange(Castle, int)
+     */
     private Set<Castle> getCastlesInRangeHelper(Castle currentCastle, int rangeLeft, Set<Castle> castleSet){
         if(rangeLeft == 0) {
             castleSet.add(currentCastle);
@@ -447,6 +591,9 @@ public class AClashOfArmiesGoal extends Goal {
         return castleSet;
     }
 
+    /**
+     * Listener for {@link de.teast.agui.ATroopMovePanel.ATroopMoveDialog}
+     */
     private class AMoveListener implements ActionListener {
         ATroopMovePanel.ATroopMoveDialog moveDialog;
         Castle source, destination;
@@ -460,11 +607,14 @@ public class AClashOfArmiesGoal extends Goal {
             if(e.getSource() == moveDialog.cancelButton){
                 moveDialog.dispose();
             }else if(e.getSource() == moveDialog.okButton){
-                doMoves(source, destination, moveDialog.getMoved());
+                doMoves(source, destination, moveDialog.getResult());
                 moveDialog.dispose();
             }
         }
     }
+    /**
+     * Listener for {@link de.teast.agui.ATroopBuyPanel.ATroopBuyDialog}
+     */
     private class ABuyListener implements ActionListener {
         ATroopBuyPanel.ATroopBuyDialog buyDialog;
         Castle base;
@@ -477,7 +627,7 @@ public class AClashOfArmiesGoal extends Goal {
             if(e.getSource() == buyDialog.cancelButton){
                 buyDialog.dispose();
             }else if(e.getSource() == buyDialog.okButton){
-                doBuy(base, buyDialog.getBuyed());
+                doBuy(base, buyDialog.getResult());
                 buyDialog.dispose();
             }
         }

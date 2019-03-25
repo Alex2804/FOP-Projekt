@@ -10,12 +10,19 @@ import javafx.util.Pair;
 import java.util.*;
 
 /**
- * @author Alexander Muth
  * Evaluation Methods to choose targets for an AI
+ * @author Alexander Muth
  */
 public class AAITargetEvalMethods {
-    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    public static AAIConstants constants = new AAIConstants();
 
+    /**
+     * This method searches all targets for {@code player}, evaluates them and sorts them after their priority and
+     * win chance
+     * @param castleGraph the graph containing all edges and castles
+     * @param player the player to get the targets for
+     * @return a {@link List} of {@link Pair}s, with the connected attacker castles as keys and the target castle as values
+     */
     public static List<Pair<List<Castle>, Castle>> getTargets(Graph<Castle> castleGraph, Player player){
         List<ATriplet<List<Castle>, Castle, Double>> evalList = evaluateCastles(castleGraph, player);
         evalList.sort(Comparator.comparingDouble(ATriplet::getThird));
@@ -33,6 +40,13 @@ public class AAITargetEvalMethods {
         return returnList;
     }
 
+    /**
+     * Evaluates all possible targets, of{@code player}
+     * @param castleGraph the graph containing all castles and edges
+     * @param player the player to evaluate for
+     * @return a {@link List} of {@link ATriplet}s, which contains the connected attackers as first, the target castle
+     * as second and the evaluated value as third value
+     */
     public static List<ATriplet<List<Castle>, Castle, Double>> evaluateCastles(Graph<Castle> castleGraph, Player player){
         Map<List<Castle>, List<Pair<Castle, Double>>> targetAttackMap = new HashMap<>();
         for(List<Castle> connected : AAIMethods.getConnectedCastles(castleGraph, player)){
@@ -59,6 +73,14 @@ public class AAITargetEvalMethods {
         return returnList;
     }
 
+    /**
+     * Evaluates a value of the target {@link Castle}s, if they should get attacked by the player
+     * @param castleGraph graph conatining all castles and edges
+     * @param player the player to evaluate for
+     * @param attackerRegion the region from which to evaluate an attack
+     * @param evalTargets the targets
+     * @return a {@link List} containing {@link Pair} with the evaluated target as key and the evaluated value as value
+     */
     public static List<Pair<Castle, Double>> shouldAttackCastles(Graph<Castle> castleGraph, Player player, List<Castle> attackerRegion, List<Pair<Castle, Integer>> evalTargets){
         double points, temp;
         Castle castle;
@@ -90,6 +112,13 @@ public class AAITargetEvalMethods {
         return returnList;
     }
 
+    /**
+     * Evaluates a target value for all targets, which are reachable from {@code connectedCastles}
+     * @param castleGraph the castle graph containing all castles and edges
+     * @param player the player to evaluate for
+     * @param connectedCastles the castles to evaluate the reachable targets for
+     * @return a {@link List} of {@link Pair}s with the evaluated target castle as key and the evaluation value as value
+     */
     public static List<Pair<Castle, Integer>> evaluateTargetCastles(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
         List<Pair<Castle, Integer>> returnList = new LinkedList<>();
         for(Castle possibleTarget : AAIMethods.getOtherNeighbours(castleGraph, player, connectedCastles)){
@@ -98,10 +127,16 @@ public class AAITargetEvalMethods {
         return returnList;
     }
 
+    /**
+     * @param castleGraph the castle graph containing all edges and castles
+     * @param player the player to evaluate for
+     * @param castle the castle to evaluate
+     * @return the evaluated value for the passed {@code castle}
+     */
     public static int evaluateCastle(Graph<Castle> castleGraph, Player player, Castle castle){
         int points = 0;
 
-        points += canEleminateEnemyPlayer(castleGraph, castle) ? constants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
+        points += canEliminateEnemyPlayer(castleGraph, castle) ? constants.OPPORTUNITY_ELEMINATE_PLAYER : 0;
         points += belongsBigThreat(castleGraph, player, castle) ? constants.BELONGS_BIG_THREAT : 0;
         points += hasFewNeighbours(castleGraph, player, castle) ? constants.HAS_FEW_NEIGHBOURS : 0;
         points += canUniteSplittedRegions(castleGraph, player, castle) ? constants.UNITE_SPLITTED_REGIONS : 0;
@@ -137,7 +172,7 @@ public class AAITargetEvalMethods {
      * @param castle the castle to check
      * @return If the castle is the last castle of its owner
      */
-    public static boolean canEleminateEnemyPlayer(Graph<Castle> castleGraph, Castle castle){
+    public static boolean canEliminateEnemyPlayer(Graph<Castle> castleGraph, Castle castle){
         if(castle.getOwner() == null)
             return false;
         return castle.getOwner().getCastleNodes(castleGraph).size() <= 1;

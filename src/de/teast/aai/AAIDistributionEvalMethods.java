@@ -11,11 +11,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author Alexander Muth
  * Evaluation Methods to choose castles during distribution period for an AI
+ * @author Alexander Muth
  */
 public class AAIDistributionEvalMethods {
-    public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
+    public static AAIConstants constants = new AAIConstants();
 
     /**
      * Get the best castles during distribution period

@@ -2,6 +2,10 @@ package de.teast;
 
 import de.teast.atroops.ATroop;
 
+/**
+ * Constants for some of my implementations
+ * @author Alexander Muth
+ */
 public class AConstants {
     public static final double MIN_AVOID_DISTANCE = 1;
     public static final double AVOID_DISTANCE_SCALE_MULTIPLIER = 2;

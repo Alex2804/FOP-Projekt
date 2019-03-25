@@ -1,12 +1,15 @@
 package de.teast.atroops;
 
-import de.teast.AConstants;
 import gui.Resources;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * This class represents a troop for {@link game.goals.AClashOfArmiesGoal}
+ * @author Alexander Muth
+ */
 public class ATroop {
     private static HashMap<String, BufferedImage> images = new HashMap<>();
     public BufferedImage image;
@@ -47,21 +50,11 @@ public class ATroop {
                 e.printStackTrace();
             }
         }
-        this.name = name;
-        this.defenseShortRange = defenseShortRange;
-        this.defenseLongRange = defenseLongRange;
-        this.attackShortRange = attackShortRange;
-        this.attackLongRange = attackLongRange;
-        this.longRangeRange = longRangeRange;
-        this.speed = speed;
-        fullLife = life;
-        this.life = life;
-        this.price = price;
     }
 
     @Override
     public String toString() {
-        return getClass()+":"+name+"["+Integer.toString(life)+"/"+Integer.toString(fullLife)+"]";
+        return getClass()+":"+name+"["+life+"/"+fullLife+"]";
     }
 
     @Override

@@ -1,7 +1,6 @@
 package de.teast.agui;
 
 import de.teast.AConstants;
-import de.teast.atroops.ATroop;
 import de.teast.atroops.ATroops;
 import game.map.Castle;
 import gui.Resources;
@@ -10,11 +9,13 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Class to Display multiple {@link ATroops} objects stationed at a castle for {@link game.goals.AClashOfArmiesGoal}
+ * @author Alexander Muth
+ */
 public class ATroopCountPanel extends JScrollPane {
-    public JScrollPane scrollPane;
     public static final int VERTICAL_SPACING = 10;
     public Castle castle;
 
@@ -34,6 +35,9 @@ public class ATroopCountPanel extends JScrollPane {
         setViewportView(panel);
     }
 
+    /**
+     * @return the height required by this widget
+     */
     public int height(){
         if(horizontalScrollBar.isVisible())
             return getPreferredSize().height + horizontalScrollBar.getHeight();
@@ -41,6 +45,9 @@ public class ATroopCountPanel extends JScrollPane {
             return getPreferredSize().height;
     }
 
+    /**
+     * Class to display one {@link ATroops} object (with its count)
+     */
     private static class ATroopCountTroopPanel extends ATroopMovePanel{
         public ATroopCountTroopPanel(Window owner, ATroops troops){
             super(troops, owner);

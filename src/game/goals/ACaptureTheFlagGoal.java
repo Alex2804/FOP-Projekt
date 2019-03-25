@@ -9,6 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Alexander Muth
+ */
 public class ACaptureTheFlagGoal extends Goal {
     private static final boolean adoptCastles = false;
 

@@ -6,87 +6,15 @@ import base.Node;
 import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
-import game.map.PathFinding;
-import gui.components.MapPanel;
-import javafx.util.Pair;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
+ * methods for an AI
  * @author Alexander Muth
- * methods for an AI independent from their implementation
  */
 public class AAIMethods {
-    /**
-     * Copy a castle graph with all nodes and edges (castles are copied also)
-     * @param graph the graph to copy
-     * @return a copy of the graph
-     */
-    public static Graph<Castle> copyCastleGraph(Graph<Castle> graph) {
-        Graph<Castle> copyGraph = new Graph<>();
-        Map<Node<Castle>, Node<Castle>> map = new HashMap<>();
-        for(Node<Castle> node : graph.getNodes()) {
-            map.put(node, copyGraph.addNode(node.getValue().copy()));
-        }
-        Node<Castle> nodeA, nodeB;
-        for(Edge<Castle> edge : graph.getEdges()) {
-            nodeA = map.get(edge.getNodeA());
-            nodeB = map.get(edge.getNodeB());
-            if(nodeA != null && nodeB != null)
-                graph.addEdge(nodeA, nodeB);
-        }
-        return copyGraph;
-    }
-
-    /**
-     * searches for the best values
-     * @param list containing pairs, with keys as values and values as ratings
-     * @param count count of elements to search for
-     * @param <T> generic type of the value
-     * @return a list containing the values with the best rating
-     * @see #getBestPairs(Collection, int)
-     */
-    public static<T> List<T> getBest(Collection<Pair<T, Integer>> list, int count){
-        return getBestPairs(list, count).stream().map(Pair::getKey).collect(Collectors.toList());
-    }
-    public static<T> List<Pair<T, Integer>> getBestPairs(Collection<Pair<T, Integer>> list, int count){
-        List<Pair<T, Integer>> returnList = list.stream()
-                                                .sorted(Comparator.comparingInt(Pair::getValue))
-                                                .collect(Collectors.toList());
-        return (returnList.size() <= count) ? returnList : returnList.subList(0, count);
-    }
-    /**
-     * searches for the pair (a pair is an inner list, not the {@link Pair} inside) with the biggest sum
-     * of the rating (the rating of each component is the value in the {@link Pair})
-     * @param pairs collection of pairs
-     * @param <T> generic type of the value
-     * @return the keys of the best pair (without the rating)
-     */
-    public static<T> List<T> getBestPair(Collection<List<Pair<T, Integer>>> pairs){
-        int bestRating = Integer.MAX_VALUE, rating;
-        Collection<Pair<T, Integer>> bestPair = null;
-        for(Collection<Pair<T, Integer>> list : pairs){
-            rating = 0;
-            for(Pair<T, Integer> pair : list){
-                rating += pair.getValue(); // value is the rating
-            }
-            if(bestPair == null || bestRating < rating){
-                bestPair = list;
-                bestRating = rating;
-            }
-        }
-
-        List<T> returnList = new LinkedList<>();
-        if(bestPair != null) {
-            for(Pair<T, Integer> pair : bestPair){ // foreach is faster than stream
-                returnList.add(pair.getKey());
-            }
-        }
-        return returnList; // only return the keys
-    }
-
     /**
      * Collects a list with all possible pairs. Only adjacent castles could be pairs
      * @param castleGraph The graph containing all edges and nodes
@@ -201,7 +129,7 @@ public class AAIMethods {
      * @return A List with all Neighbour castles of {@code castle}
      */
     public static List<Castle> getAllNeighbours(Graph<Castle> castleGraph, Castle castle){
-        List<Node<Castle>> neighbours = filterNeightbours(castleGraph, castleGraph.getNode(castle), c -> true);
+        List<Node<Castle>> neighbours = filterNeighbours(castleGraph, castleGraph.getNode(castle), c -> true);
         List<Castle> returnList = new LinkedList<>();
         for(Node<Castle> neighbour : neighbours){
             returnList.add(neighbour.getValue());
@@ -247,10 +175,10 @@ public class AAIMethods {
      * @param node node to get neighbours from
      * @param player owner (could be null)
      * @return A List with all neighbour nodes of node, which castles has the player as owner
-     * @see #filterNeightbours(Graph, Node, Predicate)
+     * @see #filterNeighbours(Graph, Node, Predicate)
      */
     public static List<Node<Castle>> getNeighbours(Graph<Castle> castleGraph, Player player, Node<Castle> node){
-        return filterNeightbours(castleGraph, node, c -> c.getOwner() == player);
+        return filterNeighbours(castleGraph, node, c -> c.getOwner() == player);
     }
     /**
      * @param castleGraph the graph with the edges and nodes
@@ -291,19 +219,19 @@ public class AAIMethods {
      * @param node node to get the neighbours from
      * @param player none owner (could be null)
      * @return A List with all neighbour nodes of node, which castles hasn't the player as owner
-     * @see #filterNeightbours(Graph, Node, Predicate)
+     * @see #filterNeighbours(Graph, Node, Predicate)
      */
     public static List<Node<Castle>> getOtherNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Player player){
-        return filterNeightbours(castleGraph, node, c -> c.getOwner() != player);
+        return filterNeighbours(castleGraph, node, c -> c.getOwner() != player);
     }
     /**
-     * Filteres the nodes connected to a node with the given predicate
+     * Filters the nodes connected to a node with the given predicate
      * @param castleGraph graph containing edges and nodes
      * @param node node to check neighbours from
      * @param predicate predicate to filter
      * @return a list with the filtered nodes
      */
-    public static List<Node<Castle>> filterNeightbours(Graph<Castle> castleGraph, Node<Castle> node, Predicate<Castle> predicate){
+    public static List<Node<Castle>> filterNeighbours(Graph<Castle> castleGraph, Node<Castle> node, Predicate<Castle> predicate){
         List<Node<Castle>> neighbourList = castleGraph.getNeighbours(node);
         ListIterator<Node<Castle>> iterator = neighbourList.listIterator();
         Node<Castle> next;
@@ -314,47 +242,6 @@ public class AAIMethods {
             }
         }
         return neighbourList;
-    }
-
-    /**
-     * @param castleGraph the current graph
-     * @param player Player which attacks
-     * @param castle Castle to attack from
-     * @return A list with all possible attack targets
-     */
-    public static List<Castle> getPossibleTargetCastles(Graph<Castle> castleGraph, Player player, Castle castle){
-        PathFinding pathFinding = new PathFinding(castleGraph, castle, MapPanel.Action.ATTACKING, player);
-
-        List<Castle> returnList = new LinkedList<>();
-        List<Edge<Castle>> path;
-        for(Node<Castle> node : castleGraph.getNodes()){
-            castle = node.getValue();
-            if(castle.getOwner() != player){
-                path = pathFinding.getPath(castle);
-                if(path != null && !path.isEmpty()){
-                    returnList.add(castle);
-                }
-            }
-        }
-        return returnList;
-    }
-
-    /**
-     * Count all TROOPS for connected castles which can be used for attacks (every castle must keep at least one troop)
-     * saves this number in a map with one castle of this connected castle (every other castle is reachable from this
-     * one)
-     * @param castleGraph the current graph
-     * @param player the current player
-     * @return the map with the castle and the troop count
-     */
-    public static Map<Castle, Integer> getPossibleAttackTroopCount(Graph<Castle> castleGraph, Player player){
-        Map<Castle, Integer> map = new HashMap<>();
-        for(List<Castle> connected : getConnectedCastles(castleGraph, player)){
-            if(!connected.isEmpty()){
-                map.put(connected.get(0), getAttackTroopCount(connected));
-            }
-        }
-        return map;
     }
 
     /**
@@ -381,7 +268,6 @@ public class AAIMethods {
     public static List<List<Castle>> getConnectedCastles(Graph<Castle> castleGraph, Player player){
         return getConnectedCastles(castleGraph, castleGraph.getAllValues(), player);
     }
-
     /**
      * @param castleGraph the current graph
      * @param castles all castles, which could be contained in the returned list
@@ -417,7 +303,6 @@ public class AAIMethods {
         }
         return returnList;
     }
-
     /**
      * @param castleGraph the current graph
      * @param castle the castle to get all connected
@@ -451,21 +336,6 @@ public class AAIMethods {
     }
 
     /**
-     * @param castles all castles
-     * @param kingdom the kingdom whose castles should not be contained in the returned list
-     * @return A list with all castles which doesn't belong to {@code kingdom}
-     */
-    public static List<Castle> getCastlesFromOtherKingdoms(List<Castle> castles, Kingdom kingdom){
-        List<Castle> others = new LinkedList<>();
-        for(Castle castle : castles){
-            if(castle != null && castle.getKingdom() != kingdom){
-                others.add(castle);
-            }
-        }
-        return others;
-    }
-
-    /**
      * @param castles A list with castles
      * @return A list with all kingdoms, where any castle from castles are in
      */
@@ -479,20 +349,6 @@ public class AAIMethods {
     }
 
     /**
-     * @param entrys the entrys to transform
-     * @param <T> Generic type of the key
-     * @param <U> Generic type of the value
-     * @return a list of pairs, with the same order and keys/values like the passed entrys
-     */
-    public static<T, U> List<Pair<T, U>> entrysToPairs(Collection<Map.Entry<T, U>> entrys){
-        List<Pair<T, U>> returnList = new LinkedList<>();
-        for(Map.Entry<T, U> entry : entrys){
-            returnList.add(new Pair<>(entry.getKey(), entry.getValue()));
-        }
-        return returnList;
-    }
-
-    /**
      * @param castleGraph graph containing all neighbours
      * @param player the player which should be the only neighbour
      * @param castle the castle to check the neighbours from
@@ -500,9 +356,7 @@ public class AAIMethods {
      * @see #hasOtherNeighbours(Graph, List, Castle)
      */
     public static boolean hasOtherNeighbours(Graph<Castle> castleGraph, Player player, Castle castle){
-        List<Player> temp = new LinkedList<>();
-        temp.add(player);
-        return hasOtherNeighbours(castleGraph, temp, castle);
+        return hasOtherNeighbours(castleGraph, Collections.singletonList(player), castle);
     }
     /**
      * Returns if the castle has other neighbours than the given players
@@ -528,18 +382,6 @@ public class AAIMethods {
         return false;
     }
 
-    public static boolean hasNeighbour(Graph<Castle> castleGraph, Player player, Castle castle){
-        boolean hasOtherNeighbour = false;
-        Node<Castle> node = castleGraph.getNode(castle);
-        if(node == null) {
-            for(Node<Castle> otherNode : castleGraph.getNeighbours(node)){
-                if(otherNode.getValue().getOwner() == player)
-                    return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * @param castleGraph graph object containing all castles and edges
      * @param player the player to check for
@@ -553,7 +395,6 @@ public class AAIMethods {
         }
         return false;
     }
-
     /**
      * @param castles the castles to search
      * @return The castle with the highest troop count or null if {@code castles} is empty.

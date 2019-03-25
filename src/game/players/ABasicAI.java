@@ -11,12 +11,12 @@ import java.awt.Color;
 import java.util.List;
 
 /**
- * @author Alexander Muth
  * Basic implementation of a better AI than {@link BasicAI} for {@link game.goals.ConquerGoal}
+ * @author Alexander Muth
  */
 public class ABasicAI extends BasicAI {
-    public AAIConstantsWrapper constants = new AAIConstantsWrapper();
-    private int timeout = 600;
+    public AAIConstants constants = new AAIConstants();
+    private static final int timeout = 1000;
 
     public ABasicAI(String name, Color color) {
         super(name, color);
@@ -25,7 +25,7 @@ public class ABasicAI extends BasicAI {
     @Override
     protected void actions(Game game) throws InterruptedException {
         if(constants == null)
-            constants = new AAIConstantsWrapper("best401Mittel.txt");
+            constants = new AAIConstants("best401Mittel.txt");
         AAIDefenseEvalMethods.constants = constants;
         AAIDistributeTroopsMethods.constants = constants;
         AAIDistributionEvalMethods.constants = constants;
@@ -81,12 +81,5 @@ public class ABasicAI extends BasicAI {
             game.getGameInterface().onUpdate();
             AAIDefenseEvalMethods.moveDefenseTroops(game, this);
         }
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
     }
 }

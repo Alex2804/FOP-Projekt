@@ -36,7 +36,7 @@ public class GameView extends View implements GameInterface {
 
     private ATroopCountPanel troopCountPanel;
 
-    private static final boolean autoRestart = true;
+    private static final boolean autoRestart = false;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow, game);
@@ -450,16 +450,6 @@ public class GameView extends View implements GameInterface {
             ex.printStackTrace();
             return new int[0];
         }
-    }
-
-    @Override
-    public ATroopMovePanel.ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops) {
-        return ATroopMovePanel.getTroopMoveDialog(troops, getWindow());
-    }
-
-    @Override
-    public ATroopBuyPanel.ATroopBuyDialog getTroopBuyDialog(ATroop[] availableTroops, int availablePoints) {
-        return ATroopBuyPanel.getTroopBuyDialog(availableTroops, availablePoints, getWindow());
     }
 
     @Override

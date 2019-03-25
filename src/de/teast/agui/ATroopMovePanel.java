@@ -25,14 +25,17 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
     public AHealthPanel healthPanel;
 
     public ATroops troops;
-    public Window owner = null;
+    public Window owner;
 
     public ATroopMovePanel(ATroops troops, Window owner) {
         super();
         this.owner = owner;
         init(troops);
     }
-
+    /**
+     * Initializes the panel gui
+     * @param troops the troops to display
+     */
     private void init(ATroops troops){
         this.troops = troops;
 
@@ -57,7 +60,8 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
         imageLabel.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                ATroopInfoPanel.showTroopInfoDialog(troops.troop(), owner);
+                ATroopInfoPanel.ATroopInfoDialog dialog = ATroopInfoPanel.getTroopInfoDialog(troops.troop(), owner);
+                dialog.setVisible(true);
             }
             @Override
             public void mousePressed(MouseEvent e) {}
@@ -83,9 +87,17 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
         updateValues();
     }
 
+    /**
+     * Updates the slider and spinner max values
+     * @see #updateValues()
+     */
     public void updateValues(){
         updateValues(troops.troopCount());
     }
+    /**
+     * Updates the slider and spinner max values
+     * @param maxValue the maxValue
+     */
     public void updateValues(int maxValue){
         troopCountSlider.setMaximum(maxValue);
         troopCountSpinnerModel.setMaximum(maxValue);
@@ -107,6 +119,18 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
         }
     }
 
+    /**
+     * @param troops the troops to display
+     * @param owner the owner of the dialog
+     * @return the new created dialog
+     */
+    public static ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops, Window owner){
+        return new ATroopMoveDialog(troops, owner);
+    }
+
+    /**
+     * Panel which displays the health of a troop
+     */
     public class AHealthPanel extends JPanel{
         public static final int width = 20;
         @Override
@@ -123,14 +147,13 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
             g.fillRect(x, y+getHeight()-height, width, height);
             g.setColor(Color.BLACK);
             g.drawRect(x, y, x+width-1, y+(getHeight()-y-getBorder().getBorderInsets(this).bottom-1));
-            setToolTipText("Gesundheit: " + Integer.toString(troops.troop().life)+"/"+Integer.toString(troops.troop().fullLife));
+            setToolTipText("Gesundheit: " + troops.troop().life+"/"+troops.troop().fullLife);
         }
     }
 
-    public static ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops, Window owner){
-        return new ATroopMoveDialog(troops, owner);
-    }
-
+    /**
+     * Dialog which displays {@link ATroopMoveDialogPanel} and ok and cancel buttons
+     */
     public static class ATroopMoveDialog extends JDialog{
         public JButton okButton, cancelButton;
         protected ATroopMoveDialogPanel contentPanel;
@@ -152,27 +175,51 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
             center();
             setModal(true);
         }
+        /**
+         * initializes the contentPanel
+         * @param troops the troops to display
+         * @param owner the owner of the dialog
+         */
         protected void initPanel(List<ATroops> troops, Window owner){
             contentPanel = new ATroopMoveDialogPanel(troops, owner);
         }
+
+        /**
+         * Centers the dialog inside the owner
+         */
         public void center(){
             setLocation((getOwner().getX() + (getOwner().getWidth()/  2)) - (getWidth() / 2),
                         (getOwner().getY() + (getOwner().getHeight() / 2)) - (getHeight() / 2));
         }
 
+        /**
+         * Adds an {@link ActionListener} to the {@code ok} button
+         * @param listener the listener
+         */
         public void addOkListener(ActionListener listener){
             okButton.addActionListener(listener);
         }
+        /**
+         * Adds an {@link ActionListener} to the {@code cancel} button
+         * @param listener the listener
+         */
         public void addCancelListener(ActionListener listener){
             cancelButton.addActionListener(listener);
         }
+        /**
+         * Adds an {@link ActionListener} to the {@code ok} and {@code cancel} button
+         * @param listener the listener
+         */
         public void addButtonListener(ActionListener listener){
             addOkListener(listener);
             addCancelListener(listener);
         }
 
-        public List<ATroops> getMoved(){
-            return contentPanel.getMoved();
+        /**
+         * @return the resulting {@link ATroops} of this dialog
+         */
+        public List<ATroops> getResult(){
+            return contentPanel.getResult();
         }
     }
 
@@ -185,6 +232,12 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             add(scrollPane, BorderLayout.CENTER);
         }
+        /**
+         * Creates the dialog content panel
+         * @param troops the troops to display
+         * @param owner the owner of this dialog
+         * @return the content panel
+         */
         protected JPanel getDialogPanel(List<ATroops> troops, Window owner){
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
@@ -204,7 +257,10 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
             return panel;
         }
 
-        public List<ATroops> getMoved(){
+        /**
+         * @return the resulting {@link ATroops} of the this panel
+         */
+        public List<ATroops> getResult(){
             List<ATroops> returnList = new LinkedList<>();
             for(ATroopMovePanel movePanel : movePanels){
                 if(movePanel.troopCountSlider.getValue() > 0){

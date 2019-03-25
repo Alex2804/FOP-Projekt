@@ -36,4 +36,9 @@ public class AConstants {
     public static final int TROOP_IMAGE_BUY_PANEL_SIZE = 40;
 
     public static final int FLAG_POINTS = 100;
+
+
+    public static final int ATROOPJOKER_TROOP_COUNT = 4;
+    public static final String ATROOPJOKER_NAME = "Truppen Joker";
+    public static final String ATROOPJOKER_DESCRIPTION = "Mit diesem Joker bekommt der Spieler wenn er ihn einsetzt " + AConstants.ATROOPJOKER_TROOP_COUNT + " extra Truppen.";
 }

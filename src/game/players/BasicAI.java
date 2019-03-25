@@ -100,14 +100,4 @@ public class BasicAI extends AI {
             } while(attackWon);
         }
     }
-
-    @Override
-    public BasicAI copy() {
-        BasicAI basicAI = new BasicAI(getName(), getColor());
-        basicAI.fastForward = fastForward;
-        basicAI.addPoints(getPoints());
-        basicAI.addTroops(getRemainingTroops());
-        basicAI.hasJoker = hasJoker;
-        return basicAI;
-    }
 }

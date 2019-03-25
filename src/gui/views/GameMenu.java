@@ -29,7 +29,7 @@ public class GameMenu extends View {
     private JButton btnStart, btnBack;
 
     public static final boolean training = Game.training;
-    public static final int threadCount = 10;
+    public static final int threadCount = 1;
 
     // map size, type?
     // goal?

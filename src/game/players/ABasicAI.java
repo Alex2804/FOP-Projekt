@@ -83,16 +83,6 @@ public class ABasicAI extends BasicAI {
         }
     }
 
-    @Override
-    public ABasicAI copy() {
-        ABasicAI aBasicAI = new ABasicAI(getName(), getColor());
-        aBasicAI.fastForward = fastForward;
-        aBasicAI.addPoints(getPoints());
-        aBasicAI.addTroops(getRemainingTroops());
-        aBasicAI.hasJoker = hasJoker;
-        return aBasicAI;
-    }
-
     public int getTimeout() {
         return timeout;
     }

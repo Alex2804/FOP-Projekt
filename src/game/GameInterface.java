@@ -1,5 +1,6 @@
 package game;
 
+import de.teast.aextensions.ajoker.AJoker;
 import de.teast.agui.ATroopBuyPanel;
 import de.teast.agui.ATroopCountPanel;
 import de.teast.agui.ATroopMovePanel;
@@ -43,4 +44,6 @@ public interface GameInterface {
     void removeTroopCountPanel();
 
     Window getGameWindow();
+
+    void onUpdateJokerButton(boolean visible, AJoker nextJoker);
 }

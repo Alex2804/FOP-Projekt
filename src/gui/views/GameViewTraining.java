@@ -95,7 +95,7 @@ public class GameViewTraining extends GameView {
     private int gameCount = 0;
     private int maxWins = 0;
     private int currentWins = 0;
-    private static final int roundsPerConstants = 500;
+    private static final int roundsPerConstants = 100;
     private AAIConstantsWrapper currentConstants = null;
     private long start = 0;
     @Override

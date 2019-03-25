@@ -1,6 +1,7 @@
 package gui.views;
 
 import de.teast.AConstants;
+import de.teast.aextensions.ajoker.AJoker;
 import de.teast.agui.ATroopBuyPanel;
 import de.teast.agui.ATroopCountPanel;
 import de.teast.agui.ATroopMovePanel;
@@ -35,7 +36,7 @@ public class GameView extends View implements GameInterface {
 
     private ATroopCountPanel troopCountPanel;
 
-    private static final boolean autoRestart = false;
+    private static final boolean autoRestart = true;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow, game);
@@ -66,7 +67,10 @@ public class GameView extends View implements GameInterface {
         int y = 10;
 
         txtStats.setSize(sidebarWidth, 50 + 20 * game.getPlayers().size());
-        int scrollLogHeight = h - txtStats.getHeight() - 50 - 2 * BUTTON_SIZE.height - 10;
+        int scrollLogHeight = h - txtStats.getHeight() - 50 - BUTTON_SIZE.height;
+        if(jokerButton.isVisible()){
+            scrollLogHeight -= BUTTON_SIZE.height + 10;
+        }
         if(!game.isClashOfArmiesGoal()) {
             dices.setSize(sidebarWidth, 50);
             scrollLogHeight -= dices.getHeight();
@@ -91,8 +95,10 @@ public class GameView extends View implements GameInterface {
             }
         }
         for(JComponent component : components) {
-            component.setLocation(x, y);
-            y += 10 + component.getHeight();
+            if(component.isVisible()) {
+                component.setLocation(x, y);
+                y += 10 + component.getHeight();
+            }
         }
     }
 
@@ -106,9 +112,7 @@ public class GameView extends View implements GameInterface {
         this.troopCountPanel = troopCountPanel;
         add(troopCountPanel);
         if(update){
-            onResize();
-            revalidate();
-            onResize();
+            updateSideBar();
         }
     }
     @Override
@@ -120,22 +124,33 @@ public class GameView extends View implements GameInterface {
     public void removeTroopCountPanel(){
         removeTroopCountPanel(true);
     }
-
-    @Override
-    public Window getGameWindow() {
-        return getWindow();
-    }
-
     private void removeTroopCountPanel(boolean update){
         if(troopCountPanel == null)
             return;
         remove(troopCountPanel);
         troopCountPanel = null;
         if(update){
-            onResize();
-            revalidate();
-            onResize();
+            updateSideBar();
         }
+    }
+
+    @Override
+    public Window getGameWindow() {
+        return getWindow();
+    }
+
+    @Override
+    public void onUpdateJokerButton(boolean visible, AJoker nextJoker) {
+        boolean temp = jokerButton.isVisible();
+        if(nextJoker == null){
+            jokerButton.setVisible(false);
+        }else {
+            jokerButton.setVisible(visible);
+            jokerButton.setText(nextJoker.getJokerName());
+            jokerButton.setToolTipText(nextJoker.getJokerDescription());
+        }
+        if(temp != jokerButton.isVisible())
+            updateSideBar();
     }
 
     @Override
@@ -209,11 +224,18 @@ public class GameView extends View implements GameInterface {
                     break;
             }
         }else if(actionEvent.getSource() == jokerButton){
-            boolean used = game.getCurrentPlayer().useJoker();
-            jokerButton.setEnabled(game.getCurrentPlayer().hasJoker());
-            if(used)
-                logLine("%PLAYER% hat den Joker eingesetzt und erhält " + GameConstants.JOKER_TROOP_COUNT + " zusätzliche Truppen!", game.getCurrentPlayer());
+            game.getCurrentPlayer().useJoker();
+            updateSideBar();
         }
+    }
+
+    /**
+     * Updates the sidebar
+     */
+    public void updateSideBar(){
+        onResize();
+        revalidate();
+        onResize();
     }
 
     public void updateStats() {
@@ -289,7 +311,7 @@ public class GameView extends View implements GameInterface {
     public void onNextTurn(Player currentPlayer, int troopsGot, boolean human) {
         if(beginner == null)
             beginner = currentPlayer;
-        jokerButton.setEnabled(currentPlayer.hasJoker() && human);
+        onUpdateJokerButton(currentPlayer.hasJoker() && human, currentPlayer.getNextJoker());
 
         this.logLine("%PLAYER% ist am Zug.", currentPlayer);
 

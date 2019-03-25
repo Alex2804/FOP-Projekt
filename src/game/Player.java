@@ -2,6 +2,7 @@ package game;
 
 import base.Graph;
 import base.Node;
+import de.teast.aextensions.ajoker.AJoker;
 import game.map.Castle;
 
 import java.awt.Color;
@@ -17,14 +18,14 @@ public abstract class Player {
     private int points;
     private int remainingTroops;
 
-    protected boolean hasJoker;
+    private List<AJoker> jokers;
 
     protected Player(String name, Color color) {
         this.name = name;
         this.points = 0;
         this.color = color;
         this.remainingTroops = 0;
-        hasJoker = true;
+        jokers = new LinkedList<>();
     }
 
     public int getRemainingTroops() {
@@ -172,26 +173,22 @@ public abstract class Player {
     }
 
     /**
-     * uses the joker
-     * @return if the joker was used
+     * uses the joker (only uses it when there is one left)
      */
-    public boolean useJoker() {
-        if(!hasJoker())
-            return false;
-        addTroops(GameConstants.JOKER_TROOP_COUNT);
-        hasJoker = false;
-        return true;
+    public void useJoker() {
+        if(hasJoker()){
+            AJoker joker = jokers.remove(0);
+            joker.useJoker();
+            joker.getGame().getGameInterface().onUpdateJokerButton(hasJoker(), getNextJoker());
+        }
     }
-
     /**
-     * @return if the player has a joker
+     * @return if the player has a usable joker left
      */
     public boolean hasJoker(){
-        return hasJoker;
+        return (jokers == null || jokers.isEmpty()) ? false : jokers.get(0).isUsable();
     }
-
-    /**
-     * @return acopy of the player object
-     */
-    public abstract Player copy();
+    public AJoker getNextJoker(){
+        return (jokers == null || jokers.isEmpty()) ? null : jokers.get(0);
+    }
 }

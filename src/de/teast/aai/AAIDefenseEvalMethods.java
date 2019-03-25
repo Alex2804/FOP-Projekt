@@ -10,15 +10,15 @@ import java.util.*;
 
 /**
  * @author Alexander Muth
- * Class to move troops for defense dependent on the situation
+ * Class to move TROOPS for defense dependent on the situation
  */
 public class AAIDefenseEvalMethods {
     public static AAIConstantsWrapper constants = new AAIConstantsWrapper();
 
     /**
-     * Moves the troops for defense
+     * Moves the TROOPS for defense
      * @param game the game object
-     * @param player the player to move the troops for
+     * @param player the player to move the TROOPS for
      */
     public static void moveDefenseTroops(Game game, Player player){
         AAIDistributeTroopsMethods.makeMoves(game, distributeDefenseTroops(game.getMap().getGraph(), player));
@@ -124,7 +124,7 @@ public class AAIDefenseEvalMethods {
     /**
      * @param castleGraph graph containing all edges and nodes (neighbours)
      * @param castle the castle to check
-     * @return The sum of all troops, that can attack {@code castle}
+     * @return The sum of all TROOPS, that can attack {@code castle}
      */
     public static int getThreateningNeighboursTroopCount(Graph<Castle> castleGraph, Castle castle){
         int troopCount = 0;

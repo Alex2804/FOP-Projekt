@@ -56,7 +56,7 @@ public class Castle {
      * Truppen von dieser Burg zur angegebenen Burg bewegen.
      * Dies funktioniert nur, wenn die Besitzer übereinstimmen und bei der aktuellen Burg mindestens eine Truppe übrig bleibt
      * @param target the target castle
-     * @param troops the amount of troops
+     * @param troops the amount of TROOPS
      */
     public void moveTroops(Castle target, int troops) {
 

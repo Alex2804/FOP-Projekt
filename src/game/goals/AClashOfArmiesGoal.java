@@ -1,9 +1,15 @@
 package game.goals;
 
 import base.Edge;
+import base.Graph;
 import de.teast.AClustering;
 import de.teast.AConstants;
 import de.teast.APath;
+import de.teast.ARangePathFinding;
+import de.teast.aai.AAIMethods;
+import de.teast.agui.ATroopBuyPanel;
+import de.teast.agui.ATroopCountPanel;
+import de.teast.agui.ATroopMovePanel;
 import de.teast.atroops.ATroop;
 import de.teast.atroops.ATroops;
 import de.teast.autils.ATriplet;
@@ -13,11 +19,17 @@ import game.map.Castle;
 import game.map.Kingdom;
 import javafx.util.Pair;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AClashOfArmiesGoal extends Goal {
-    Map<Castle, List<ATroops>> castleTroops = new HashMap<>();
+    public ATroopCountPanel troopCountPanel = null;
+    private Map<Castle, List<ATroops>> castleTroops = new HashMap<>();
+    public static ATroop[] availableTroops = AConstants.TROOPS;
+    ATroopBuyPanel.ATroopBuyDialog buyDialog = null;
+    ATroopMovePanel.ATroopMoveDialog moveDialog = null;
 
     public AClashOfArmiesGoal(){
         super("Clash of Armies", "Der Spieler, welcher bis zuletzt seine Burg halten kann gewinnt");
@@ -140,8 +152,17 @@ public class AClashOfArmiesGoal extends Goal {
     }
 
     public List<Edge<Castle>> tryMove(Castle source, Castle destination, List<Edge<Castle>> path){
+        List<ATroops> movable = getMovableTroops(source, destination, path);
+        if(movable != null && !movable.isEmpty())
+            return path;
+        return null;
+    }
+
+    private List<ATroops> getMovableTroops(Castle source, Castle destination, List<Edge<Castle>> path){
+        List<ATroops> returnList = new LinkedList<>();
         if(path == null || path.isEmpty())
-            return null;
+            return returnList;
+
         Castle castleA, castleB;
         for(Edge<Castle> edge : path){
             castleA = edge.getNodeA().getValue();
@@ -152,24 +173,313 @@ public class AClashOfArmiesGoal extends Goal {
                 return null;
             }
         }
+
         int requiredSpeed = path.size();
         for(ATroops troops : getTroops(source)){
             if(troops.troopCount() > 0 && troops.troop().speed >= requiredSpeed){
-                return path;
+                returnList.add(troops);
             }
         }
-        return null;
+        return returnList;
     }
-
     public void move(Castle source, Castle destination, List<Edge<Castle>> path){
-
+        if(moveDialog != null && buyDialog.isDisplayable())
+            moveDialog.dispose();
+        moveDialog = getGame().getGameInterface().getTroopMoveDialog(getMovableTroops(source, destination, path));
+        moveDialog.addButtonListener(new AMoveListener(moveDialog, source, destination));
+        if(destination.getOwner() != null && destination.getOwner() != source.getOwner())
+            moveDialog.setTitle("Truppen für Angriff wählen");
+        moveDialog.setVisible(true);
+    }
+    private void doMoves(Castle source, Castle destination, List<ATroops> troops){
+        if(destination.getOwner() != null && destination.getOwner() != source.getOwner()){ // Attack
+            Pair<Castle, List<ATroops>> attacker = new Pair<>(source, troops);
+            Pair<Castle, List<ATroops>> defender = new Pair<>(destination, getTroops(destination));
+            ATriplet<Player, Castle, List<ATroops>> winner = battle(attacker, defender);
+            if(winner.getFirst() == source.getOwner()){ // attacker wins
+                removeTroops(source, troops);
+                removeTroops(destination);
+                addTroops(destination, winner.getThird());
+            }else{ // defender wins
+                removeTroops(source);
+                removeTroops(destination, troops);
+                addTroops(destination, winner.getThird());
+            }
+            destination.setOwner(winner.getFirst());
+        }else{ // Move
+            destination.setOwner(source.getOwner());
+            removeTroops(source, troops);
+            addTroops(destination, troops);
+        }
+        getGame().nextTurn();
+        getGame().getGameInterface().onUpdate();
+        updateSelectedCastle();
     }
 
     public void addTroops(Castle base){
-
+        if(buyDialog != null && buyDialog.isDisplayable())
+            buyDialog.dispose();
+        buyDialog = getGame().getGameInterface().getTroopBuyDialog(AConstants.TROOPS, base.getOwner().getPoints());
+        buyDialog.addButtonListener(new ABuyListener(buyDialog, base));
+        buyDialog.setVisible(true);
+    }
+    public void addTroops(Castle castle, ATroops troops){
+        List<ATroops> castleTroops = getTroops(castle);
+        if(castleTroops.isEmpty())
+            this.castleTroops.put(castle, new LinkedList<>(Collections.singletonList(troops)));
+        for(ATroops t : castleTroops){
+            if(t.troop().equals(troops.troop())){
+                t.addTroop(troops.troopCount());
+                return;
+            }
+        }
+        castleTroops.add(troops);
+    }
+    public void addTroops(Castle castle, List<ATroops> troops){
+        for(ATroops t : troops){
+            addTroops(castle, t);
+        }
+    }
+    public void removeTroops(Castle castle){
+        castleTroops.remove(castle);
+    }
+    public void removeTroops(Castle castle, ATroops troops){
+        if(!castleTroops.containsKey(castle))
+            return;
+        List<ATroops> castleTroops = getTroops(castle);
+        ListIterator<ATroops> iterator = castleTroops.listIterator();
+        ATroops next;
+        while(iterator.hasNext()){
+            next = iterator.next();
+            if(troops.troop().equals(next.troop())){
+                if(next.removeTroops(troops.troopCount()) <= 0){
+                    iterator.remove();
+                }
+            }
+        }
+        if(castleTroops.isEmpty() && !isBase(castle)){
+            castle.setOwner(null);
+            this.castleTroops.remove(castle);
+        }
+    }
+    public void removeTroops(Castle castle, List<ATroops> troops){
+        for(ATroops t : troops){
+            removeTroops(castle, t);
+        }
+    }
+    private void doBuy(Castle base, List<ATroops> troops){
+        if(troops == null || troops.isEmpty())
+            return;
+        int price = getPrice(troops);
+        if(price <= base.getOwner().getPoints()  && isBase(base)){
+            base.getOwner().addPoints(-price);
+            StringBuilder text = new StringBuilder("%PLAYER% hat");
+            StringBuilder temp = new StringBuilder();
+            for(ATroops t : troops){
+                text.append(temp);
+                temp.delete(0, temp.length());
+                temp.append(" ").append(t.troopCount()).append(" ").append(t.troop().name).append(",");
+                addTroops(base, t);
+            }
+            if(troops.size() > 1)
+                text.deleteCharAt(text.length()-1).append(" und");
+            text.append(temp.deleteCharAt(temp.length()-1)).append(" auf \"")
+                    .append(base.getName()).append("\" für ").append(price).append(" Punkte angeheuert!");
+            getGame().getGameInterface().onLogText(text.toString(), base.getOwner());
+            getGame().getGameInterface().onUpdate();
+            updateSelectedCastle();
+        }
     }
 
-    public boolean enoughPoints(Player player){
+    public boolean hasEnoughPointsToBuy(Player player){
+        for(ATroop troop : availableTroops){
+            if(player.getPoints() >= troop.price){
+                return true;
+            }
+        }
         return false;
+    }
+    public int getPrice(List<ATroops> troops){
+        int sum = 0;
+        for(ATroops t : troops){
+            sum += t.troopCount() * t.troop().price;
+        }
+        return sum;
+    }
+
+    public void castleSelected(Castle castle){
+        if(castle == null) {
+            getGame().getGameInterface().removeTroopCountPanel();
+            troopCountPanel = null;
+        } else {
+            List<ATroops> troops = getTroops(castle);
+            troopCountPanel = new ATroopCountPanel(getGame().getGameInterface().getGameWindow(), troops, castle);
+            if(troops.isEmpty()){
+                getGame().getGameInterface().removeTroopCountPanel();
+            }else {
+                getGame().getGameInterface().replaceTroopCountPanel(troopCountPanel);
+            }
+        }
+    }
+    public void updateSelectedCastle(){
+        if(troopCountPanel != null){
+            castleSelected(troopCountPanel.castle);
+        }else{
+            castleSelected(null);
+        }
+    }
+
+    public ATriplet<Player, Castle, List<ATroops>> battle(Pair<Castle, List<ATroops>> attacker, Pair<Castle, List<ATroops>> defender){
+        return new ATriplet<>(attacker.getKey().getOwner(), attacker.getKey(), attacker.getValue());
+    }
+
+    public void doLongRangeAttacks(Player player){
+        List<ATroops> troops;
+        int range, biggestRange = 0;
+        for(Castle attackerCastle : player.getCastles(getGame().getMap().getCastles())){
+            troops = getTroops(attackerCastle);
+            for(ATroops t : troops){
+                if(t.troopCount() > 0){
+                    biggestRange = Math.max(t.troop().longRangeRange, biggestRange);
+                }
+            }
+            if(biggestRange <= 0)
+                continue;
+            for(Castle targetCastle : getEnemyCastlesInRange(attackerCastle, biggestRange)){
+                range = ARangePathFinding.getRange(getPath(), attackerCastle, targetCastle);
+                doLongRangeAttack(attackerCastle, targetCastle, range);
+            }
+        }
+    }
+    private void doLongRangeAttack(Castle attacker, Castle target, int range){
+        List<ATriplet<ATroops, Integer, String>> attackerTroops = new LinkedList<>();
+        for(ATroops t : getTroops(attacker)){
+            if(t.troop().longRangeRange >= range){
+                attackerTroops.add(new ATriplet<>(t, t.troopCount(), ""));
+            }
+        }
+        attackerTroops.sort(Comparator.comparingInt((ATriplet<ATroops, Integer, String> t) -> t.getFirst().troop().attackLongRange));
+        List<ATroops> defenderTroops = getTroops(target);
+        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().defenseLongRange));
+        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().life));
+
+        List<ATroops> newDefenderTroops = new LinkedList<>();
+
+        ListIterator<ATroops> defenderIterator;
+        ATroops defender, newDefender;
+        int troopCount;
+        ATroop troop;
+        int damage;
+        for(ATriplet<ATroops, Integer, String> triplet : attackerTroops){
+            troop = triplet.getFirst().troop();
+            defenderIterator = defenderTroops.listIterator();
+            while(defenderIterator.hasNext() && triplet.getSecond() > 0){
+                defender = defenderIterator.next();
+                if(troop.attackLongRange >= defender.troop().defenseLongRange) {
+                    troopCount = (int)Math.ceil(((double)(defender.troop().defenseLongRange + defender.troop().life)) / troop.attackLongRange);
+                    for(int i=0; i<defender.troopCount(); i++){
+                        if(triplet.getSecond() >= troopCount){
+                            triplet.setSecond(triplet.getSecond() - troopCount);
+                            damage = defender.troop().life;
+                            defender.removeTroops(1);
+                        }else{
+                            defender.removeTroops(1);
+                            newDefender = defender.clone();
+                            damage = (troop.attackLongRange * triplet.getSecond()) - defender.troop().defenseLongRange;
+                            newDefender.troop().life -= damage;
+                            newDefender.setTroopCount(1);
+                            triplet.setSecond(0);
+                            if(newDefender.troop().life > 0)
+                                newDefenderTroops.add(newDefender);
+                        }
+                        madeDamage(attacker.getOwner(), damage);
+                    }
+                    if(defender.troopCount() <= 0)
+                        defenderIterator.remove();
+                }else{
+                    break;
+                }
+            }
+        }
+
+        addTroops(target, newDefenderTroops);
+        if(defenderTroops.isEmpty() && newDefenderTroops.isEmpty()){
+            target.setOwner(null);
+        }
+    }
+
+    public void madeDamage(Player player, int damage){
+        if(damage <= 0)
+            return;
+        player.addPoints(damage);
+        getGame().getGameInterface().onUpdate();
+    }
+
+    public List<Castle> getEnemyCastlesInRange(Castle castle, int range){
+        if(castle.getOwner() == null)
+            return null;
+        List<Castle> returnList = new LinkedList<>();
+        for(Castle c : getCastlesInRange(castle, range)){
+            if(c.getOwner() != castle.getOwner() && c.getOwner() != null){
+                returnList.add(c);
+            }
+        }
+        return returnList;
+    }
+    public Set<Castle> getCastlesInRange(Castle castle, int range){
+        if(range <= 0)
+            return new HashSet<>();
+        Set<Castle> castleSet = getCastlesInRangeHelper(castle, range, new HashSet<>());
+        castleSet.remove(castle);
+        return castleSet;
+    }
+    private Set<Castle> getCastlesInRangeHelper(Castle currentCastle, int rangeLeft, Set<Castle> castleSet){
+        if(rangeLeft == 0) {
+            castleSet.add(currentCastle);
+        }else if(rangeLeft > 0) {
+            castleSet.add(currentCastle);
+            for(Castle neighbour : AAIMethods.getAllNeighbours(getGame().getMap().getGraph(), currentCastle)){
+                if(!castleSet.contains(neighbour)){
+                    getCastlesInRangeHelper(neighbour, rangeLeft-1, castleSet);
+                }
+            }
+        }
+        return castleSet;
+    }
+
+    private class AMoveListener implements ActionListener {
+        ATroopMovePanel.ATroopMoveDialog moveDialog;
+        Castle source, destination;
+        public AMoveListener(ATroopMovePanel.ATroopMoveDialog moveDialog, Castle source, Castle destination){
+            this.moveDialog = moveDialog;
+            this.source = source;
+            this.destination = destination;
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(e.getSource() == moveDialog.cancelButton){
+                moveDialog.dispose();
+            }else if(e.getSource() == moveDialog.okButton){
+                doMoves(source, destination, moveDialog.getMoved());
+                moveDialog.dispose();
+            }
+        }
+    }
+    private class ABuyListener implements ActionListener {
+        ATroopBuyPanel.ATroopBuyDialog buyDialog;
+        Castle base;
+        public ABuyListener(ATroopBuyPanel.ATroopBuyDialog buyDialog, Castle base){
+            this.buyDialog = buyDialog;
+            this.base = base;
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(e.getSource() == buyDialog.cancelButton){
+                buyDialog.dispose();
+            }else if(e.getSource() == buyDialog.okButton){
+                doBuy(base, buyDialog.getBuyed());
+                buyDialog.dispose();
+            }
+        }
     }
 }

@@ -14,6 +14,8 @@ public class PathFinding extends GraphAlgorithm<Castle> {
     private MapPanel.Action action;
     private Player currentPlayer;
 
+    public boolean clashOfArmiesGoal = false;
+
     public PathFinding(Graph<Castle> graph, Castle sourceCastle, MapPanel.Action action, Player currentPlayer) {
         super(graph, graph.getNode(sourceCastle));
         this.action = action;
@@ -29,6 +31,8 @@ public class PathFinding extends GraphAlgorithm<Castle> {
 
     @Override
     protected boolean isPassable(Edge<Castle> edge) {
+        if(clashOfArmiesGoal)
+            return true;
 
         Castle castleA = edge.getNodeA().getValue();
         Castle castleB = edge.getNodeB().getValue();
@@ -55,6 +59,8 @@ public class PathFinding extends GraphAlgorithm<Castle> {
 
     @Override
     protected boolean isPassable(Node<Castle> node) {
+        if(clashOfArmiesGoal)
+            return true;
         return node.getValue().getOwner() == currentPlayer;
     }
 

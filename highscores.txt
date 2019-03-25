@@ -2266,6 +2266,7 @@ Spieler 2;1553249266066;555;Eroberung
 Spieler 2;1553249280815;555;Eroberung
 Spieler 2;1553250101116;555;Eroberung
 Spieler 2;1553249084234;550;Eroberung
+Spieler 2;1553460964221;550;Clash of Armies
 Spieler 2;1553201144304;545;Eroberung
 Spieler 2;1553248876901;545;Eroberung
 Spieler 2;1553248942167;545;Eroberung
@@ -2455,5 +2456,6 @@ Spieler 2;1553250006267;195;Eroberung
 Spieler 2;1553249248597;175;Eroberung
 Spieler 2;1553249247402;130;Eroberung
 Spieler 2;1553249260450;125;Eroberung
+Spieler 1;1553460964220;100;Clash of Armies
 Spieler 2;1553249545391;90;Eroberung
 Spieler 2;1553249547155;90;Eroberung

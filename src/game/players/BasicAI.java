@@ -43,7 +43,7 @@ public class BasicAI extends AI {
             }
         } else {
 
-            // 1. Distribute remaining troops
+            // 1. Distribute remaining TROOPS
             Graph<Castle> graph = game.getMap().getGraph();
             List<Castle> castleNearEnemy = new ArrayList<>();
             for(Castle castle : this.getCastles(game)) {
@@ -66,7 +66,7 @@ public class BasicAI extends AI {
             boolean attackWon;
 
             do {
-                // 2. Move troops from inside to border
+                // 2. Move TROOPS from inside to border
                 for (Castle castle : this.getCastles(game)) {
                     if (!castleNearEnemy.contains(castle) && castle.getTroopCount() > 1) {
                         Castle fewestTroops = getCastleWithFewestTroops(castleNearEnemy);

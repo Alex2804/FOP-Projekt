@@ -340,7 +340,7 @@ public class AAIMethods {
     }
 
     /**
-     * Count all troops for connected castles which can be used for attacks (every castle must keep at least one troop)
+     * Count all TROOPS for connected castles which can be used for attacks (every castle must keep at least one troop)
      * saves this number in a map with one castle of this connected castle (every other castle is reachable from this
      * one)
      * @param castleGraph the current graph
@@ -358,8 +358,8 @@ public class AAIMethods {
     }
 
     /**
-     * @param castles a list of castles to get the sum of troops
-     * @return the number of all troops minus one per castle (maximum troop count to attack with)
+     * @param castles a list of castles to get the sum of TROOPS
+     * @return the number of all TROOPS minus one per castle (maximum troop count to attack with)
      */
     public static int getAttackTroopCount(List<Castle> castles){
         int sum = 0;
@@ -572,7 +572,7 @@ public class AAIMethods {
      * @param castleGraph the graph containing all edges and (castle)nodes
      * @param player the player to check other players
      * @param connectedCastles the region to check the neighbours
-     * @return the amount of troops, which can attack the region of {@code connectedCastles}
+     * @return the amount of TROOPS, which can attack the region of {@code connectedCastles}
      */
     public static int getNeighboursAttackTroopCount(Graph<Castle> castleGraph, Player player, List<Castle> connectedCastles){
         int sum = 0;

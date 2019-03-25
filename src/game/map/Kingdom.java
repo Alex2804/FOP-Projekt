@@ -115,7 +115,7 @@ public class Kingdom {
     }
 
     /**
-     * @return the sum of all castles troops
+     * @return the sum of all castles TROOPS
      */
     public int getTroopCount(){
         int sum = 0;
@@ -125,7 +125,7 @@ public class Kingdom {
         return sum;
     }
     /**
-     * @return the sum of all castles troops, which can be used to attack
+     * @return the sum of all castles TROOPS, which can be used to attack
      */
     public int getAttackTroopCount(){
         return getTroopCount() - castles.size();

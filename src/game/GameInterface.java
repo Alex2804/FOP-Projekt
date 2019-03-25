@@ -1,6 +1,14 @@
 package game;
 
+import de.teast.agui.ATroopBuyPanel;
+import de.teast.agui.ATroopCountPanel;
+import de.teast.agui.ATroopMovePanel;
+import de.teast.atroops.ATroop;
+import de.teast.atroops.ATroops;
 import game.map.Castle;
+
+import java.awt.*;
+import java.util.List;
 
 public interface GameInterface {
 
@@ -26,4 +34,13 @@ public interface GameInterface {
      */
     void onLogText(String text, Player... playerFormat);
     int[] onRoll(Player player, int dices, boolean fastForward);
+
+    ATroopMovePanel.ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops);
+    ATroopBuyPanel.ATroopBuyDialog getTroopBuyDialog(ATroop[] availableTroops, int availablePoints);
+
+    void addTroopCountPanel(ATroopCountPanel troopCountPanel);
+    void replaceTroopCountPanel(ATroopCountPanel troopCountPanel);
+    void removeTroopCountPanel();
+
+    Window getGameWindow();
 }

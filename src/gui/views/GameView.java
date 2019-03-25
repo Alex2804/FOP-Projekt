@@ -1,5 +1,11 @@
 package gui.views;
 
+import de.teast.AConstants;
+import de.teast.agui.ATroopBuyPanel;
+import de.teast.agui.ATroopCountPanel;
+import de.teast.agui.ATroopMovePanel;
+import de.teast.atroops.ATroop;
+import de.teast.atroops.ATroops;
 import game.*;
 import game.map.Castle;
 import game.players.ABasicAI;
@@ -16,6 +22,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 public class GameView extends View implements GameInterface {
 
@@ -25,13 +32,13 @@ public class GameView extends View implements GameInterface {
     private DicePanel dices;
     private JTextPane gameLog;
     private JButton button, jokerButton;
-    private Game game;
+
+    private ATroopCountPanel troopCountPanel;
 
     private static final boolean autoRestart = false;
 
     GameView(GameWindow gameWindow, Game game) {
-        super(gameWindow);
-        this.game = game;
+        super(gameWindow, game);
     }
 
     private int sidebarWidth() {
@@ -46,7 +53,6 @@ public class GameView extends View implements GameInterface {
 
     @Override
     public void onResize() {
-
         int w = getWidth();
         int h = getHeight();
 
@@ -60,17 +66,75 @@ public class GameView extends View implements GameInterface {
         int y = 10;
 
         txtStats.setSize(sidebarWidth, 50 + 20 * game.getPlayers().size());
-        dices.setSize(sidebarWidth, 50);
-        scrollLog.setSize(sidebarWidth, h - txtStats.getHeight() - dices.getHeight() - 50 - 2 * BUTTON_SIZE.height - 10);
+        int scrollLogHeight = h - txtStats.getHeight() - 50 - 2 * BUTTON_SIZE.height - 10;
+        if(!game.isClashOfArmiesGoal()) {
+            dices.setSize(sidebarWidth, 50);
+            scrollLogHeight -= dices.getHeight();
+        }else if(troopCountPanel != null){
+            troopCountPanel.setSize(sidebarWidth, troopCountPanel.height());
+            scrollLogHeight -= troopCountPanel.getHeight();
+        }else{
+            scrollLogHeight += 10;
+        }
+        scrollLog.setSize(sidebarWidth, scrollLogHeight);
         scrollLog.repaint();
         
         button.setSize(sidebarWidth, BUTTON_SIZE.height);
         jokerButton.setSize(button.getSize());
 
         JComponent[] components = {txtStats, dices, jokerButton, scrollLog, button};
+        if(game.isClashOfArmiesGoal()){
+            if(troopCountPanel == null) {
+                components = new JComponent[]{txtStats, jokerButton, scrollLog, button};
+            } else {
+                components = new JComponent[]{txtStats, jokerButton, scrollLog, troopCountPanel, button};
+            }
+        }
         for(JComponent component : components) {
             component.setLocation(x, y);
             y += 10 + component.getHeight();
+        }
+    }
+
+    @Override
+    public void addTroopCountPanel(ATroopCountPanel troopCountPanel){
+        addTroopCountPanel(troopCountPanel, true);
+    }
+    private void addTroopCountPanel(ATroopCountPanel troopCountPanel, boolean update){
+        if(troopCountPanel != null)
+            removeTroopCountPanel();
+        this.troopCountPanel = troopCountPanel;
+        add(troopCountPanel);
+        if(update){
+            onResize();
+            revalidate();
+            onResize();
+        }
+    }
+    @Override
+    public void replaceTroopCountPanel(ATroopCountPanel troopCountPanel){
+        removeTroopCountPanel(false);
+        addTroopCountPanel(troopCountPanel);
+    }
+    @Override
+    public void removeTroopCountPanel(){
+        removeTroopCountPanel(true);
+    }
+
+    @Override
+    public Window getGameWindow() {
+        return getWindow();
+    }
+
+    private void removeTroopCountPanel(boolean update){
+        if(troopCountPanel == null)
+            return;
+        remove(troopCountPanel);
+        troopCountPanel = null;
+        if(update){
+            onResize();
+            revalidate();
+            onResize();
         }
     }
 
@@ -84,8 +148,10 @@ public class GameView extends View implements GameInterface {
         this.txtStats.addStyle("PlayerColors", null);
         this.add(txtStats);
         this.dices = new DicePanel(getWindow().getResources());
-        this.dices.setBorder(new LineBorder(Color.BLACK));
-        this.add(dices);
+        if(!game.isClashOfArmiesGoal()) {
+            this.dices.setBorder(new LineBorder(Color.BLACK));
+            this.add(dices);
+        }
         this.gameLog = createTextPane();
         this.gameLog.addStyle("PlayerColor", null);
         this.scrollLog = new JScrollPane(gameLog);
@@ -362,6 +428,16 @@ public class GameView extends View implements GameInterface {
             ex.printStackTrace();
             return new int[0];
         }
+    }
+
+    @Override
+    public ATroopMovePanel.ATroopMoveDialog getTroopMoveDialog(List<ATroops> troops) {
+        return ATroopMovePanel.getTroopMoveDialog(troops, getWindow());
+    }
+
+    @Override
+    public ATroopBuyPanel.ATroopBuyDialog getTroopBuyDialog(ATroop[] availableTroops, int availablePoints) {
+        return ATroopBuyPanel.getTroopBuyDialog(availableTroops, availablePoints, getWindow());
     }
 
     @Override

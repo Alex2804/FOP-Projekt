@@ -1,5 +1,7 @@
 package gui;
 
+import game.Game;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -23,7 +25,13 @@ public abstract class View extends Container implements ActionListener {
     private GameWindow gameWindow;
     protected static final Dimension BUTTON_SIZE = new Dimension(125, 40);
 
+    public Game game;
+
     public View(GameWindow gameWindow) {
+        this(gameWindow, null);
+    }
+    public View(GameWindow gameWindow, Game game) {
+        this.game = game;
         this.gameWindow = gameWindow;
         this.onInit();
         this.setSize(gameWindow.getSize());

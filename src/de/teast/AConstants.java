@@ -1,5 +1,7 @@
 package de.teast;
 
+import de.teast.atroops.ATroop;
+
 public class AConstants {
     public static final double MIN_AVOID_DISTANCE = 1;
     public static final double AVOID_DISTANCE_SCALE_MULTIPLIER = 2;
@@ -20,4 +22,16 @@ public class AConstants {
 
     public static final int POINTS_PER_ROUND = 50;
     public static final int POINTS_PER_BASE = 50;
+
+    public static final ATroop[] TROOPS = {
+            new ATroop("castle1.png", "Reiter", 10, 2, 15, 0, 0, 2, 100, 50),
+            new ATroop("castle2.png", "Schwertkämpfer", 10, 10, 10, 0, 0, 1, 100, 25),
+            new ATroop("castle3.png", "Speerkämpfer", 8, 8, 7, 0, 0, 1, 100, 15),
+            new ATroop("castle4.png", "Bogenschütze", 2, 5, 1, 5, 2, 1, 100, 20),
+            new ATroop("castle5.png", "Armbrustschütze", 5, 5, 2, 8, 1, 1, 100, 25),
+    };
+    public static final int TROOP_IMAGE_INFO_SIZE = 100;
+    public static final int TROOP_IMAGE_TROOPS_PANEL_SIZE = 40;
+    public static final int TROOP_IMAGE_MOVE_PANEL_SIZE = 40;
+    public static final int TROOP_IMAGE_BUY_PANEL_SIZE = 40;
 }

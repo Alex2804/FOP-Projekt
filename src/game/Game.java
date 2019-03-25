@@ -328,6 +328,7 @@ public class Game {
         boolean isAI = (currentPlayer instanceof AI);
         gameInterface.onNextTurn(currentPlayer, addTroops, !isAI);
         if(isClashOfArmiesGoal()){
+            clashOfArmiesGoal().doLongRangeAttacks(currentPlayer);
             int points = AConstants.POINTS_PER_ROUND + (AConstants.POINTS_PER_BASE * clashOfArmiesGoal().getBases(currentPlayer).size());
             addScore(currentPlayer, points);
         }

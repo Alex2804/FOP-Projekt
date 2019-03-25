@@ -70,6 +70,20 @@ public class Resources {
         return ImageIO.read(res);
     }
 
+    public BufferedImage loadScaledImage(String name, int width, int height) throws IOException {
+        BufferedImage image = loadImage(name);
+        return scaleImage(image, width, height);
+    }
+
+    public static BufferedImage scaleImage(BufferedImage image, int width, int height){
+        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.drawImage(image, 0, 0, width, height, null);
+        g2d.dispose();
+        return resizedImage;
+    }
+
     /**
      * Lädt alle Resourcen
      * @return true, wenn alle Resourcen erfolgreich geladen wurden

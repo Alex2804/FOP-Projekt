@@ -1,5 +1,6 @@
 package de.teast.atroops;
 
+import de.teast.AConstants;
 import gui.Resources;
 
 import java.awt.image.BufferedImage;
@@ -16,10 +17,27 @@ public class ATroop {
     public int attackLongRange;
     public int longRangeRange;
     public int speed;
+    public int fullLife;
     public int life;
+    public int price;
 
+    private ATroop(BufferedImage image, String name, int defenseShortRange, int defenseLongRange, int attackShortRange,
+                   int attackLongRange, int longRangeRange, int speed, int fullLife, int life, int price){
+        this.image = image;
+        this.name = name;
+        this.defenseShortRange = defenseShortRange;
+        this.defenseLongRange = defenseLongRange;
+        this.attackShortRange = attackShortRange;
+        this.attackLongRange = attackLongRange;
+        this.longRangeRange = longRangeRange;
+        this.speed = speed;
+        this.fullLife = fullLife;
+        this.life = life;
+        this.price = price;
+    }
     public ATroop(String imagePath, String name, int defenseShortRange, int defenseLongRange, int attackShortRange,
-                  int attackLongRange, int longRangeRange, int speed, int life){
+                  int attackLongRange, int longRangeRange, int speed, int life, int price){
+        this(null, name, defenseShortRange, defenseLongRange, attackShortRange, attackLongRange, longRangeRange, speed, life, life, price);
         image = images.get(name);
         if(image == null) {
             try {
@@ -36,6 +54,26 @@ public class ATroop {
         this.attackLongRange = attackLongRange;
         this.longRangeRange = longRangeRange;
         this.speed = speed;
+        fullLife = life;
         this.life = life;
+        this.price = price;
+    }
+
+    @Override
+    public String toString() {
+        return getClass()+":"+name+"["+Integer.toString(life)+"/"+Integer.toString(fullLife)+"]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ATroop){
+            return obj.toString().equals(toString());
+        }
+        return super.equals(obj);
+    }
+
+    @Override
+    protected ATroop clone() {
+        return new ATroop(image, name, defenseShortRange, defenseLongRange, attackShortRange, attackLongRange, longRangeRange, speed, fullLife, life, price);
     }
 }

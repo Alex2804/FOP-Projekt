@@ -55,7 +55,6 @@ public class GameWindow extends JFrame {
     };
 
     public static void main(String[] args) {
-
         Resources resources = Resources.getInstance();
         if(!resources.load())
             return;

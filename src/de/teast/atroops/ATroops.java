@@ -17,8 +17,11 @@ public class ATroops {
         return this.count;
     }
     public int removeTroops(int count){
-        this.count = Math.min(0, this.count - count);
-        return count;
+        this.count = Math.max(0, this.count - count);
+        return this.count;
+    }
+    public void setTroopCount(int count){
+        this.count = count;
     }
 
     public ATroop troop(){
@@ -28,11 +31,12 @@ public class ATroops {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof ATroops)
-            return hashCode() == obj.hashCode() && count == ((ATroops) obj).count;
+            return troop.equals(obj) && count == ((ATroops) obj).count;
         return super.equals(obj);
     }
+
     @Override
-    public int hashCode() {
-        return troop.getClass().hashCode();
+    public ATroops clone() {
+        return new ATroops(troop.clone(), count);
     }
 }

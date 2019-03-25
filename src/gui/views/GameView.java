@@ -1,13 +1,11 @@
 package gui.views;
 
-import de.teast.AConstants;
 import de.teast.aextensions.ajoker.AJoker;
-import de.teast.agui.ATroopBuyPanel;
 import de.teast.agui.ATroopCountPanel;
-import de.teast.agui.ATroopMovePanel;
-import de.teast.atroops.ATroop;
-import de.teast.atroops.ATroops;
-import game.*;
+import game.AI;
+import game.Game;
+import game.GameInterface;
+import game.Player;
 import game.map.Castle;
 import game.players.ABasicAI;
 import gui.GameWindow;
@@ -23,7 +21,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
 
 public class GameView extends View implements GameInterface {
 

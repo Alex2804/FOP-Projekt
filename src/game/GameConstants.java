@@ -1,7 +1,12 @@
 package game;
 
-import game.goals.*;
-import game.players.*;
+import game.goals.ACaptureTheFlagGoal;
+import game.goals.AClashOfArmiesGoal;
+import game.goals.AFlagEmpireGoal;
+import game.goals.ConquerGoal;
+import game.players.ABasicAI;
+import game.players.BasicAI;
+import game.players.Human;
 
 import java.awt.*;
 

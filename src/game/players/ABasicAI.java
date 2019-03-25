@@ -7,7 +7,7 @@ import game.map.Castle;
 import gui.AttackThread;
 import javafx.util.Pair;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.List;
 
 /**

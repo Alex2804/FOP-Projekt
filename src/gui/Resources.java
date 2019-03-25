@@ -10,10 +10,9 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Diese Klasse verwaltet die Resourcen des Spiels, darunter beispielsweise Bilder, Icons und Schriftarten.

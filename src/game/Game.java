@@ -1,17 +1,17 @@
 package game;
 
-import java.util.*;
-
 import de.teast.AConstants;
 import game.goals.ACaptureTheFlagGoal;
 import game.goals.AClashOfArmiesGoal;
 import game.goals.AFlagEmpireGoal;
 import game.map.Castle;
-import game.map.Kingdom;
 import game.map.GameMap;
+import game.map.Kingdom;
 import game.map.MapSize;
 import gui.AttackThread;
 import gui.Resources;
+
+import java.util.*;
 
 public class Game {
 

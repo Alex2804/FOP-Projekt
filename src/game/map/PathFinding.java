@@ -1,10 +1,9 @@
 package game.map;
 
-import base.GraphAlgorithm;
-import base.Node;
 import base.Edge;
 import base.Graph;
-import game.Game;
+import base.GraphAlgorithm;
+import base.Node;
 import game.Player;
 import game.goals.AFlagEmpireGoal;
 import gui.components.MapPanel;

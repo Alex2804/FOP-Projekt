@@ -1,8 +1,8 @@
 package dice3d.models;
 
-import java.awt.Graphics2D;
-
 import dice3d.main.World;
+
+import java.awt.*;
 
 public class Edge {
 

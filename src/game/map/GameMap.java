@@ -1,7 +1,9 @@
 package game.map;
 
-import base.*;
-import de.teast.AConstants;
+import base.Edge;
+import base.Graph;
+import base.Node;
+import base.PerlinNoise;
 import de.teast.APath;
 import game.Game;
 import game.GameConstants;
@@ -10,8 +12,8 @@ import javafx.util.Pair;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

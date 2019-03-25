@@ -1,11 +1,10 @@
 package game.map;
 
-import game.GameConstants;
-import javafx.util.Pair;
-
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Diese Klasse teilt Burgen in Königreiche auf

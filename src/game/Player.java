@@ -5,7 +5,7 @@ import base.Node;
 import de.teast.aextensions.ajoker.AJoker;
 import game.map.Castle;
 
-import java.awt.Color;
+import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;

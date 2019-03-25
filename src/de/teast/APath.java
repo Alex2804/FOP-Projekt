@@ -11,8 +11,8 @@ import game.map.Castle;
 import game.map.Kingdom;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**

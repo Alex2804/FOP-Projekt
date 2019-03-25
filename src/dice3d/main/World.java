@@ -1,11 +1,11 @@
 package dice3d.main;
 
+import dice3d.models.cuboids.Cuboid;
+import dice3d.models.cuboids.Dice;
+
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import dice3d.models.cuboids.Cuboid;
-import dice3d.models.cuboids.Dice;
 
 public class World {
 

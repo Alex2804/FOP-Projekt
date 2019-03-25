@@ -1,10 +1,5 @@
 package game.players;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import base.Edge;
 import base.Graph;
 import base.Node;
@@ -12,6 +7,11 @@ import game.AI;
 import game.Game;
 import game.map.Castle;
 import gui.AttackThread;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BasicAI extends AI {
 

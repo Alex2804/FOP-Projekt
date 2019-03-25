@@ -4,7 +4,8 @@ import gui.views.StartScreen;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 
 /**
  * Diese Klasse bietet das Fenster wo die grafische Oberfläche angezeigt wird.

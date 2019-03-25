@@ -1,10 +1,9 @@
 package dice3d.models.cuboids;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
 
 import dice3d.main.World;
 import dice3d.models.Vertex;
+
+import java.awt.*;
 
 public class Dice extends Cube {
 

@@ -1,9 +1,9 @@
 package dice3d.models;
 
-import java.awt.Graphics2D;
-
 import dice3d.main.World;
 import dice3d.math.Vector;
+
+import java.awt.*;
 
 public class Vertex {
 

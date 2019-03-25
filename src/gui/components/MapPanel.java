@@ -1,27 +1,28 @@
 package gui.components;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Line2D;
-import java.awt.image.BufferedImage;
-import java.util.List;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-
 import base.Edge;
-import base.Graph;
 import de.teast.AConstants;
 import game.AI;
 import game.Game;
-import game.map.PathFinding;
 import game.Player;
 import game.map.Castle;
 import game.map.GameMap;
+import game.map.PathFinding;
 import game.players.Human;
 import gui.Resources;
 import gui.View;
 import gui.views.GameView;
+
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Line2D;
+import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class MapPanel extends JScrollPane {
 

@@ -1,6 +1,6 @@
 package game;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Random;
 
 public abstract class AI extends Player {

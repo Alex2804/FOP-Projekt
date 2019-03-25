@@ -4,7 +4,6 @@ import gui.Resources;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Random;
 
 public class DicePanel extends JPanel {

@@ -1,11 +1,11 @@
 package dice3d.models.cuboids;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.util.ArrayList;
 
 import dice3d.math.Vector;
 import dice3d.models.Edge;
 import dice3d.models.Vertex;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 public class Cuboid {
 

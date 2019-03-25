@@ -1,18 +1,21 @@
 package gui.views;
 
-import game.*;
+import game.Game;
+import game.GameConstants;
+import game.Goal;
+import game.Player;
 import game.map.MapSize;
 import gui.GameWindow;
 import gui.View;
 import gui.components.ColorChooserButton;
 import gui.components.NumberChooser;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.LinkedList;
 import java.util.List;
-
-import javax.swing.*;
+import java.util.Vector;
 
 public class GameMenu extends View {
 

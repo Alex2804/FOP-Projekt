@@ -452,7 +452,7 @@ public class AClashOfArmiesGoal extends Goal {
      */
     public void doLongRangeAttacks(Player player){
         List<ATroops> troops;
-        int range, biggestRange = 0;
+        int biggestRange = 0;
         for(Castle attackerCastle : player.getCastles(getGame().getMap().getCastles())){
             troops = getTroops(attackerCastle);
             for(ATroops t : troops){
@@ -463,8 +463,7 @@ public class AClashOfArmiesGoal extends Goal {
             if(biggestRange <= 0)
                 continue;
             for(Castle targetCastle : getEnemyCastlesInRange(attackerCastle, biggestRange)){
-                range = ARangePathFinding.getRange(getPath(), attackerCastle, targetCastle);
-                doLongRangeAttack(attackerCastle, targetCastle, range);
+                doLongRangeAttack(attackerCastle, targetCastle);
             }
         }
     }
@@ -472,9 +471,9 @@ public class AClashOfArmiesGoal extends Goal {
      * This method do a long range attack
      * @param attacker the attacker castle
      * @param target the target castle
-     * @param range the range from the attacker to the target castle
      */
-    private void doLongRangeAttack(Castle attacker, Castle target, int range){
+    private void doLongRangeAttack(Castle attacker, Castle target){
+        int range = ARangePathFinding.getRange(getPath(), attacker, target);
         List<ATriplet<ATroops, Integer, String>> attackerTroops = new LinkedList<>();
         for(ATroops t : getTroops(attacker)){
             if(t.troop().longRangeRange >= range){

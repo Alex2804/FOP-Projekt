@@ -1,15 +1,10 @@
 package game;
 
 import de.teast.aextensions.ajoker.AJoker;
-import de.teast.agui.ATroopBuyPanel;
 import de.teast.agui.ATroopCountPanel;
-import de.teast.agui.ATroopMovePanel;
-import de.teast.atroops.ATroop;
-import de.teast.atroops.ATroops;
 import game.map.Castle;
 
 import java.awt.*;
-import java.util.List;
 
 public interface GameInterface {
 

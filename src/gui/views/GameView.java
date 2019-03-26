@@ -33,7 +33,7 @@ public class GameView extends View implements GameInterface {
 
     private ATroopCountPanel troopCountPanel;
 
-    private static final boolean autoRestart = true;
+    private static final boolean autoRestart = false;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow, game);

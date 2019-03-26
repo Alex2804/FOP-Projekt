@@ -24,7 +24,7 @@ public abstract class AI extends Player {
         if(aiThread != null)
             return;
 
-        fastForward = true;
+        fastForward = false;
         aiThread = new AIThread(game);
         aiThread.start();
     }

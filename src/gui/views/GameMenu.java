@@ -82,9 +82,6 @@ public class GameMenu extends View {
             if(ABasicAI.class.isAssignableFrom(supportedPlayerTypes[((JComboBox)playerConfig[i][3]).getSelectedIndex()])) {
                 jokerComboBox[i].setEnabled(false);
                 jokerComboBox[i].setSelectedIndex(jokerComboBox[i].getItemCount() - 1);
-            } else if(BasicAI.class.isAssignableFrom(supportedPlayerTypes[((JComboBox)playerConfig[i][3]).getSelectedIndex()])){
-                jokerComboBox[i].setEnabled(false);
-                jokerComboBox[i].setSelectedIndex(0);
             } else {
                 jokerComboBox[i].setEnabled(i < playerCount.getValue());
             }

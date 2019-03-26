@@ -132,7 +132,7 @@ public class Graph<T> {
         if(nodes.size() == 0){
             return true;
         }
-        return (nodes.size() == allNodesConnectedHelper(nodes.get(0), new HashSet<>(Collections.singleton(nodes.get(0))), getEdges(nodes.get(0))).size());
+        return (nodes.size() == allNodesConnectedHelper(nodes.get(0), new HashSet<>(Collections.singleton(nodes.get(0)))).size());
     }
 
     /**
@@ -140,16 +140,15 @@ public class Graph<T> {
      * checks recursively if all nodes are reachable
      * @param node current node
      * @param nodes passed nodes
-     * @param edges edges of current node
      * @return a list with all reachable nodes from the current node
      */
-    private HashSet<Node<T>> allNodesConnectedHelper(Node<T> node, HashSet<Node<T>> nodes, List<Edge<T>> edges){
+    private HashSet<Node<T>> allNodesConnectedHelper(Node<T> node, HashSet<Node<T>> nodes){
         Node<T> other;
-        for(Edge<T> edge : edges){
+        for(Edge<T> edge : getEdges(node)){
             other = edge.getOtherNode(node);
             if(!nodes.contains(other)){
                 nodes.add(other);
-                nodes = allNodesConnectedHelper(other, nodes, getEdges(other));
+                nodes = allNodesConnectedHelper(other, nodes);
             }
         }
         return nodes;

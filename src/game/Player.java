@@ -194,4 +194,10 @@ public abstract class Player {
     public AJoker getNextJoker(){
         return (jokers == null || jokers.isEmpty()) ? null : jokers.get(0);
     }
+    /**
+     * @param joker the joker to add
+     */
+    public void addJoker(AJoker joker){
+        jokers.add(joker);
+    }
 }

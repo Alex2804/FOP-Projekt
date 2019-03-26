@@ -69,11 +69,6 @@ public class Resources {
         return ImageIO.read(res);
     }
 
-    public BufferedImage loadScaledImage(String name, int width, int height) throws IOException {
-        BufferedImage image = loadImage(name);
-        return scaleImage(image, width, height);
-    }
-
     public static BufferedImage scaleImage(BufferedImage image, int width, int height){
         BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = resizedImage.createGraphics();
@@ -310,7 +305,6 @@ public class Resources {
     public BufferedImage getDice(int value) {
         if(!resourcesLoaded)
             return null;
-
         return dices[value % dices.length];
     }
 

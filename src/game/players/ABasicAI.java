@@ -25,7 +25,7 @@ public class ABasicAI extends BasicAI {
     @Override
     protected void actions(Game game) throws InterruptedException {
         if(constants == null)
-            constants = new AAIConstants("best401Mittel.txt");
+            constants = new AAIConstants(game.getMapSize());
         AAIDefenseEvalMethods.constants = constants;
         AAIDistributeTroopsMethods.constants = constants;
         AAIDistributionEvalMethods.constants = constants;
@@ -34,6 +34,7 @@ public class ABasicAI extends BasicAI {
 
         Graph<Castle> castleGraph = game.getMap().getGraph();
         if(game.getRound() == 1){
+            useJoker();
             for(Castle castle : AAIDistributionEvalMethods.getBestCastleDistribution(castleGraph, this, getRemainingTroops())){
                 sleep(timeout + 10);
                 game.chooseCastle(castle, this);

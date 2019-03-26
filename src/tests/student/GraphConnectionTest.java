@@ -4,8 +4,8 @@ import base.Graph;
 import base.Node;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Class to test the correct behavior of {@link Graph#allNodesConnected()}

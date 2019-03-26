@@ -28,6 +28,8 @@ public class Game {
     protected GameInterface gameInterface;
     protected AttackThread attackThread;
 
+    public List<Player> nextAttackDoubleDices;
+
     public static final boolean training = false;
 
     public Game() {
@@ -35,6 +37,7 @@ public class Game {
         this.hasStarted = false;
         this.mapSize = MapSize.MEDIUM;
         this.players = new LinkedList<>();
+        this.nextAttackDoubleDices = new LinkedList<>();
     }
 
     public void addPlayer(Player p) {
@@ -123,6 +126,9 @@ public class Game {
         this.gameInterface = gameInterface;
         List<Player> tempList = new ArrayList<>(players);
         playerQueue = new ArrayDeque<>();
+        Player p = getPlayerWithFewestCastles();
+        tempList.remove(p);
+        playerQueue.add(p);
         while(!tempList.isEmpty()) {
             Player player = tempList.remove((int) (Math.random() * tempList.size()));
             player.reset();
@@ -137,6 +143,21 @@ public class Game {
         gameInterface.onGameStarted(this);
         nextTurn();
     }
+    /**
+     * @return the player with the fewest castles
+     */
+    private Player getPlayerWithFewestCastles(){
+        Player minPlayer = null;
+        int minValue = 0, value;
+        for(Player player : players){
+            value = player.getCastles(this).size();
+            if(minPlayer == null || minValue > value){
+                minPlayer = player;
+                minValue = value;
+            }
+        }
+        return minPlayer;
+    }
 
     public AttackThread startAttack(Castle source, Castle target, int troopCount) {
         return startAttack(source, target, troopCount, false);
@@ -148,7 +169,7 @@ public class Game {
         if(source.getOwner() == target.getOwner() || troopCount < 1)
             return null;
 
-        attackThread = new AttackThread(this, source, target, troopCount, fastForward);
+        attackThread = new AttackThread(this, nextAttackDoubleDices, source, target, troopCount, fastForward);
         attackThread.start();
         gameInterface.onAttackStarted(source, target, troopCount);
         return attackThread;
@@ -205,7 +226,9 @@ public class Game {
         gameInterface.onUpdate();
     }
 
-    public void stopAttack() {
+    public void stopAttack(Player doubleDicesPlayer) {
+        if(doubleDicesPlayer != null)
+            nextAttackDoubleDices.remove(doubleDicesPlayer);
         this.attackThread = null;
         this.gameInterface.onAttackStopped();
     }

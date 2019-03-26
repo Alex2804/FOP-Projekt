@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 
 public class StartScreen extends View {
 
-    private JButton btnStart, btnStats, btnInfo, btnQuit;
+    private JButton btnStart, btnStats, btnInfo, btnQuit, btnCredits;
     private JLabel lblTitle;
 
     public StartScreen(GameWindow gameWindow) {
@@ -28,10 +28,10 @@ public class StartScreen extends View {
         lblTitle.setSize(width, labelHeight);
         lblTitle.setLocation(0, offsetY);
 
-        offsetY += labelHeight + 50;
+        offsetY += labelHeight + 30;
 
         int offsetX = (width - BUTTON_SIZE.width) / 2;
-        JButton[] buttons = { btnStart, btnStats, btnInfo, btnQuit };
+        JButton[] buttons = { btnStart, btnStats, btnInfo, btnQuit, btnCredits };
         for (JButton button : buttons) {
             button.setLocation(offsetX, offsetY);
             offsetY += BUTTON_SIZE.height + 15;
@@ -47,6 +47,7 @@ public class StartScreen extends View {
         this.btnStats = createButton("Punkte");
         this.btnInfo = createButton("Info");
         this.btnQuit = createButton("Beenden");
+        this.btnCredits = createButton("Credits");
 
         getWindow().setSize(750, 450);
         getWindow().setMinimumSize(new Dimension(600, 400));
@@ -62,6 +63,8 @@ public class StartScreen extends View {
             getWindow().setView(new InfoView(getWindow()));
         } else if(actionEvent.getSource() == btnStats) {
             getWindow().setView(new HighscoreView(getWindow()));
+        } else if(actionEvent.getSource() == btnCredits){
+            new ACreditsDialog(getWindow());
         }
     }
 
@@ -75,5 +78,32 @@ public class StartScreen extends View {
 
         g.drawImage(soldiers[0], 25, 100, width, height, null);
         g.drawImage(soldiers[1], getWidth() - 25 - width, 100, width, height, null);
+    }
+
+    public class ACreditsDialog extends JDialog{
+        public ACreditsDialog(GameWindow owner){
+            super(owner);
+
+            JPanel outerPanel = new JPanel(new BorderLayout());
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+            panel.add(new JLabel("Horse Icon by: Freepik (https://www.freepik.com/) from https://www.flaticon.com/"));
+            panel.add(new JLabel("Sword Icon by: Freepik (https://www.freepik.com/) from https://www.flaticon.com/"));
+            panel.add(new JLabel("Spear Icon by: Freepik (https://www.freepik.com/) from https://www.flaticon.com/"));
+            panel.add(new JLabel("Bow Icon by: Those Icons (https://www.flaticon.com/authors/those-icons) from https://www.flaticon.com/"));
+            panel.add(new JLabel("Crossbow Icon by: Smashicons (https://www.flaticon.com/authors/smashicons) from https://www.flaticon.com/"));
+            outerPanel.add(panel, BorderLayout.CENTER);
+            getContentPane().add(outerPanel);
+
+            setSize(owner.getWidth() - 100, owner.getHeight() - 100);
+            center(owner);
+            setModal(true);
+            setVisible(true);
+            setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        }
+        public void center(Window owner){
+            setLocation((owner.getX() + (owner.getWidth()/  2)) - (getWidth() / 2),
+                    (owner.getY() + (owner.getHeight() / 2)) - (getHeight() / 2));
+        }
     }
 }

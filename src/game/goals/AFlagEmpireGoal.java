@@ -1,9 +1,13 @@
 package game.goals;
 
 import de.teast.AConstants;
+import de.teast.aextensions.ajoker.AJoker;
+import game.GameConstants;
 import game.Goal;
 import game.Player;
 import game.map.Castle;
+import game.map.MapSize;
+import game.players.Human;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,6 +82,23 @@ public class AFlagEmpireGoal extends Goal {
     @Override
     public boolean hasLost(Player player, List<Castle> castles, int round) {
         return player.getCastles(castles).isEmpty() && round > 1;
+    }
+
+    @Override
+    public MapSize[] getSupportedMapSizes() {
+        return new MapSize[]{MapSize.SMALL, MapSize.MEDIUM, MapSize.LARGE};
+    }
+    @Override
+    public AJoker[] getSupportedJokers() {
+        return AConstants.FLAG_EMPIRE_JOKERS;
+    }
+    @Override
+    public Class<?>[] getSupportedPlayerTypes() {
+        return new Class[]{Human.class};
+    }
+    @Override
+    public int getMaxPlayerCount() {
+        return 4;
     }
 
     /**

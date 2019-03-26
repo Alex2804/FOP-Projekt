@@ -1,6 +1,8 @@
 package game;
 
+import de.teast.aextensions.ajoker.AJoker;
 import game.map.Castle;
+import game.map.MapSize;
 
 import java.util.List;
 
@@ -52,4 +54,9 @@ public abstract class Goal {
     protected Game getGame() {
         return this.game;
     }
+
+    public abstract MapSize[] getSupportedMapSizes();
+    public abstract AJoker[] getSupportedJokers();
+    public abstract Class<?>[] getSupportedPlayerTypes();
+    public abstract int getMaxPlayerCount();
 }

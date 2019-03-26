@@ -35,6 +35,7 @@ public class BasicAI extends AI {
         if(game.getRound() == 1) {
             List<Castle> availableCastles = game.getMap().getCastles().stream().filter(c -> c.getOwner() == null).collect(Collectors.toList());
             while(availableCastles.size() > 0 && getRemainingTroops() > 0) {
+                useJoker();
 
                 sleep(1000);
 
@@ -42,7 +43,7 @@ public class BasicAI extends AI {
                 game.chooseCastle(randomCastle, this);
             }
         } else {
-
+            useJoker();
             // 1. Distribute remaining TROOPS
             Graph<Castle> graph = game.getMap().getGraph();
             List<Castle> castleNearEnemy = new ArrayList<>();

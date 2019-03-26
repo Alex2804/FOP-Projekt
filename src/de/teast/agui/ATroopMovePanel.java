@@ -231,7 +231,7 @@ public class ATroopMovePanel extends JPanel implements ChangeListener {
     }
 
     /**
-     * Panel which displays multiple {@link #ATroopMovePanel(List, Window)}
+     * Panel which displays multiple {@link #ATroopMovePanel(ATroops, Window)}
      */
     public static class ATroopMoveDialogPanel extends JPanel{
 		private static final long serialVersionUID = -3020259341867619444L;

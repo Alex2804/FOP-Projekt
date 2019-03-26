@@ -2,9 +2,12 @@ package de.teast.atroops;
 
 import gui.Resources;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * This class represents a troop for {@link game.goals.AClashOfArmiesGoal}
@@ -66,7 +69,12 @@ public class ATroop {
     }
 
     @Override
-    protected ATroop clone() {
+    public ATroop clone() {
         return new ATroop(image, name, defenseShortRange, defenseLongRange, attackShortRange, attackLongRange, longRangeRange, speed, fullLife, life, price);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(image, name, defenseShortRange, defenseLongRange, attackShortRange, attackLongRange, longRangeRange, speed, fullLife, life, price);
     }
 }

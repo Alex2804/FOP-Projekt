@@ -1,9 +1,13 @@
 package game.goals;
 
+import de.teast.AConstants;
+import de.teast.aextensions.ajoker.AJoker;
 import game.Game;
+import game.GameConstants;
 import game.Goal;
 import game.Player;
 import game.map.Castle;
+import game.map.MapSize;
 
 import java.util.List;
 
@@ -58,5 +62,22 @@ public class ConquerGoal extends Goal {
             return false;
 
         return player.getNumRegions(castles) == 0;
+    }
+
+    @Override
+    public MapSize[] getSupportedMapSizes() {
+        return new MapSize[]{MapSize.SMALL, MapSize.MEDIUM, MapSize.LARGE};
+    }
+    @Override
+    public AJoker[] getSupportedJokers() {
+        return AConstants.CONQUER_JOKERS;
+    }
+    @Override
+    public Class<?>[] getSupportedPlayerTypes() {
+        return GameConstants.PLAYER_TYPES;
+    }
+    @Override
+    public int getMaxPlayerCount() {
+        return 4;
     }
 }

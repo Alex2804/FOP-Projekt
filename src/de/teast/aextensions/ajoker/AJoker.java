@@ -8,13 +8,14 @@ import game.Player;
  * @author Alexander Muth
  */
 public abstract class AJoker {
-    private String name, description;
+    protected String name, description, logText;
     protected Game game;
     protected Player player;
 
-    public AJoker(String name, String description, Game game, Player player){
+    public AJoker(String name, String description, String logText, Game game, Player player){
         this.name = name;
         this.description = description;
+        this.logText = logText;
         this.game = game;
         this.player = player;
     }
@@ -22,7 +23,14 @@ public abstract class AJoker {
     /**
      * uses this joker
      */
-    public abstract void useJoker();
+    public void useJoker(){
+        innerUseJoker();
+        game.getGameInterface().onLogText("%PLAYER% hat einen "+name+" eingesetzt " + logText, player);
+    }
+    /**
+     * uses this joker
+     */
+    public abstract void innerUseJoker();
     /**
      * @return if the joker is usable
      */

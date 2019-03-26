@@ -1,8 +1,13 @@
 package game.goals;
 
+import de.teast.AConstants;
+import de.teast.aextensions.ajoker.AJoker;
+import game.GameConstants;
 import game.Goal;
 import game.Player;
 import game.map.Castle;
+import game.map.MapSize;
+import game.players.Human;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -61,6 +66,23 @@ public class ACaptureTheFlagGoal extends Goal {
             return false;
         Castle castle = flagPlayerCastleMap.get(player);
         return castle == null || castle.getOwner() != player || !castles.contains(castle);
+    }
+
+    @Override
+    public MapSize[] getSupportedMapSizes() {
+        return new MapSize[]{MapSize.SMALL, MapSize.MEDIUM, MapSize.LARGE};
+    }
+    @Override
+    public AJoker[] getSupportedJokers() {
+        return AConstants.CAPTURE_THE_FLAG_JOKERS;
+    }
+    @Override
+    public Class<?>[] getSupportedPlayerTypes() {
+        return new Class[]{Human.class};
+    }
+    @Override
+    public int getMaxPlayerCount() {
+        return 4;
     }
 
     /**

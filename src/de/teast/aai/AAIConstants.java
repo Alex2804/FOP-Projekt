@@ -1,5 +1,7 @@
 package de.teast.aai;
 
+import game.map.MapSize;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +13,23 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author Alexander Muth
  */
 public class AAIConstants {
+    private static double[] medium = {6.0, 6.0, 7.0, 5.0, 0.0, 0.0, 1.0, 1.0, 4.0, 6.298966597976107, 9.0, 5.0, 5.0, 6.0, 8.0, 9.0, 1.0, 0.0, 7.362039874555077, 9.172684010663328, 1.3783264945773832, 6.0, 2.400567670138262, 6.465853316449159, 5.615348468475134, 5.0, 7.892995464390045, 2.6259517286719003, 6.2991551867509745, 2.659675184797293, 6.0, 5.563109520820051};
+    private static double[] big = {5.0, 6.0, 3.0, 6.0, 0.0, 1.0, 4.0, 2.0, 2.0, 1.4752127404432303, 5.0, 6.0, 4.0, 3.0, 2.0, 7.0, 8.0, 3.0, 1.8153204608350926, 8.532511779495959, 1.6250023681209447, 3.0, 5.73009538579182, 3.1108923283187195, 2.377936694818117, 8.0, 6.104972755944558, 6.279130483552143, 5.245168240758728, 6.281462102456815, 6.0, 4.2710780188193045};
+
     private static int valueCount = 32;
 
     public AAIConstants(){
         super();
+    }
+    public AAIConstants(MapSize mapSize){
+        super();
+        if(mapSize == MapSize.SMALL){
+            load(medium);
+        }else if(mapSize == MapSize.MEDIUM){
+            load(medium);
+        }else if(mapSize == MapSize.LARGE){
+            load(big);
+        }
     }
     public AAIConstants(double[] values){
         super();

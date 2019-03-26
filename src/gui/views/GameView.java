@@ -33,7 +33,7 @@ public class GameView extends View implements GameInterface {
 
     private ATroopCountPanel troopCountPanel;
 
-    private static final boolean autoRestart = false;
+    private static final boolean autoRestart = true;
 
     GameView(GameWindow gameWindow, Game game) {
         super(gameWindow, game);
@@ -431,7 +431,7 @@ public class GameView extends View implements GameInterface {
     }
 
     @Override
-    public int[] onRoll(Player player, int dices, boolean fastForward) {
+    public int[] onRoll(Player player, int dices ,boolean fastForward) {
         try {
             int[] roll = this.dices.generateRandom(dices, !fastForward);
             StringBuilder rolls = new StringBuilder();

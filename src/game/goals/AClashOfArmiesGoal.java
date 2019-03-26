@@ -6,6 +6,7 @@ import de.teast.AConstants;
 import de.teast.APath;
 import de.teast.ARangePathFinding;
 import de.teast.aai.AAIMethods;
+import de.teast.aextensions.ajoker.AJoker;
 import de.teast.agui.ATroopBuyPanel;
 import de.teast.agui.ATroopCountPanel;
 import de.teast.agui.ATroopMovePanel;
@@ -16,12 +17,16 @@ import game.Goal;
 import game.Player;
 import game.map.Castle;
 import game.map.Kingdom;
+import game.map.MapSize;
+import game.players.Human;
 import javafx.util.Pair;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Alexander Muth
@@ -71,6 +76,23 @@ public class AClashOfArmiesGoal extends Goal {
     @Override
     public boolean hasLost(Player player, List<Castle> castles, int round) {
         return player.getNumRegions(castles) == 0;
+    }
+
+    @Override
+    public MapSize[] getSupportedMapSizes() {
+        return new MapSize[]{MapSize.MEDIUM, MapSize.LARGE};
+    }
+    @Override
+    public AJoker[] getSupportedJokers() {
+        return AConstants.CLASH_OF_ARMIES_JOKERS;
+    }
+    @Override
+    public Class<?>[] getSupportedPlayerTypes() {
+        return new Class[]{Human.class};
+    }
+    @Override
+    public int getMaxPlayerCount() {
+        return 2;
     }
 
     /**
@@ -251,18 +273,7 @@ public class AClashOfArmiesGoal extends Goal {
     private void doMoves(Castle source, Castle destination, List<ATroops> troops){
         if(destination.getOwner() != null && destination.getOwner() != source.getOwner()){ // Attack
             Pair<Castle, List<ATroops>> attacker = new Pair<>(source, troops);
-            Pair<Castle, List<ATroops>> defender = new Pair<>(destination, getTroops(destination));
-            ATriplet<Player, Castle, List<ATroops>> winner = battle(attacker, defender);
-            if(winner.getFirst() == source.getOwner()){ // attacker wins
-                removeTroops(source, troops);
-                removeTroops(destination);
-                addTroops(destination, winner.getThird());
-            }else{ // defender wins
-                removeTroops(source);
-                removeTroops(destination, troops);
-                addTroops(destination, winner.getThird());
-            }
-            destination.setOwner(winner.getFirst());
+            doBattle(attacker, destination);
         }else{ // Move
             destination.setOwner(source.getOwner());
             removeTroops(source, troops);
@@ -290,6 +301,8 @@ public class AClashOfArmiesGoal extends Goal {
      * @param troops the troops to add
      */
     public void addTroops(Castle castle, ATroops troops){
+        if(troops.troopCount() <= 0)
+            return;
         List<ATroops> castleTroops = getTroops(castle);
         if(castleTroops.isEmpty())
             this.castleTroops.put(castle, new LinkedList<>(Collections.singletonList(troops)));
@@ -312,14 +325,16 @@ public class AClashOfArmiesGoal extends Goal {
         }
     }
     /**
-     * remove all troops from a castle
+     * removes all troops from a castle (updates ownership)
      * @param castle the castle to remove the troops from
      */
     public void removeTroops(Castle castle){
         castleTroops.remove(castle);
+        if(!isBase(castle))
+            castle.setOwner(null);
     }
     /**
-     * remove troops from a castle
+     * remove troops from a castle (updates ownership)
      * @param castle the castle to remove the troops from
      * @param troops the troops to remove
      */
@@ -332,24 +347,41 @@ public class AClashOfArmiesGoal extends Goal {
         while(iterator.hasNext()){
             next = iterator.next();
             if(troops.troop().equals(next.troop())){
-                if(next.removeTroops(troops.troopCount()) <= 0){
-                    iterator.remove();
-                }
+                next.removeTroops(troops.troopCount());
+            }
+            if(next.troopCount() <= 0){
+                iterator.remove();
             }
         }
         if(castleTroops.isEmpty() && !isBase(castle)){
             castle.setOwner(null);
-            this.castleTroops.remove(castle);
         }
     }
     /**
-     * remove troops from a castle
+     * remove troops from a castle (updates ownership)
      * @param castle the castle to remove the troops from
      * @param troops the troops to remove
      */
     public void removeTroops(Castle castle, List<ATroops> troops){
         for(ATroops t : troops){
             removeTroops(castle, t);
+        }
+    }
+    /**
+     * Removes the old troops, gives the ownership to the {@code player} and adds {@code troops}
+     * @param player the new owner or null to keep old
+     * @param castle the castle to update
+     * @param troops the new troops
+     */
+    public void updateTroops(Player player, Castle castle, List<ATroops> troops){
+        Player oldOwner = castle.getOwner();
+        removeTroops(castle);
+        if(player != null && !troops.isEmpty()){
+            addTroops(castle, troops);
+            castle.setOwner(player);
+        }else if(oldOwner != null && !troops.isEmpty()){
+            addTroops(castle, troops);
+            castle.setOwner(oldOwner);
         }
     }
 
@@ -435,15 +467,130 @@ public class AClashOfArmiesGoal extends Goal {
     }
 
     /**
-     * Runs battles, the {@code attacker} and {@code defender} attributes has the Castles which battles as keys and the
-     * troops which battles as values;
+     * Runs battles, the {@code attacker} attribute has the Castles which battles as keys and the troops which battles
+     * as value. This method modifies the troops and ownerships
      * @param attacker the attacker
      * @param defender the defender
-     * @return a {@link ATriplet}, containing the winner of the battle as first, the castle as second and the remaining
-     * troops of the winner as third value
+     * @return a {@link ATriplet}, containing the winner of the battle as first, the defender castle as second and the
+     * remaining troops of the winner as third value
      */
-    public ATriplet<Player, Castle, List<ATroops>> battle(Pair<Castle, List<ATroops>> attacker, Pair<Castle, List<ATroops>> defender){
-        return new ATriplet<>(attacker.getKey().getOwner(), attacker.getKey(), attacker.getValue());
+    public ATriplet<Player, Castle, List<ATroops>> doBattle(Pair<Castle, List<ATroops>> attacker, Castle defender){
+        Player attackerPlayer = attacker.getKey().getOwner();
+        Player defenderPlayer = defender.getOwner();
+        removeTroops(attacker.getKey(), attacker.getValue());
+        doLongRangeAttack(attacker.getKey(), defender); // First let long range troops from attacker attack defender
+
+        List<ATroops> defenderTroops = getTroops(defender);
+        List<ATroops> attackerTroops = attacker.getValue().stream().map(ATroops::clone).collect(Collectors.toList());
+        Pair<Integer, List<ATroops>> attackResult;
+        while(!defenderTroops.isEmpty() && !attackerTroops.isEmpty()){
+            attackResult = doAttack(attackerTroops, defenderTroops,
+                            (ATroops t) -> t.troop().attackShortRange, (ATroops t) -> t.troop().defenseShortRange);
+            defenderTroops = attackResult.getValue();
+            madeDamage(attackerPlayer, attackResult.getKey());
+
+
+            attackResult = doAttack(defenderTroops, attackerTroops,
+                            (ATroops t) -> t.troop().attackShortRange, (ATroops t) -> t.troop().defenseShortRange);
+            attackerTroops = attackResult.getValue();
+            madeDamage(defenderPlayer, attackResult.getKey());
+        }
+
+        ATriplet<Player, Castle, List<ATroops>> returnTriplet;
+        if(defenderTroops.isEmpty()){
+            returnTriplet = new ATriplet<>(attackerPlayer, defender, attackerTroops);
+        }else{
+            returnTriplet = new ATriplet<>(defenderPlayer, defender, defenderTroops);
+        }
+        updateTroops(returnTriplet.getFirst(), returnTriplet.getSecond(), returnTriplet.getThird());
+        return returnTriplet;
+    }
+    /**
+     * This method runs one round of an battle (one attack)
+     * @param attackerTroops the attacker troops
+     * @param defenderTroops the defender troops
+     * @param attackerAttackValue function to get the attack value
+     * @param defenderDefendValue function to get the defend value
+     * @return a {@link Pair} with the damage which was made as key and the remaining defender troops as value
+     */
+    public Pair<Integer, List<ATroops>> doAttack(List<ATroops> attackerTroops, List<ATroops> defenderTroops,
+                                                 Function<ATroops, Integer> attackerAttackValue,
+                                                 Function<ATroops, Integer> defenderDefendValue){
+        if(attackerTroops.isEmpty())
+            return new Pair<>(0, new LinkedList<>(defenderTroops));
+        defenderTroops = defenderTroops.stream(). map(ATroops::clone).collect(Collectors.toList());
+        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().life));
+        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().attackShortRange));
+        defenderTroops.sort(Comparator.comparingInt(defenderDefendValue::apply));
+        if(defenderTroops.isEmpty())
+            return new Pair<>(0, new LinkedList<>());
+
+        attackerTroops.sort(Comparator.comparingInt(attackerAttackValue::apply));
+
+        List<ATriplet<ATroops, Integer, String>> attackerTroopsCount = attackerTroops.stream(). //Triplet: troops, remaining troop count for attack, NOTHING
+                map(t -> new ATriplet<>(t, t.troopCount(), "")).
+                collect(Collectors.toList());
+
+        List<ATroops> newDefenderTroops = new LinkedList<>();
+
+        ListIterator<ATroops> defenderIterator;
+        ListIterator<ATriplet<ATroops, Integer, String>> attackerIterator;
+        ATriplet<ATroops, Integer, String> triplet;
+        ATroops defender, newDefender;
+        int troopCount, damageSum = 0, damage;
+        int neededDamage, neededCount;
+        defenderIterator = defenderTroops.listIterator();
+        while(defenderIterator.hasNext() && !attackerTroopsCount.isEmpty()){
+            defender = defenderIterator.next();
+            neededDamage = defenderDefendValue.apply(defender) + defender.troop().life;
+
+            for(int i=0; i<defender.troopCount(); i++){
+                damage = 0;
+                attackerIterator = attackerTroopsCount.listIterator();
+                while(attackerIterator.hasNext()){
+                    triplet = attackerIterator.next();
+                    if(attackerAttackValue.apply(triplet.getFirst()) <= defenderDefendValue.apply(defender))
+                        continue;
+                    troopCount = (int)Math.ceil(((double)neededDamage) / attackerAttackValue.apply(triplet.getFirst()));
+
+                    if(triplet.getSecond() <= troopCount){
+                        damage += attackerAttackValue.apply(triplet.getFirst()) * triplet.getSecond();
+                        attackerIterator.remove();
+                    }else{
+                        neededCount = (int)Math.ceil((double)neededDamage / attackerAttackValue.apply(triplet.getFirst()));
+                        damage = neededDamage;
+                        triplet.setSecond(triplet.getSecond() - neededCount);
+                    }
+
+                    if(damage >= neededDamage)
+                        break;
+                }
+                damage -= defenderDefendValue.apply(defender);
+                damage = Math.max(0, damage);
+                damageSum += damage;
+                defender.removeTroops(1);
+                if(defender.troopCount() <= 0)
+                    defenderIterator.remove();
+                newDefender = new ATroops(defender.troop().clone(), 1);
+                newDefender.troop().life -= damage;
+                if(newDefender.troop().life > 0){
+                    newDefenderTroops.add(newDefender);
+                }
+            }
+        }
+
+        Map<ATroop, ATroops> returnMap = new HashMap<>();
+        ATroops defenderTroopsTemp;
+        defenderTroops.addAll(newDefenderTroops);
+        for(ATroops troops : defenderTroops){
+            defenderTroopsTemp = returnMap.get(troops.troop());
+            if(defenderTroopsTemp == null){
+                returnMap.put(troops.troop(), troops);
+            }else{
+                defenderTroopsTemp.addTroop(troops.troopCount());
+            }
+        }
+        return new Pair<>(damageSum, new LinkedList<>(returnMap.values()));
     }
 
     /**
@@ -468,66 +615,20 @@ public class AClashOfArmiesGoal extends Goal {
         }
     }
     /**
-     * This method do a long range attack
+     * This method do a long range attack with all troops from the attacker castle which has enough range to reach
+     * the defender castle
      * @param attacker the attacker castle
      * @param target the target castle
      */
     private void doLongRangeAttack(Castle attacker, Castle target){
         int range = ARangePathFinding.getRange(getPath(), attacker, target);
-        List<ATriplet<ATroops, Integer, String>> attackerTroops = new LinkedList<>();
-        for(ATroops t : getTroops(attacker)){
-            if(t.troop().longRangeRange >= range){
-                attackerTroops.add(new ATriplet<>(t, t.troopCount(), ""));
-            }
-        }
-        attackerTroops.sort(Comparator.comparingInt((ATriplet<ATroops, Integer, String> t) -> t.getFirst().troop().attackLongRange));
-        List<ATroops> defenderTroops = getTroops(target);
-        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().defenseLongRange));
-        defenderTroops.sort(Comparator.comparingInt((ATroops t) -> t.troop().life));
+        List<ATroops> attackerTroops = getTroops(attacker).stream().filter((ATroops t) -> t.troop().longRangeRange >= range).collect(Collectors.toList());
 
-        List<ATroops> newDefenderTroops = new LinkedList<>();
-
-        ListIterator<ATroops> defenderIterator;
-        ATroops defender, newDefender;
-        int troopCount;
-        ATroop troop;
-        int damage;
-        for(ATriplet<ATroops, Integer, String> triplet : attackerTroops){
-            troop = triplet.getFirst().troop();
-            defenderIterator = defenderTroops.listIterator();
-            while(defenderIterator.hasNext() && triplet.getSecond() > 0){
-                defender = defenderIterator.next();
-                if(troop.attackLongRange >= defender.troop().defenseLongRange) {
-                    troopCount = (int)Math.ceil(((double)(defender.troop().defenseLongRange + defender.troop().life)) / troop.attackLongRange);
-                    for(int i=0; i<defender.troopCount(); i++){
-                        if(triplet.getSecond() >= troopCount){
-                            triplet.setSecond(triplet.getSecond() - troopCount);
-                            damage = defender.troop().life;
-                            defender.removeTroops(1);
-                        }else{
-                            defender.removeTroops(1);
-                            newDefender = defender.clone();
-                            damage = (troop.attackLongRange * triplet.getSecond()) - defender.troop().defenseLongRange;
-                            newDefender.troop().life -= damage;
-                            newDefender.setTroopCount(1);
-                            triplet.setSecond(0);
-                            if(newDefender.troop().life > 0)
-                                newDefenderTroops.add(newDefender);
-                        }
-                        madeDamage(attacker.getOwner(), damage);
-                    }
-                    if(defender.troopCount() <= 0)
-                        defenderIterator.remove();
-                }else{
-                    break;
-                }
-            }
-        }
-
-        addTroops(target, newDefenderTroops);
-        if(defenderTroops.isEmpty() && newDefenderTroops.isEmpty()){
-            target.setOwner(null);
-        }
+        Pair<Integer, List<ATroops>> result = doAttack(attackerTroops, getTroops(target),
+                                                (ATroops t) -> t.troop().attackLongRange,
+                                                (ATroops t) -> t.troop().defenseLongRange);
+        madeDamage(attacker.getOwner(), result.getKey());
+        updateTroops(null, target, result.getValue());
     }
 
     /**

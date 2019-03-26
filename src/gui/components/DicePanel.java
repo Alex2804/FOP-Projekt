@@ -5,6 +5,7 @@ import gui.Resources;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public class DicePanel extends JPanel {
 
@@ -14,7 +15,7 @@ public class DicePanel extends JPanel {
     private int numDices;
 
     public DicePanel(Resources resources) {
-        this.diceValues = new int[3];
+        this.diceValues = new int[6];
         this.resources = resources;
         this.random = new Random();
         this.generateRandom(3);
@@ -22,13 +23,13 @@ public class DicePanel extends JPanel {
 
     public int[] generateRandom(int numDices) {
         this.numDices = numDices;
-        int[] result = new int[Math.min(numDices, diceValues.length)];
+        int[] result = new int[Math.min(numDices, 3)];
 
-        for (int i = 0; i < Math.min(numDices, diceValues.length); i++) {
+        for (int i = 0; i < numDices; i++) {
             diceValues[i] = random.nextInt(6) + 1;
-            result[i] = diceValues[i];
         }
-
+        IntStream.range(0, result.length).forEach(i -> result[i] = 0);
+        IntStream.range(0, numDices).forEach(i -> result[i%result.length] += diceValues[i]);
         repaint();
         return result;
     }
@@ -59,6 +60,8 @@ public class DicePanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if(numDices == 0)
+            return;
 
         int width = getWidth();
         int height = getHeight();
@@ -72,7 +75,7 @@ public class DicePanel extends JPanel {
             int x = offsetX + i * (margin + diceSize);
             int y = margin;
             int value = (diceValues[i] - 1) % 6;
-            g.drawImage(resources.getDice(value), x, y, diceSize, diceSize, null);
+            g.drawImage(resources.getDice(Math.abs(value)), x, y, diceSize, diceSize, null);
         }
     }
 }

@@ -1,6 +1,20 @@
 package de.teast;
 
+import de.teast.aextensions.ajoker.*;
 import de.teast.atroops.ATroop;
+import game.Game;
+import game.Goal;
+import game.Player;
+import game.goals.ACaptureTheFlagGoal;
+import game.goals.AClashOfArmiesGoal;
+import game.goals.AFlagEmpireGoal;
+import game.goals.ConquerGoal;
+import game.players.Human;
+import gui.Resources;
+
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Constants for some of my implementations
@@ -28,11 +42,11 @@ public class AConstants {
     public static final int POINTS_PER_BASE = 50;
 
     public static final ATroop[] TROOPS = {
-            new ATroop("castle1.png", "Reiter", 10, 2, 15, 0, 0, 2, 100, 50),
-            new ATroop("castle2.png", "Schwertkämpfer", 10, 10, 10, 0, 0, 1, 100, 25),
-            new ATroop("castle3.png", "Speerkämpfer", 8, 8, 7, 0, 0, 1, 100, 15),
-            new ATroop("castle4.png", "Bogenschütze", 2, 5, 1, 5, 2, 1, 100, 20),
-            new ATroop("castle5.png", "Armbrustschütze", 5, 5, 2, 8, 1, 1, 100, 25),
+            new ATroop("horse.png", "Reiter", 7, 2, 15, 0, 0, 3, 100, 50),
+            new ATroop("sword.png", "Schwertkämpfer", 8, 5, 12, 0, 6, 1, 100, 30),
+            new ATroop("spear.png", "Speerkämpfer", 4, 3, 10, 0, 0, 1, 40, 10),
+            new ATroop("bow.png", "Bogenschütze", 2, 6, 4, 7, 2, 2, 80, 20),
+            new ATroop("crossbow.png", "Armbrustschütze", 4, 10, 5, 15, 1, 1, 70, 30),
     };
     public static final int TROOP_IMAGE_INFO_SIZE = 100;
     public static final int TROOP_IMAGE_TROOPS_PANEL_SIZE = 40;
@@ -42,7 +56,29 @@ public class AConstants {
     public static final int FLAG_POINTS = 100;
 
 
-    public static final int ATROOPJOKER_TROOP_COUNT = 4;
-    public static final String ATROOPJOKER_NAME = "Truppen Joker";
-    public static final String ATROOPJOKER_DESCRIPTION = "Mit diesem Joker bekommt der Spieler wenn er ihn einsetzt " + AConstants.ATROOPJOKER_TROOP_COUNT + " extra Truppen.";
+    public static final int ATROOPJOKER_TROOP_COUNT = 5;
+    public static final int APOINTJOKER_POINT_COUNT = POINTS_PER_ROUND * 3;
+    public static final int AEXTRACASTLESJOKER_CASTLE_COUNT = 3;
+
+    public static final Game JOKER_INIT_GAME = new Game();
+    public static final Player JOKER_INIT_PLAYER = new Human("", Color.BLACK);
+    public static final AJoker ATROOPJOKER = new ATroopJoker(JOKER_INIT_GAME, JOKER_INIT_PLAYER);
+    public static final AJoker APOINTJOKER = new APointJoker(JOKER_INIT_GAME, JOKER_INIT_PLAYER);
+    public static final AJoker AEXTRACASTLESJOKER = new AExtraCastlesJoker(JOKER_INIT_GAME, JOKER_INIT_PLAYER);
+    public static final AJoker[] CONQUER_JOKERS = {
+            ATROOPJOKER, AEXTRACASTLESJOKER
+    };
+    public static final AJoker[] CAPTURE_THE_FLAG_JOKERS = CONQUER_JOKERS;
+    public static final AJoker[] FLAG_EMPIRE_JOKERS = {
+            ATROOPJOKER, APOINTJOKER, AEXTRACASTLESJOKER
+    };
+    public static final AJoker[] CLASH_OF_ARMIES_JOKERS = {
+            APOINTJOKER
+    };
+    public static final Map<Class<? extends Goal>, AJoker[]> GAME_JOKERS = new HashMap(){{
+        put(ConquerGoal.class, CONQUER_JOKERS);
+        put(ACaptureTheFlagGoal.class, CAPTURE_THE_FLAG_JOKERS);
+        put(AFlagEmpireGoal.class, FLAG_EMPIRE_JOKERS);
+        put(AClashOfArmiesGoal.class, CLASH_OF_ARMIES_JOKERS);
+    }};
 }

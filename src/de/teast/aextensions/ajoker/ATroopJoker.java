@@ -9,19 +9,23 @@ import game.Player;
  * @author Alexander Muth
  */
 public class ATroopJoker extends AJoker{
+    public static final String NAME = "Truppen Joker";
+    public static final String DESCRIPTION = "Mit diesem Joker bekommt der Spieler " + AConstants.ATROOPJOKER_TROOP_COUNT + " extra Truppen.";
+    public static final String LOGTEXT = "und bekommt " + AConstants.ATROOPJOKER_TROOP_COUNT + " extra Truppen!";
+
     private boolean usable = true;
 
     public ATroopJoker(Game game, Player player){
-        super(AConstants.ATROOPJOKER_NAME, AConstants.ATROOPJOKER_DESCRIPTION, game, player);
+        super(NAME, DESCRIPTION, LOGTEXT, game, player);
     }
 
     @Override
     public boolean isUsable() {
-        return usable;
+        return usable && game.allCastlesChosen();
     }
 
     @Override
-    public void useJoker() {
+    public void innerUseJoker() {
         player.addTroops(AConstants.ATROOPJOKER_TROOP_COUNT);
         usable = false;
     }
